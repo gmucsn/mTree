@@ -1,5 +1,7 @@
 # mTree
 
+Documentation can be found [here](http://mtree.readthedocs.io/en/latest/).
+
 mTree can be installed using the `pip` installer.
 
 ```
