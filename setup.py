@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="mTree",
-    version="0.2-PRE",
+    version="0.2-BETA",
     packages=find_packages(),
     include_package_data=True,
     # Project uses reStructuredText, so ensure that the docutils get
@@ -14,13 +14,14 @@ setup(
                       'Flask-SQLAlchemy>=2.1',
                       'eventlet>=0.20.1',
                       'numpy>=1.11.1',
-                      'PyYaml>=3.12'],
+                      'PyYaml>=3.12',
+                      'thespian>=3.8.0'],
 
     # metadata for upload to PyPI
     author="GMU CSN",
-    author_email="gmucsn@gmucsn.edu",
+    author_email="mtree.email@gmail.com",
     description="This is the base mTree package",
     license="MIT",
-    keywords="experimental economics",
+    keywords="computational experimental economics",
     url="https://github.com/gmucsn/mTree",   # project home page, if any
 )
