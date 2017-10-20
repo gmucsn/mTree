@@ -1,0 +1,495 @@
+<!DOCTYPE HTML>
+<html>
+
+    <head>
+        <title>CSN Search Experiment</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+          table { text-align:center; margin:1em auto; border: 4px solid black }
+          body { width:1920px; height:1080px }
+          td { border: 5px white; padding: 1em; background:white; vertical-align:top;}
+          .box { padding: 4px; border: 4px solid black; cursor:pointer }
+          table.on { border: 4px solid green; }
+          table.off { border: 4px solid red; }
+          input { font-size: 150%;}
+          #cover { position:fixed;
+                    top:0;
+                    left:0;
+                    background:rgba(0,0,0,0.6);
+                    z-index:5;
+                    width:100%;
+                    height:100%;
+                    display:none; }
+        </style>
+        <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+        <script type="text/javascript" charset="utf-8">
+            var user_id = "";
+            $(document).ready(function() {
+
+
+        /*
+         * This function makes a call back to the server to post a
+         * dictionary on the board. It is used both for requested (tag=peek)
+         * and automatic (tag=click, tag=key) dictionaries. It decorates the
+         * dictionary with two additional entries that indicate (i) client
+         * number and (ii) a time stamp; these are used in all dictionaries
+         * posted by the client, so we might as well just code them once.
+         */
+        function put(obj){
+          /*
+           * Keep in mind that client is a string and we want an integer
+           * here, so subtract 0.
+           */
+
+
+          //obj.client = client - 0;
+          //obj.time = (new Date()).getTime();
+          obj.user_id = user_id;
+          socket.emit('put', {data: JSON.stringify(obj)});
+
+        }
+
+        function add(data, msg){
+            var new_div = $("<div id='" + data["new_div_id"] + "'></div>");
+            new_div.append(data);
+
+            switch(msg["add_instruction"]) {
+                case "append":
+                    $(document.body).append(new_div);
+                    break;
+                case "prepend":
+                    $(document.body).prepend(new_div);
+                    break;
+                }
+            //TODO flag for append/prepend
+        }
+
+        function pause_screen_control(data, msg){
+            console.log("Attempting to pause things: " + msg["experiment_state"]);
+            switch(msg["experiment_state"]){
+                case "paused":
+                    $("#cover").show(); // brings up the pause screen
+                    break;
+                case "running":
+                   $("#cover").hide(); // brings up the pause screen
+                   break;
+            }
+        }
+
+        function decorate(elt) {
+          /*
+           * Key presses that happen when a text field is in focus
+           * should be processed the normal way and should not result in
+           * events being reported to the server.
+           */
+          var text_fields = elt.find("input:text,textarea");
+          text_fields.keypress(function(e) {
+            e.stopPropagation();
+          });
+
+          /*
+           * When somebody clicks a button, or a "clickable" element, we
+           * catch the click and report it.
+           */
+           if (elt.is(":submit")){
+                elt.unbind("click");
+                elt.click(function (e) {
+                    put({ "tag": "click",  "id": e.currentTarget.id});
+            });
+           }
+
+          var buttons = elt.find(":submit,:button,.clickable");
+            buttons.unbind("click");
+            buttons.click(function (e) {
+                put({ "tag": "click",  "id": e.currentTarget.id});
+            });
+
+          /*
+           * When an element is marked with class "bait", we want to
+           * turn on class "mouse" whenever the mouse is over it. (This
+           * is for implementing "hover" effects.)
+           */
+          var mousetraps = elt.find(".bait");
+          mousetraps.unbind("mouseenter");
+          mousetraps.unbind("mouseleave");
+          mousetraps.bind("mouseenter mouseleave", function(e) {
+            $(e.target).closest(".bait").toggleClass("mouse");
+          });
+        }
+
+
+                // Use a "/test" namespace.
+                // An application can open a connection on multiple namespaces, and
+                // Socket.IO will multiplex all those connections on a single
+                // physical channel. If you don't care about multiple channels, you
+                // can set the namespace to an empty string.
+                namespace = '/subject';
+
+                // Connect to the Socket.IO server.
+                // The connection URL has the following format:
+                //     http[s]://<domain>:<port>[/<namespace>]
+                var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+
+                // Event handler for new connections.
+                // The callback function is invoked when a connection with the
+                // server is established.
+                socket.on('connect', function() {
+                    socket.emit('my_event', {data: 'I\'m connected!'});
+                });
+
+                // Event handler for server sent data.
+                // The callback function is invoked whenever the server emits data
+                // to the client. The data is then displayed in the "Received"
+                // section of the page.
+                socket.on('my_response', function(msg) {
+                    $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+                });
+
+                // Interval function that tests message latency by sending a "ping"
+                // message. The server then responds with a "pong" message and the
+                // round trip time is measured.
+                var ping_pong_times = [];
+                var start_time;
+
+
+                function willow_command(action, data, msg){
+                    console.log("Action Happening: " + action);
+                    switch(action) {
+                    case "show":
+                        decorate($("#" + data));
+                        $("#" + data).show();
+                        break;
+                    case "hide":
+                        decorate($("#" + data));
+                        $("#" + data).hide();
+                        break;
+                    case "let":
+                        //alert(data);
+                        decorate($("#" + data).html(msg["content"]));
+                        break;
+                    case "add":
+                        add(data, msg);
+                        break;
+                    case "set_user_id":
+
+                        // Should check to see if already set...
+                        user_id = data;
+                        $("#user_id_text").html(user_id)
+                        break;
+
+                    case "pause":
+                        pause_screen_control(data, msg);
+                        break;
+
+
+
+                    }
+                }
+
+
+                // Handler code for receiving willow specific commands
+                socket.on('willow_action', function(msg) {
+
+
+                    action = msg.data["action"];
+                    item = msg.data["item"];
+                    //alert(item);
+                    willow_command(action, item, msg.data);  // Reconsider this TODO
+                });
+
+
+
+                // Handlers for the different forms in the page.
+                // These accept data from the user and send it to the server in a
+                // variety of ways
+                $('form#emit').submit(function(event) {
+                    socket.emit('my_event', {data: $('#emit_data').val()});
+                    return false;
+                });
+                $('form#broadcast').submit(function(event) {
+                    socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
+                    return false;
+                });
+                $('form#join').submit(function(event) {
+                    socket.emit('join', {room: $('#join_room').val()});
+                    return false;
+                });
+                $('form#leave').submit(function(event) {
+                    socket.emit('leave', {room: $('#leave_room').val()});
+                    return false;
+                });
+                $('form#send_room').submit(function(event) {
+                    socket.emit('my_room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
+                    return false;
+                });
+                $('form#close').submit(function(event) {
+                    socket.emit('close_room', {room: $('#close_room').val()});
+                    return false;
+                });
+                $('form#disconnect').submit(function(event) {
+                    socket.emit('disconnect_request');
+                    return false;
+                });
+            });
+        </script>
+    </head>
+
+     <body>
+
+        <div id="cover"></div>
+
+         <div class="hidden" style="display:none;" id="instructions_1"><!--instructions page-->
+
+             <table>
+                 <td>
+                     <h1 >Instructions: </h1>
+                     <h3 >Introduction: </h3>
+                     <h3 align="left">For this Hit you will be completing a decision making task. The task will have you choose between
+                         a set of alternatives in order to earn the best possible reward.</h3>
+                     <h3 align="left">The overview for the task is as follows:</h3>
+                     <h3 align="left">1.	You will read the instructions.</h3>
+                     <h3 align="left">2.	You will complete a practice task to ensure understanding of the task.</h3>
+                     <h3 align="left">3.	You will then complete the task.</h3>
+                     <h3 align="left">4.	After the task is complete, you will submit the results to Amazon. You will receive 25 cents
+                         for the hit, plus a bonus. This bonus is determined by the decisions made during the experiment.</h3>
+
+                 </td>
+             </table>
+
+         </div>
+
+         <div class= "hidden" style="display:none;" id="instructions_2"><!--instructions page-->
+             <table>
+                 <td>
+                     <h1 >Instructions: </h1>
+                     <h3>Overview:</h3>
+                     <p><h3 align="left">1. The session will be divided into 10 rounds.</h3></p> <!-- You will have 1 minute for each round, for a possible time of 10 minutes.-->
+                     <p><h3 align="left">2. In each round you will be presented with three boxes: Box A, Box B, and Box C.
+                     Each box is labeled with the amount of money it could contain, and the probability that the box will contain the reward.
+                     The box will either have the amount of the reward, or nothing at all. For example Box A could have an 11% chance
+                     of containing 5 cents. This amount will be different for each round. </h3></p>
+                     <p><h3 align="left">3. You will have the opportunity to look inside each box. This is the only way to determine whether the box contains the reward.
+                     The cost of looking into a box is 5 cents. You are able to take a look into multiple boxes within a round.</h3></p>
+                     <p><h3 align="left">4. For each set of boxes, one of the rewards will have already been revealed. This reward will
+                     always be 5 cents, and will cost nothing to acquire.</h3></p>
+                     <p><h3 align="left">5. The round will end when you take a box. You are only able to take one box per round. There is no cost for
+                     taking a box. </h3></p>
+                 </td>
+             </table>
+         </div>
+
+         <div class= "hidden" style="display:none;" id="instructions_3"><!--instructions page-->
+             <table>
+             <td>
+                 <h1 >Instructions: </h1>
+                 <h3>How to make your Decisions:</h3>
+                 <h3 align="left">1.	Above each three boxes labeled 'Box A', 'Box B', and 'Box C,' there is a 'Look' button for each box.
+                     Clicking on this button shows you how much money is inside the box below it. After you click the 'Look' button,
+                     a number will appear inside the box indicating the amount of money that is in the box. </h3>
+                 <h3 align="left">2.	Next to the 'Look' buttons there are buttons labeled 'Take.' Clicking the 'Take' button
+                     selects the reward you receive for the round. The round will end after you take a box. </h3>
+                 <h3 align="left">3.	After taking a box, an 'end of round' screen will appear with information about:
+                     <ul>
+                         <li>The reward you chose from the round</li>
+                         <li>The cost of looking in a boxes during the round </li>
+                         <li>The total amount earned in the round</li>
+                         <li>Your total earnings from all rounds</li>
+                     </ul>
+                 </h3>
+                 <h3 align="left">
+                     You may begin the next round by clicking the 'Next Round' button.
+                 </h3>
+             </td>
+             </table>
+         </div>
+
+         <div align="center"  id="instructions_buttons">
+             <input class='hidden' style="display:none;" id='prev_instruction' value='Previous' type='submit'/>
+             <input class='hidden' style="display:none;" id='next_instruction' value='Next' type='submit'/>
+             <input class='hidden' style="display:none;" id='begin_tutorial' value='Begin Tutorial' type='submit'/>
+         </div>
+
+         <div class= "hidden" style="display:none;" id="instructions"><!--instructions page-->
+             <table>
+             <td>
+                 <h1 >Instructions: </h1>
+                 <h3 >Introduction: </h3>
+                 <h3 align="left">For this Hit you will be completing a decision making task. The task will have you choose between
+                     a set of alternatives in order to earn the best possible reward.</h3>
+                 <h3 align="left">The overview for the task is as follows:</h3>
+                 <h3 align="left">1.	You will read the instructions.</h3>
+                 <h3 align="left">2.	You will complete a practice task to ensure understanding of the task.</h3>
+                 <h3 align="left">3.	You will then complete the task.</h3>
+                 <h3 align="left">4.	After the task is complete, you will submit the results to Amazon. You will receive 25 cents
+                     for the hit, plus a bonus. This bonus is determined by the decisions made during the experiment.</h3>
+
+                 <h3>Overview:</h3>
+                 <p><h3  align="left">1.	The session will be divided into 10 rounds.</h3></p> <!-- You will have 1 minute for each round, for a possible time of 10 minutes. </h3></p>-->
+                 <p><h3  align="left">2.	In each round you will be presented with three boxes: Box A, Box B, and Box C.
+                 Each box is labeled with the amount of money it could contain, and the probability that the box will contain the reward.
+                 The box will either have the amount of the reward, or nothing at all. For example Box A could have an 11% chance
+                 of containing 5 cents. This amount will be different for each round. </h3></p>
+                 <p><h3  align="left">3.	You will have the opportunity to look inside each box. This is the only way to determine whether the box contains the reward.
+                 The cost of looking into a box is 5 cents. You are able to take a look into multiple boxes within a round.</h3></p>
+                 <p><h3  align="left">4.	The round will end when you take a box. You are only able to take one box per round. There is no cost for
+                 taking a box. </h3></p>
+
+                 <h3>How to make your Decisions:</h3>
+                 <h3 align="left">1.	Above each three boxes labeled 'Box A', 'Box B', and 'Box C,' there is a 'Look' button for each box.
+                     Clicking on this button shows you how much money is inside the box below it. After you click the 'Look' button,
+                     a number will appear inside the box indicating the amount of money that is in the box. </h3>
+                 <h3 align="left">2.	Next to the 'Look' buttons there are buttons labeled 'Take.' Clicking the 'Take' button
+                     selects the reward you receive for the round. The round will end after you take a box. </h3>
+                 <h3 align="left">3.	After taking a box, an 'end of round' screen will appear with information about:
+                     <ul>
+                         <li>The reward you chose from the round</li>
+                         <li>The cost of looking in a boxes during the round </li>
+                         <li>The total amount earned in the round</li>
+                         <li>Your total earnings from all rounds</li>
+                     </ul>
+                 </h3>
+                 <h3 align="left">
+                     You may begin the next round by clicking the 'Next Round' button.
+                 </h3>
+
+             </td>
+             </table>
+         </div>
+
+         <div class="hidden" style="display:none;" id='experiment'>
+
+             <input class = 'hidden' id='show_instructions' value= 'Show Instructions' type='submit' /><!--button to move to access instruction page-->
+             <input class = 'hidden' id='hide_instructions' value= 'Hide Instructions' type='submit' /><!--button to move to hide instruction page-->
+
+             <div class="hidden" id="tutorial_banner">
+                 <h1 align="center"><u>Tutorial</u></h1>
+             </div>
+
+             <div>
+                 <h1 align="center">Round:<span id="round_number">0</span></h1><!--updates round number, 10 rounds in one session-->
+             </div>
+
+             <div>
+             <table>
+                 <td>
+                     <h3 align="center"><font size=5>Box A</font></h3><!--BOX A-->
+                     <input class="hidden" id='look_a' value= 'Look' type='submit' /><!--button to search box-->
+                     <input class="hidden" id='take_a' value= 'Take' type='submit' /><!--button to take box-->
+                     <hr />
+                   <table class="clickable bait box" id="A">
+                     <td>
+                         <h1 class = "hidden" id='info_a'>
+                             <p><font size=5>Reward = <span id="reward_a">0.00</span> cents</font></p><!--gives box reward-->
+                             <p><font size=5>Probability = <span id="prob_a">0.00</span>%</font></p>
+                         </h1><!--gives box prob-->
+                         <h1 class="hidden" id="content_a">
+                             <p><font size=5>Contents = <span id="contains_a">?</span></font></p><!--gives updated box reward, shows true value after box searched-->
+                         </h1>
+                     </td>
+                   </table>
+             </div>
+
+             <div>
+
+                 <td>
+                     <h3 align="center"><font size=5>Box B</font></h3><!--BOX B-->
+                     <input class="hidden" id='look_b' value= 'Look' type='submit' />
+                     <input class="hidden" id='take_b' value= 'Take' type='submit' />
+                     <hr />
+                   <table class="clickable bait box" id="B">
+                     <td>
+                         <h1 class = "hidden" id='info_b'>
+                             <p><font size=5>Reward = <span id="reward_b">0.00</span> cents</font></p>
+                             <p><font size=5>Probability = <span id="prob_b">0.00</span>%</font></p>
+                         </h1>
+                         <h1 class="hidden" id="content_b">
+                             <p><font size=5>Contents = <span id="contains_b">?</span></font></p>
+                         </h1>
+                     </td>
+                   </table>
+
+             </div>
+
+             <div>
+                 <td>
+                     <h3 align="center"><font size=5> Box C</font></h3><!--BOX C-->
+                     <input class="hidden" id='look_c' value= 'Look' type='submit' />
+                     <input class="hidden" id='take_c' value= 'Take' type='submit' />
+                     <hr />
+                   <table class="clickable bait box" id="C">
+                     <td>
+                         <h1 class = "hidden" id='info_c'>
+                             <p><font size=5>Reward = <span id="reward_c">0.00</span> cents</font></p>
+                             <p><font size=5>Probability = <span id="prob_c">0.00</span>%</font></p>
+                         </h1>
+                         <h1 class="hidden" id="content_c">
+                             <p><font size=5>Contents = <span id="contains_c">?</span></font></p>
+                         </h1>
+                     </td>
+                   </table>
+                  </table>
+             </div>
+
+             <div align="center">
+                 <table>
+                 <td>
+                     <h1>Search Costs For This Round:</h1><!--accumulated cost within a round-->
+                     <p><font size=5><span id="total_cost">0</span> cents</font></p>
+
+                 </td>
+                 </table>
+             </div>
+             <div align="center">
+                 <table>
+                 <td>
+                     <!--<h1>Player #: <span id="idnumber"> 0 </span></h1>-->
+                     <h1>Your Total Earnings:</h1>
+                     <p><font size=5><span id="total_earnings">0.0</span> cents</font></p> <!--updates accumulated earning-->
+                 </td>
+                 </table>
+             </div>
+         </div>
+
+         <div class= "hidden" style="display:none;" id="end_round"><!--end round screen-->
+             <table>
+             <td>
+                 <p><h1 align="center">The round has ended</h1></p>
+                 <p><h1 align="center">You took Box <span id="round_box"> 0.00 </span></h1></p><!--displays box taken-->
+                 <p><h1 align="center">It contained <span id="round_reward"> 0.00 </span> cents</h1></p><!--displays box taken-->
+                 <p><h1 align="center">You spent <span id="round_cost"> 0.00 </span> cents searching</h1></p><!--displays box taken-->
+                 <p><h1 align="center">You earned <span id="round_earn"> 0.00 </span> cents in this round.</h1></p><!--displays earning within round with cost subtracted-->
+                 <p><h1 align="center">Your total earnings for all rounds is <span id="total_earn">0.00 </span> cents</h1></p><!--displays accumulated earning within session-->
+                 <!--<p><h1 align="center">Please proceed to the next round</h1></p>-->
+                 <p><input class= "hidden" id='next_round' value= 'Next Round' type='submit' /></p><!--button to proceed to next round-->
+             </td>
+             </table>
+         </div>
+
+         <div class="hidden" style="display:none;" id="end_tutorial"><!--end round screen-->
+             <table>
+             <td>
+                 <p><h1  align="center">You have completed the tutorial.</h1></p>
+                 <p><h1 align="center">Your total earnings for the tutorial <span id="tutorial_earnings"> 0 </span> cents.</h1></p>
+                 <p><h1 align="center">Do you wish to begin the experiment?</h1></p>
+                 <p><input id='begin_experiment' value= 'Begin Experiment' type='submit'/></p><!--button to proceed to next round-->
+                 <p><input id='restart_tutorial' value= 'Restart Tutorial' type='submit'/></p><!--button to proceed to next round-->
+             </td>
+             </table>
+         </div>
+
+         <div class="hidden" style="display:none;" id="end_experiment"><!--end of session page-->
+             <table>
+             <td>
+                 <p><h1 align="center">The session has ended</h1></p>
+                 <p><h1 align="center">Your total earnings for the experiment are <span id="experiment_earnings"> 0 </span> cents.</h1></p><!--displays total token within entire session-->
+                 <p><h1 align="center">Thank you for participating.</h1></p>
+                 <p><input id='submit_to_amazon' value= 'Submit to Amazon' type='submit'/></p>
+                 <!--<p><h1 align="center">Your ID is: <span id="playerid"> 0.00 </span> .</h1></p>-->
+             </td>
+             </table>
+         </div>
+
+    </body>
+
+</html>

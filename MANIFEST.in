@@ -1,0 +1,2 @@
+include mTree/base/admin_templates/*
+include mTree/base/user_templates/*

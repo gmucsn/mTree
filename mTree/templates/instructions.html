@@ -1,0 +1,38 @@
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+    <title>Instruction</title>
+</head>
+<style>
+div.well{
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+    border: 5px lightgrey;
+    padding: 15px;
+    background-color: white;
+}
+</style>
+<body>
+    <div id="page" class="container">
+        <div id="text" class="well well-lg">
+            <div id="page_1">
+                This is page 1.
+            </div>
+            <div id="page_2">
+                This is page 2.
+            </div>
+            <div id="page_3">
+                This is page 3.
+            </div>
+        </div> <!-- This is where we put the instructions for the experiment -->
+        <div id="buttons" class="well well-lg">
+                <button id="previous" type="button" class="btn btn-default" data-controller-action="previous_page">Previous Page</button>
+                <button id="next" type="button" class="btn btn-default" data-controller-action="next_page">Next Page</button>
+            </div> <!-- These are the buttons that we use to go through the pages -->
+    </div>
+</body>
