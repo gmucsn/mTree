@@ -17,7 +17,7 @@ python setup.py bdist_egg
 After building this you will need to install locally:
 
 ```commandline
-easy_install dist/mTree-x-py3.6.egg
+easy_install dist/mTree-0.2b0-py3.6.egg
 ```
 
 

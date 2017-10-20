@@ -4,3 +4,5 @@ flask-sqlalchemy
 eventlet
 flask-apscheduler
 numpy
+thespian
+
