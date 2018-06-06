@@ -1,7 +1,7 @@
 from thespian.actors import *
 import numpy as np
 
-from message import Message
+from mTree.microeconomic_system.message_space import Message
 
 
 class Agent(Actor):

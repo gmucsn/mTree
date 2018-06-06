@@ -16,7 +16,7 @@ setup(
                       'numpy>=1.11.1',
                       'PyYaml>=3.12',
                       'thespian>=3.8.0'],
-
+    scripts=['bin/mTree_control'],
     # metadata for upload to PyPI
     author="GMU CSN",
     author_email="mtree.email@gmail.com",
