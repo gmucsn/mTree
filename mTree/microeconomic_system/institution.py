@@ -2,6 +2,9 @@ from thespian.actors import *
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 import uuid
+from mTree.microeconomic_system.message_space import MessageSpace
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.directive_decorators import *
 
 
 
@@ -13,6 +16,11 @@ class Institution(Actor):
         self.agents = []
         self.agent_ids = []
 
+    def receiveMessage(self, message, sender):
+        directive_handler = self._enabled_directives.get(message.get_directive())
+        directive_handler(self, message)
+
+
     def add_agent(self, agent_class):
         agent_id = str(uuid.uuid1())
 
@@ -21,16 +29,3 @@ class Institution(Actor):
         self.agents.append(agent)
         self.agent_ids.append(agent_id)
 
-    def receiveMessage(self, message, sender):
-        if isinstance(message, Message):
-            if message.recipients == "Institution":
-                if message.directive == "create_agent":
-                    self.add_agent(message.content)
-
-                elif message.directive == "list_agents":
-                    self.send(sender, self.agents)  # explicit call back to sender
-
-            elif message.recipients == "Agents":
-                if message.directive == "get_wealth":
-                    #wealths = [asys.ask(agent, message) for agent in self.agents]
-                    self.send(sender, wealths)  # self.send(address, message)

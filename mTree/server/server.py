@@ -11,6 +11,9 @@ from flask_apscheduler import APScheduler
 from flask_basicauth import BasicAuth
 
 
+from mTree.components.admin_message import AdminMessage
+
+
 import logging
 from logging.handlers import RotatingFileHandler
 from inspect import getframeinfo, stack
@@ -24,9 +27,64 @@ from flask_sqlalchemy import SQLAlchemy
 from jinja2 import Environment, FileSystemLoader
 import os
 
+from mTree.components import registry
+
 from mTree.base.response import Response
 
 from mTree.server.admin import admin_area
+
+class MTreeController(object):
+    app = None
+
+    def __init__(self):
+        print("doing stuff")
+        #  print("initializing " * 20)
+
+
+        self.async_mode = 'eventlet'  # None
+        self.app = Server()
+        self.app.config['SECRET_KEY'] = 'secret!'
+
+        self.app.config['EXPLAIN_TEMPLATE_LOADING¶'] = True
+
+        thread = None
+        self.socketio = SocketIO(self.app, async_mode=self.async_mode)
+        self.component_registry = registry.Registry()
+        self.component_registry.register_server(self)
+        print("should have registered server")
+        print(self)
+
+        template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
+                                               jinja2.PackageLoader('mTree', 'base/admin_templates'),
+                                               jinja2.PackageLoader('mTree', 'base/user_templates')])
+        self.app.jinja_loader = template_loader
+
+        # self.app.config['BASIC_AUTH_USERNAME'] = '<PLACE USERNAME HERE>'
+        # self.app.config['BASIC_AUTH_PASSWORD'] = '<PLACE PASSWORD HERE>'
+
+        self.basic_auth = BasicAuth(self.app)
+
+        # self.add_routes()
+        self.scheduler = APScheduler()
+        self.scheduler.init_app(self.app)
+        self.scheduler.start()
+        # self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
+        #self.app.register_blueprint(admin_area, url_prefix='/admin')
+        self.app.register_blueprint(admin_area)
+        self.add_routes()
+
+    def add_routes(self):
+        @self.socketio.on('admin_control', namespace='/admin')
+        def admin_control_message(message):
+            print("Received Admin Message")
+            return self.component_registry.message(message)
+            # self.experiment.admin_event_handler(message)
+
+
+    def run(self):
+        print("starting server...")
+        #self.list_rules()
+        self.socketio.run(self.app, host='0.0.0.0', debug=True)
 
 class Server(Flask):
     def __init__(self):
@@ -35,12 +93,20 @@ class Server(Flask):
             self.jinja_loader,
             jinja2.PrefixLoader({}, delimiter = ".")
         ])
+        print("test start")
+        #print(self.app)
+
     def create_global_jinja_loader(self):
         return self.jinja_loader
 
     def register_blueprint(self, bp):
         Flask.register_blueprint(self, bp)
         #self.jinja_loader.loaders[1].mapping[bp.name] = bp.jinja_loader
+
+    def list_rules(self):
+        print("rule list")
+        print(self.url_map)
+
 
 
 class ServerOld(object):
