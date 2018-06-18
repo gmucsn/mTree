@@ -1,18 +1,17 @@
 from thespian.actors import *
 import numpy as np
 
-from message import Message
+from mTree.microeconomic_system.message_space import Message
+from mTree.microeconomic_system.message_space import MessageSpace
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.directive_decorators import *
 
 
+@directive_enabled_class
 class Agent(Actor):
     def __init__(self):
-        self.wealth = np.random.randint(1, 10)
-
-    def get_wealth(self):
-        return self.wealth
+        print("Agent started")
 
     def receiveMessage(self, message, sender):
-        if isinstance(message, Message):
-            if message.recipients == "Agents":
-                if message.directive == "get_wealth":
-                    self.send(sender, self.wealth)
+        directive_handler = self._enabled_directives.get(message.get_directive())
+        directive_handler(self, message)
