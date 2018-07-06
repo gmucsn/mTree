@@ -42,8 +42,8 @@ class Server(object):
                                                jinja2.PackageLoader('mTree', 'base/user_templates')])
         self.app.jinja_loader = template_loader
 
-        self.app.config['BASIC_AUTH_USERNAME'] = '<PLACE USERNAME HERE>'
-        self.app.config['BASIC_AUTH_PASSWORD'] = '<PLACE PASSWORD HERE>'
+        self.app.config['BASIC_AUTH_USERNAME'] = 'testing'
+        self.app.config['BASIC_AUTH_PASSWORD'] = 'testing'
 
         self.basic_auth = BasicAuth(self.app)
 
