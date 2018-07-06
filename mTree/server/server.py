@@ -86,7 +86,7 @@ class MTreeController(object):
         #self.list_rules()
         self.socketio.run(self.app, host='0.0.0.0', debug=True)
 
-class Server(Flask):
+class NewServer(Flask):
     def __init__(self):
         Flask.__init__(self, __name__)
         self.jinja_loader = jinja2.ChoiceLoader([
@@ -109,7 +109,7 @@ class Server(Flask):
 
 
 
-class ServerOld(object):
+class Server(object):
     app = None
 
     def __init__(self):

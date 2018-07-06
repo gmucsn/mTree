@@ -7,8 +7,25 @@ from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
 
+import json
+
+
+
 @directive_enabled_class
 class Environment(Actor):
+    def mTree_logger(self):
+        return logging.getLogger("mTree")
+
+    def experiment_log(self, *log_message):
+        self.mTree_logger().log(25, log_message)
+
+
+    def __str__(self):
+        return "<Environment: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
+
+    def __repr__(self):
+        return self.__str__()
+
     def __init__(self):
         self.institutions = []
         self.agents = []
@@ -18,7 +35,7 @@ class Environment(Actor):
         pass
 
     def receiveMessage(self, message, sender):
-        logging.info('Hello got: %s', message)
+        self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         directive_handler = self._enabled_directives.get(message.get_directive())
         directive_handler(self, message)
 
