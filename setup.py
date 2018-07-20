@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="mTree",
-    version="0.3-BETA-3",
+    version="0.3-BETA-4",
     packages=find_packages(),
     include_package_data=True,
     # Project uses reStructuredText, so ensure that the docutils get
