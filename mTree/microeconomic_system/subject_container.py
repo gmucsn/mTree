@@ -1,6 +1,6 @@
 from thespian.actors import *
-import logging
-from mTree.microeconomic_system.logging import logcfg
+#import logging
+#from mTree.microeconomic_system.logging import logcfg
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 import sys
@@ -19,7 +19,7 @@ class SubjectContainer():
             self.environments = {}
 
         def create_actor_system(self):
-            self.actor_system = ActorSystem(None, logDefs=logcfg)
+            self.actor_system = ActorSystem(None) #, logDefs=logcfg)
 
         def create_environment(self, environment_class, environment_name):
             environment_address = self.actor_system.createActor(environment_class)
