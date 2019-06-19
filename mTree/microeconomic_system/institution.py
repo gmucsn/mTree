@@ -31,7 +31,8 @@ class Institution(Actor):
         self.agent_ids = []
 
     def receiveMessage(self, message, sender):
-        self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
+        #print("INST GOT MESSAGE: " + message)
+        #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         directive_handler = self._enabled_directives.get(message.get_directive())
         directive_handler(self, message)
 

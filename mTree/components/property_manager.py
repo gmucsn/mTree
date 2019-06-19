@@ -1,9 +1,8 @@
 from mTree.components.admin_message import AdminMessage
 import json
-import sys
 
-class Registry:
-    class __Registry:
+class PropertyManager:
+    class __PropertyManager:
         def __init__(self):
             self.server = None
             self.class_list = {}
@@ -33,14 +32,6 @@ class Registry:
             elif base_class.__name__ == "Environment":
                 Registry.instance.environment_list.append(class_name)
 
-    def get_component_source_file(self, mes_class):
-        classobject = Registry.instance.class_list[mes_class]["class"]
-        filename = sys.modules[classobject.__module__].__file__
-        contents = None
-        with open(filename) as f:
-            contents = f.read()
-        return contents
-
     def list_classes(self):
         return Registry.instance.class_list
 
@@ -65,7 +56,7 @@ class Registry:
         return Registry.instance.environment_list
 
     def register_server(self, server):
-
+        print("Server registered")
         Registry.instance.server = server
 
     def get_server(self):

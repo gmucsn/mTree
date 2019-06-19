@@ -5,6 +5,8 @@ from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 import sys
 from datetime import timedelta
+import atexit
+
 
 class Container:
     def __init__(self):
@@ -13,16 +15,36 @@ class Container:
         self.root_environment = None
 
         self.create_actor_system()
-
-
+        atexit.register(self.actor_system_cleanup)
 
     def create_actor_system(self):
-        self.actor_system = ActorSystem(None, logDefs=logcfg)
+        logcfg = {'version': 1,  # (ref:logdef)
+                  'formatters': {
+                      'normal': {
+                          'format': '%(levelname)-8s %(message)s'}},
+                  'handlers': {
+                      'h': {'class': 'logging.FileHandler',
+                            'filename': 'hello.log',
+                            'formatter': 'normal',
+                            'level': logging.INFO}},
+                  'loggers': {
+                      '': {'handlers': ['h'], 'level': logging.DEBUG}}
+                  }
+
+        print("CREATING ACTOR SYSteMS")
+        self.actor_system = ActorSystem("multiprocTCPBase", logDefs=logcfg)
+
+    def actor_system_cleanup(self):
+        print("EXPERIMENT SHUTTING DOWN")
+        self.actor_system.shutdown()
+        print("ACTOR SYSTEM SHOULD HAVE SHUTDOWN")
+
 
     def create_root_environment(self, environment_class):
         self.environment = self.actor_system.createActor(environment_class)
 
     def setup_environment_agents(self, agent_class, num_agents = 1):
+        logging.info("AGENTS BEING SETUP FROM ENV")
         message = Message()
         message.set_directive("setup_agents")
         message.set_payload({"agent_class": agent_class, "num_agents": num_agents})

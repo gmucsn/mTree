@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="mTree",
-    version="0.3-BETA-5",
+    version="0.3-BETA-12",
     packages=find_packages(),
     include_package_data=True,
     # Project uses reStructuredText, so ensure that the docutils get
@@ -15,8 +15,9 @@ setup(
                       'eventlet>=0.20.1',
                       'numpy>=1.11.1',
                       'PyYaml>=3.12',
-                      'thespian>=3.8.0'],
-    scripts=['bin/mTree_control'],
+                      'thespian>=3.8.0',
+                      'socketIO-client>=0.7.2'],
+    scripts=['bin/mTree_control', 'bin/mTree_developer'],
     # metadata for upload to PyPI
     author="GMU CSN",
     author_email="mtree.email@gmail.com",

@@ -43,9 +43,9 @@ class MTreeController(object):
 
         self.async_mode = 'eventlet'  # None
         self.app = Server()
-        self.app.config['SECRET_KEY'] = 'secret!'
+        #self.app.config['SECRET_KEY'] = 'secret!'
 
-        self.app.config['EXPLAIN_TEMPLATE_LOADING¶'] = True
+        #self.app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 
         thread = None
         self.socketio = SocketIO(self.app, async_mode=self.async_mode)
