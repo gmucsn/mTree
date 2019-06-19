@@ -1,0 +1,65 @@
+{% extends 'developer_base.html' %}
+
+
+
+{% block content %}
+<style type="text/css" media="screen">
+
+#parent {
+    width: 900px;
+    height: 450px;
+    position: relative;
+    background-color: red;
+}
+#editor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+</style>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+<h1 class="h2">Simulation Configuration Viewer</h1>
+</div>
+
+
+<div class="row">
+    <dl class="row">
+  <dt class="col-sm-3">Simulation Name</dt>
+  <dd class="col-sm-9">{{ simulation.name }}</dd>
+
+        <dt class="col-sm-3">Simulation ID</dt>
+  <dd class="col-sm-9">{{ simulation.description.id }}</dd>
+
+        <dt class="col-sm-3">Simulation Description</dt>
+  <dd class="col-sm-9">{{ simulation.description.description }}</dd>
+
+        <dt class="col-sm-3">Environment</dt>
+  <dd class="col-sm-9">{{ simulation.description.environment }}</dd>
+
+        <dt class="col-sm-3">Institution</dt>
+  <dd class="col-sm-9">{{ simulation.description.institution }}</dd>
+
+      <dt class="col-sm-3">Agents</dt>
+  <dd class="col-sm-9">
+    {% for agent in simulation.description.agents %}
+    <dl class="row">
+      <dt class="col-sm-4">Agent Type</dt>
+      <dd class="col-sm-8">{{agent.agent_name }}</dd>
+    </dl>
+    <dl class="row">
+      <dt class="col-sm-4">Agent Number</dt>
+      <dd class="col-sm-8">{{agent.number }}</dd>
+    </dl>
+    {% endfor %}
+  </dd>
+
+
+
+
+
+</dl>
+</div>
+
+{% endblock %}
