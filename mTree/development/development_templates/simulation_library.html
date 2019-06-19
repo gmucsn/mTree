@@ -1,0 +1,50 @@
+{% extends 'developer_base.html' %}
+
+
+
+{% block content %}
+<style type="text/css" media="screen">
+
+#parent {
+    width: 900px;
+    height: 450px;
+    position: relative;
+    background-color: red;
+}
+#editor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+</style>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+<h1 class="h2">Simulation Library</h1>
+</div>
+
+
+<div class="row">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Simulation Name</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for simulation in simulation_library.get_simulations() %}
+        <tr>
+          <th scope="row">{{ simulation.description.id }}</th>
+          <td>{{ simulation.name }}</td>
+          <td>
+              <a href="/simulation_configuration_viewer?simulation_configuration_id={{ simulation.description.id }}" class="card-link" >View Details</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+
+{% endblock %}

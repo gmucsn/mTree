@@ -209,12 +209,12 @@ class DevelopmentServer(object):
 
         modules_imported = []
         module_names = []
-        for filename in glob.iglob('./cva_mes/*.py', recursive=True):
+        for filename in glob.iglob('./mes/*.py', recursive=True):
 
 
             import_name = os.path.splitext(os.path.basename(filename))[0]
 
-            module_name = "cva_mes." + import_name.partition('.')[0]
+            module_name = "mes." + import_name.partition('.')[0]
 
             import importlib.util
 
@@ -255,7 +255,7 @@ class DevelopmentServer(object):
             # globals()[module_name] = new_module
         #all_my_base_classes = {cls.__name__: cls for cls in base._MyBase.__subclasses__()}
 
-        sys.modules['cva_mes'] = ModuleType('cva_mes')
+        sys.modules['mes'] = ModuleType('mes')
 
         import inspect
         target_class = None
