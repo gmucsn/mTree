@@ -1,4 +1,4 @@
-class Player:
+class MesPlayer:
     def __init__(self, subject, institution, player_type=None):
         self.controller = None                     # controller used in the institution
         self.subject = subject                     # subject object for the user
@@ -31,9 +31,6 @@ class Player:
 
     def add_pay(self, label, amount):  # adds pay to the subject object
         self.subject.add_pay(label, amount)
-
-    def receive_from_agent(self, message):
-        print("RECEIVED A MESSAGE FROM THE AGENT")
 
     def close(self):  # closing the player object
         self.controller.response.delete_content(self.id, self.institution.name)
