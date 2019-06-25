@@ -33,15 +33,19 @@ def show(page):
 
 
 @development_area.route('/component_view')
-def components():
+def component_view():
     #try:
     component_registry = registry.Registry()
     component_type = request.args.get('component_type')
     component_name = request.args.get('component_name')
     component_details = component_registry.get_mes_component_details(component_name)
     component_source = component_registry.get_component_source_file(component_name)
-    return render_template('component_view.html', component_details=component_details, component_name=component_name,
-                           component_type=component_type, component_source=component_source)
+    property_list = component_registry.get_mes_component_properties(component_name)
+    return render_template('component_view.html', component_details=component_details,
+                           component_name=component_name,
+                           component_type=component_type,
+                           component_source=component_source,
+                           property_list=property_list)
 
 @development_area.route('/simulation_builder')
 def simulation_builder():

@@ -6,7 +6,7 @@ from mTree.microeconomic_system.agent import Agent
 
 
 import importlib
-import inspect
+import inspectf
 import os
 import glob
 

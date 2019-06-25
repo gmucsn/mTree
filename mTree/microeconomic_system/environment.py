@@ -37,12 +37,13 @@ class Environment(Actor):
     def receiveMessage(self, message, sender):
         #print("ENV GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        logging.debug("MESSAGE DIRECTIVE: ", message)
+        logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         try:
             directive_handler = self._enabled_directives.get(message.get_directive())
             directive_handler(self, message)
         except Exception as e:
-            logging.debug(e)
+            logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            self.actorSystemShutdown()
 
     def setup_agent(self, message):
         print("got a message")
@@ -50,28 +51,32 @@ class Environment(Actor):
 
     @directive_decorator("setup_agents")
     def setup_agents(self, message:Message):
+        if "agents" not in dir(self):
+            self.agents = []
         # ensure that the actor system and institution are running...
         #message = MessageSpace.create_agent(agent_class)
         num_agents = message.get_payload()["num_agents"]
         agent_class = message.get_payload()["agent_class"]
+
         for i in range(num_agents):
             new_agent = self.createActor(agent_class)
-            self.agents.append(new_agent)
-            # new_message = Message()
-            # new_message.set_sender(self.myAddress)
-            # new_message.set_directive("register_subject_connection")
-            # payload = {}
+            self.agents.append([new_agent, agent_class, agent_class.__name__])
+            new_message = Message()
+            new_message.set_sender(self.myAddress)
+            new_message.set_directive("testerer")
+            payload = {}
             # #payload["subject_id"] = message.get_payload()["subject_id"]
-            # new_message.set_payload(payload)
-            # self.send(new_agent, new_message)
+            new_message.set_payload(payload)
+            self.send(new_agent, new_message)
 
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
-        logging.info("INSTITUTION IS BEING SETUP")
+        if "institutions" not in dir(self):
+            self.institutions = []
+
         institution_class = message.get_payload()["institution_class"]
         new_institution = self.createActor(institution_class)
         self.institutions.append(new_institution)
-        logging.info("Completed INSTITUTION IS BEING SETUP")
 
     def list_agents(self):
         message = MessageSpace.list_agents()

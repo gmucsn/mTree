@@ -16,8 +16,8 @@ import json
 class Agent(Actor):
     environment = None
 
-    def mTree_logger(self):
-        return logging.getLogger("mTree")
+    #def mTree_logger(self):
+    #    return logging.getLogger("mTree")
 
     def experiment_log(self, log_message):
         self.mTree_logger().log(25, log_message)
@@ -37,9 +37,17 @@ class Agent(Actor):
     def register_subject_connection(self, message: Message):
         self.subject_id = "TEST!" #message.get_payload()["subject_id"]
 
+    @directive_decorator("testerer")
+    def testerer(self, message: Message):
+        logging.info("FARTASAS")
+
     def receiveMessage(self, message, sender):
         #print("AGENT GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        logging.info("AGENT: MESSAGE RECEIVED")
-        directive_handler = self._enabled_directives.get(message.get_directive())
-        directive_handler(self, message)
+        logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
+        try:
+            directive_handler = self._enabled_directives.get(message.get_directive())
+            directive_handler(self, message)
+        except Exception as e:
+            logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            self.actorSystemShutdown()

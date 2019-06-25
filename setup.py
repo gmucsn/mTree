@@ -17,7 +17,7 @@ setup(
                       'PyYaml>=3.12',
                       'thespian>=3.8.0',
                       'socketIO-client>=0.7.2'],
-    scripts=['bin/mTree_control', 'bin/mTree_developer'],
+    scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner'],
     # metadata for upload to PyPI
     author="GMU CSN",
     author_email="mtree.email@gmail.com",
