@@ -33,11 +33,20 @@ class Institution(Actor):
     def receiveMessage(self, message, sender):
         #print("INST GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        directive_handler = self._enabled_directives.get(message.get_directive())
-        directive_handler(self, message)
+        logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
+        try:
+            directive_handler = self._enabled_directives.get(message.get_directive())
+            directive_handler(self, message)
+        except Exception as e:
+            logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            self.actorSystemShutdown()
 
 
     def add_agent(self, agent_class):
+        if "agents" not in dir(self):
+            self.agents = []
+            self.agent_ids = []
+
         agent_id = str(uuid.uuid1())
 
 #        agent = asys.createActor(agent_class, globalName = agent_id)

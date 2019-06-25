@@ -8,6 +8,14 @@ from datetime import timedelta
 import atexit
 
 
+class actorLogFilter(logging.Filter):
+    def filter(self, logrecord):
+        return 'actorAddress' in logrecord.__dict__
+class notActorLogFilter(logging.Filter):
+    def filter(self, logrecord):
+        return 'actorAddress' not in logrecord.__dict__
+
+
 class Container:
     def __init__(self):
         self.environment = None
@@ -18,21 +26,29 @@ class Container:
         atexit.register(self.actor_system_cleanup)
 
     def create_actor_system(self):
-        logcfg = {'version': 1,  # (ref:logdef)
+        logcfg = {'version': 1,
                   'formatters': {
-                      'normal': {
-                          'format': '%(levelname)-8s %(message)s'}},
-                  'handlers': {
-                      'h': {'class': 'logging.FileHandler',
-                            'filename': 'hello.log',
-                            'formatter': 'normal',
-                            'level': logging.INFO}},
-                  'loggers': {
-                      '': {'handlers': ['h'], 'level': logging.DEBUG}}
+                      'normal': {'format': '%(levelname)-8s %(message)s'},
+                      'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
+                  'filters': {'isActorLog': {'()': actorLogFilter},
+                              'notActorLog': {'()': notActorLogFilter}},
+                  'handlers': {'h1': {'class': 'logging.FileHandler',
+                                      'filename': 'mtree.log',
+                                      'formatter': 'normal',
+                                      'filters': ['notActorLog'],
+                                      'level': logging.INFO},
+                               'h2': {'class': 'logging.FileHandler',
+                                      'filename': 'mtree.log',
+                                      'formatter': 'actor',
+                                      'filters': ['isActorLog'],
+                                      'level': logging.INFO}, },
+                  'loggers': {'': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
                   }
 
         print("CREATING ACTOR SYSteMS")
-        self.actor_system = ActorSystem("multiprocTCPBase", logDefs=logcfg)
+        #self.actor_system = ActorSystem("multiprocQueueBase", logDefs=logcfg)
+        print("Actor system Started")
+        self.actor_system = ActorSystem(None, logDefs=logcfg)
 
     def actor_system_cleanup(self):
         print("EXPERIMENT SHUTTING DOWN")
@@ -41,7 +57,9 @@ class Container:
 
 
     def create_root_environment(self, environment_class):
+        print("CREATING AN ENVIRONMENT")
         self.environment = self.actor_system.createActor(environment_class)
+        print(self.environment)
 
     def setup_environment_agents(self, agent_class, num_agents = 1):
         logging.info("AGENTS BEING SETUP FROM ENV")

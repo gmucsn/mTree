@@ -17,9 +17,13 @@ def directive_enabled_class(cls):
 
     cls._enabled_directives = {}
     cls._enabled_directives_schemas = {}
+    cls._mtree_properties = {}
     for func in functions:
         if getattr(func, "message_directive", False):
             cls._enabled_directives[getattr(func, "message_directive")] = func
+        if getattr(func, "mtree_properties", False):
+            for property_name in getattr(func, "mtree_properties").keys():
+                cls._mtree_properties[property_name] = getattr(func, "mtree_properties")[property_name]
         if getattr(func, "schema", False):
             cls._enabled_directives_schemas[getattr(func, "message_directive")] = getattr(func, "schema")
 

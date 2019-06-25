@@ -33,6 +33,10 @@ class Registry:
             elif base_class.__name__ == "Environment":
                 Registry.instance.environment_list.append(class_name)
 
+    def get_component_class(self, mes_class):
+        classobject = Registry.instance.class_list[mes_class]["class"]
+        return classobject
+
     def get_component_source_file(self, mes_class):
         classobject = Registry.instance.class_list[mes_class]["class"]
         filename = sys.modules[classobject.__module__].__file__
@@ -57,6 +61,15 @@ class Registry:
                 schema =  Registry.instance.class_list[mes_class]["class"]._enabled_directives_schemas[directive]
             directives_schemas.append((directive, schema))
         return directives_schemas
+
+    def get_mes_component_properties(self, mes_class):
+        mes_component_type = None
+        property_list = []
+        properties = Registry.instance.class_list[mes_class]["class"]._mtree_properties.keys()
+        for property_name in properties:
+            property_list.append((property_name, Registry.instance.class_list[mes_class]["class"]._mtree_properties[property_name]))
+        return property_list
+
 
     def institution_list(self):
         return Registry.instance.institution_list
