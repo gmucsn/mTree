@@ -6,6 +6,7 @@ from mTree.microeconomic_system.message import Message
 import sys
 from datetime import timedelta
 import atexit
+from mTree.components import registry
 
 
 class actorLogFilter(logging.Filter):
@@ -21,6 +22,7 @@ class Container:
         self.environment = None
         self.actor_system = None
         self.root_environment = None
+        self.component_registry = registry.Registry()
 
         self.create_actor_system()
         atexit.register(self.actor_system_cleanup)
@@ -45,9 +47,6 @@ class Container:
                   'loggers': {'': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
                   }
 
-        print("CREATING ACTOR SYSteMS")
-        #self.actor_system = ActorSystem("multiprocQueueBase", logDefs=logcfg)
-        print("Actor system Started")
         self.actor_system = ActorSystem(None, logDefs=logcfg)
 
     def actor_system_cleanup(self):
@@ -56,10 +55,16 @@ class Container:
         print("ACTOR SYSTEM SHOULD HAVE SHUTDOWN")
 
 
-    def create_root_environment(self, environment_class):
+    def create_root_environment(self, environment_class, properties=None):
         print("CREATING AN ENVIRONMENT")
+        print(properties)
         self.environment = self.actor_system.createActor(environment_class)
-        print(self.environment)
+        if properties is not None:
+            message = Message()
+            message.set_directive("simulation_properties")
+            message.set_payload({"properties": properties})
+            self.actor_system.tell(self.environment, message)
+
 
     def setup_environment_agents(self, agent_class, num_agents = 1):
         logging.info("AGENTS BEING SETUP FROM ENV")

@@ -3,12 +3,10 @@ from jsonschema import validate
 from mTree.components import registry
 
 
-def mtree_property(**kwargs):
+def mtree_property(property_name, property_descriptor=None):
     def wrapper_do_twice(func):
         if "mtree_properties" not in dir(func):
             func.mtree_properties = {}
-        for property in kwargs.keys():
-            func.mtree_properties[property] = kwargs[property]
         return func
     return wrapper_do_twice
 

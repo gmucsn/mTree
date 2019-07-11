@@ -29,6 +29,7 @@ class Institution(Actor):
     def __init__(self):
         self.agents = []
         self.agent_ids = []
+        self.mtree_properties = {}
 
     def receiveMessage(self, message, sender):
         #print("INST GOT MESSAGE: " + message)
@@ -41,6 +42,18 @@ class Institution(Actor):
             logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
             self.actorSystemShutdown()
 
+    def get_property(self, property_name):
+        try:
+            return self.mtree_properties[property_name]
+        except:
+            return None
+
+    @directive_decorator("simulation_properties")
+    def simulation_properties(self, message: Message):
+        if "mtree_properties" not in dir(self):
+            self.mtree_properties = {}
+
+        self.mtree_properties = message.get_payload()["properties"]
 
     def add_agent(self, agent_class):
         if "agents" not in dir(self):
