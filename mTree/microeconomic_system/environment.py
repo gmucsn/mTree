@@ -85,7 +85,10 @@ class Environment(Actor):
             new_message = Message()
             new_message.set_sender(self.myAddress)
             new_message.set_directive("simulation_properties")
-            payload = {"properties": self.mtree_properties}
+            payload = {}
+            if "mtree_properties" not in dir(self):
+                payload["properties"] = self.mtree_properties
+
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
 
@@ -99,7 +102,9 @@ class Environment(Actor):
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("simulation_properties")
-        payload = {"properties": self.mtree_properties}
+        payload = {}
+        if "mtree_properties" not in dir(self):
+            payload["properties"] = self.mtree_properties
         new_message.set_payload(payload)
         self.send(new_institution, new_message)
 
