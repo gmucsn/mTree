@@ -10,23 +10,50 @@ import sys
 
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.container import Container
+from mTree.microeconomic_system.simulation_container import SimulationContainer
+
 from mTree.components import registry
 
 
 class Runner():
-    def __init__(self, config_file):
+    def __init__(self, config_file, multi_simulation=False):
         self.component_registry = registry.Registry()
         self.component_registry.register_server(self)
-        self.configuration = self.load_mtree_config(config_file)
+        self.multi_simulation = multi_simulation
+        if self.multi_simulation is not True:
+            self.configuration = self.load_mtree_config(config_file)
+        else:
+            self.configuration = self.load_multiple_mtree_config(config_file)
         print("Runner")
         print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
 
 
     def load_mtree_config(self, config_file):
+        print(config_file)
         configuration = None
         with open(config_file) as json_file:
             configuration = json.load(json_file)
         return configuration
+
+    def load_json_multiple(self, segments):
+        chunk = ""
+        for segment in segments:
+            chunk += segment
+            try:
+                yield json.loads(chunk)
+                chunk = ""
+            except ValueError:
+                pass
+
+    def load_multiple_mtree_config(self, config_file):
+        configurations = []
+        with open(config_file) as f:
+            for parsed_json in self.load_json_multiple(f):
+                configurations.append(parsed_json)
+
+        return configurations
+
+
 
     def examine_directory(self):
         import importlib
@@ -123,14 +150,20 @@ class Runner():
 
     def runner(self):
         self.examine_directory()
-        self.launch_simulation()
+        if self.multi_simulation is False:
+            self.launch_simulation()
+        else:
+            self.launch_multi_simulations()
+
+
+    def launch_multi_simulations(self):
+        container = SimulationContainer()
+        container.create_dispatcher()
+        container.send_dispatcher_simulation_configurations(self.configuration)
 
     def launch_simulation(self):
-
         component_registry = registry.Registry()
-        #print(component_registry.environment_list())
 
-        #print(self.configuration["environment"])
         environment = component_registry.get_component_class(self.configuration["environment"])
         institution = component_registry.get_component_class(self.configuration["institution"])
         agents = []
@@ -140,7 +173,10 @@ class Runner():
             agents.append((agent_class, agent_count))
 
         container = Container()
-        container.create_root_environment(environment)
+        properties = None
+        if "properties" in self.configuration.keys():
+            properties = self.configuration["properties"]
+        container.create_root_environment(environment, properties)
         container.setup_environment_institution(institution)
         for agent in agents:
             container.setup_environment_agents(agent[0], agent[1])

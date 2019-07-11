@@ -29,6 +29,7 @@ class Environment(Actor):
     def __init__(self):
         self.institutions = []
         self.agents = []
+        self.mtree_properties = {}
 
     def close_environment(self):
         #asys.shutdown()
@@ -40,6 +41,8 @@ class Environment(Actor):
         logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         try:
             directive_handler = self._enabled_directives.get(message.get_directive())
+            print("DIRECTIVE HANDLING")
+            print(message)
             directive_handler(self, message)
         except Exception as e:
             logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
@@ -48,6 +51,20 @@ class Environment(Actor):
     def setup_agent(self, message):
         print("got a message")
         print(message)
+
+    def get_property(self, property_name):
+        try:
+            return self.mtree_properties[property_name]
+        except:
+            return None
+
+    @directive_decorator("simulation_properties")
+    def simulation_properties(self, message: Message):
+        print("RECEIVED PROPERTIES")
+        if "mtree_properties" not in dir(self):
+            self.mtree_properties = {}
+
+        self.mtree_properties = message.get_payload()["properties"]
 
     @directive_decorator("setup_agents")
     def setup_agents(self, message:Message):
@@ -63,9 +80,8 @@ class Environment(Actor):
             self.agents.append([new_agent, agent_class, agent_class.__name__])
             new_message = Message()
             new_message.set_sender(self.myAddress)
-            new_message.set_directive("testerer")
-            payload = {}
-            # #payload["subject_id"] = message.get_payload()["subject_id"]
+            new_message.set_directive("simulation_properties")
+            payload = {"properties": self.mtree_properties}
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
 
@@ -76,6 +92,13 @@ class Environment(Actor):
 
         institution_class = message.get_payload()["institution_class"]
         new_institution = self.createActor(institution_class)
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("simulation_properties")
+        payload = {"properties": self.mtree_properties}
+        new_message.set_payload(payload)
+        self.send(new_institution, new_message)
+
         self.institutions.append(new_institution)
 
     def list_agents(self):

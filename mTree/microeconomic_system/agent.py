@@ -31,11 +31,26 @@ class Agent(Actor):
 
     def __init__(self):
         #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
+        self.mtree_properties = {}
         print("Agent started")
 
     @directive_decorator("register_subject_connection")
     def register_subject_connection(self, message: Message):
         self.subject_id = "TEST!" #message.get_payload()["subject_id"]
+
+    @directive_decorator("simulation_properties")
+    def simulation_properties(self, message: Message):
+        if "mtree_properties" not in dir(self):
+            self.mtree_properties = {}
+
+        self.mtree_properties = message.get_payload()["properties"]
+
+    def get_property(self, property_name):
+        try:
+            return self.mtree_properties[property_name]
+        except:
+            return None
+
 
     @directive_decorator("testerer")
     def testerer(self, message: Message):

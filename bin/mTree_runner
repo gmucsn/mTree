@@ -17,20 +17,25 @@ def main(argv):
    inputfile = ''
    outputfile = ''
    try:
-      opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+      opts, args = getopt.getopt(argv,"hi:m:o:",["ifile=","ofile="])
    except getopt.GetoptError:
       print('mTreeRunner -i <mtree_configuration_file>')
       sys.exit(2)
+   list_simulation = False
    for opt, arg in opts:
       if opt == '-h':
          print('mTreeRunner -i <mtree_configuration_file>')
          sys.exit()
       elif opt in ("-i", "--ifile"):
          inputfile = arg
+      elif opt in ("-m", "--mcfile"):
+         list_simulation = True
+         inputfile = arg
+
 
    print("mTree Runner")
 
-   mtree_runner = Runner(inputfile)
+   mtree_runner = Runner(inputfile, multi_simulation=list_simulation)
    mtree_runner.runner()
 
 if __name__ == "__main__":
