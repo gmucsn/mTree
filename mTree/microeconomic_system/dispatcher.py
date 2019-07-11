@@ -26,7 +26,7 @@ class Dispatcher(Actor):
         print("Dispatcher started")
 
 
-    def run_simulation(self, configuration):
+    def run_simulation(self, configuration, run_number=None):
         component_registry = registry.Registry()
 
         environment = component_registry.get_component_class(configuration["environment"])
@@ -42,8 +42,12 @@ class Dispatcher(Actor):
         if "properties" in configuration.keys():
             message = Message()
             message.set_directive("simulation_properties")
-            message.set_payload({"properties": configuration["properties"]})
-            self.actor_system.tell(self.environment, message)
+            payload = {"properties": configuration["properties"]}
+            payload["simulation_id"] = configuration["id"]
+            if run_number is not None:
+                payload["run_number"] = run_number
+            message.set_payload(payload)
+            self.send(environment, message)
 
 
         message = Message()
@@ -67,7 +71,13 @@ class Dispatcher(Actor):
 
     def begin_simulations(self):
         for simulation in self.configurations_pending:
-            self.run_simulation(simulation)
+            print("E CONFIG")
+            print(simulation)
+            if "number_of_runs" in simulation.keys():
+                for run_number in range(0, simulation["number_of_runs"]):
+                    self.run_simulation(simulation, run_number)
+            else:
+                self.run_simulation(simulation)
 
 
 
@@ -77,6 +87,7 @@ class Dispatcher(Actor):
 
         if message.get_directive() == "simulation_configurations":
             self.configurations_pending = message.get_payload()
+            print(self.configurations_pending)
             self.begin_simulations()
             print("MESSAGE RECEIVED")
             print(message.get_payload())
