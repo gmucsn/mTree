@@ -29,11 +29,10 @@ class Runner():
 
 
     def load_mtree_config(self, config_file):
-        print(config_file)
         configuration = None
         with open(config_file) as json_file:
             configuration = json.load(json_file)
-        return configuration
+        return [configuration]
 
     def load_json_multiple(self, segments):
         chunk = ""
@@ -151,7 +150,7 @@ class Runner():
     def runner(self):
         self.examine_directory()
         if self.multi_simulation is False:
-            self.launch_simulation()
+            self.launch_multi_simulations()
         else:
             self.launch_multi_simulations()
 

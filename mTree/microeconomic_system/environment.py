@@ -64,7 +64,11 @@ class Environment(Actor):
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
 
+
         self.mtree_properties = message.get_payload()["properties"]
+        self.simulation_id = message.get_payload()["simulation_id"]
+        if "run_number" in message.get_payload().keys():
+            self.run_number = message.get_payload()["run_number"]
 
     @directive_decorator("setup_agents")
     def setup_agents(self, message:Message):
