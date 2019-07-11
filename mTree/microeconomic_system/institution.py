@@ -53,7 +53,8 @@ class Institution(Actor):
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
 
-        self.mtree_properties = message.get_payload()["properties"]
+        if "properties" in message.get_payload().keys():
+            self.mtree_properties = message.get_payload()["properties"]
 
     def add_agent(self, agent_class):
         if "agents" not in dir(self):
