@@ -41,8 +41,6 @@ class Environment(Actor):
         logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         try:
             directive_handler = self._enabled_directives.get(message.get_directive())
-            print("DIRECTIVE HANDLING")
-            print(message)
             directive_handler(self, message)
         except Exception as e:
             logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
@@ -60,10 +58,8 @@ class Environment(Actor):
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
-        print("RECEIVED PROPERTIES")
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
-
 
         self.mtree_properties = message.get_payload()["properties"]
         self.simulation_id = message.get_payload()["simulation_id"]
@@ -86,8 +82,8 @@ class Environment(Actor):
             new_message.set_sender(self.myAddress)
             new_message.set_directive("simulation_properties")
             payload = {}
-            if "mtree_properties" not in dir(self):
-                payload["properties"] = self.mtree_properties
+            #if "mtree_properties" not in dir(self):
+            payload["properties"] = self.mtree_properties
 
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
@@ -103,8 +99,13 @@ class Environment(Actor):
         new_message.set_sender(self.myAddress)
         new_message.set_directive("simulation_properties")
         payload = {}
-        if "mtree_properties" not in dir(self):
-            payload["properties"] = self.mtree_properties
+        #if "mtree_properties" not in dir(self):
+        payload["properties"] = self.mtree_properties
+        payload["simulation_id"] = self.simulation_id
+        if "run_number" in dir(self):
+            payload["run_number"] = self.run_number
+
+
         new_message.set_payload(payload)
         self.send(new_institution, new_message)
 

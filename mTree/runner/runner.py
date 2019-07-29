@@ -183,7 +183,6 @@ class Runner():
         start_message = Message()
         start_message.set_sender("experimenter")
         start_message.set_directive("start_environment")
-        print("start message sent to the environment...")
         container.send_root_environment_message(start_message)
 
         # create Collateal Game Environment
