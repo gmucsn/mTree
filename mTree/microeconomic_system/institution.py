@@ -55,6 +55,9 @@ class Institution(Actor):
 
         if "properties" in message.get_payload().keys():
             self.mtree_properties = message.get_payload()["properties"]
+        self.simulation_id = message.get_payload()["simulation_id"]
+        if "run_number" in message.get_payload().keys():
+            self.run_number = message.get_payload()["run_number"]
 
     def add_agent(self, agent_class):
         if "agents" not in dir(self):

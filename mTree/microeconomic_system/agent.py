@@ -52,11 +52,6 @@ class Agent(Actor):
         except:
             return None
 
-
-    @directive_decorator("testerer")
-    def testerer(self, message: Message):
-        logging.info("FARTASAS")
-
     def receiveMessage(self, message, sender):
         #print("AGENT GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
