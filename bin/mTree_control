@@ -3,7 +3,7 @@
 from mTree.server.server import Server, MTreeController
 from mTree.server.admin import admin_area
 from mTree.microeconomic_system.agent import Agent
-
+import pyfiglet
 
 import importlib
 import inspect
@@ -15,6 +15,9 @@ import sys
 
 # For illustrative purposes.
 import tokenize
+
+ascii_banner = pyfiglet.figlet_format("mTree - Control")
+print(ascii_banner)
 
 
 def import_plugins(plugins_package_directory_path, base_class=None, create_instance=True, filter_abstract=True):
@@ -69,7 +72,6 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
             yield value() if create_instance else value
     '''
 
-print("Trying to load local directory packages")
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 #SCRIPT_DIR = "/repos/mTree_dev_folder"
 plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
@@ -86,18 +88,20 @@ print("aslkfj")
 print(file_path)
 print(module_name)
 
-spec = importlib.util.spec_from_file_location(module_name, file_path)
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
+
+####
+#spec = importlib.util.spec_from_file_location(module_name, file_path)
+#module = importlib.util.module_from_spec(spec)
+#spec.loader.exec_module(module)
 # Optional; only necessary if you want to be able to import the module
 # by name later.
-sys.modules[module_name] = module
+#sys.modules[module_name] = module
 
 print("module list")
 #print(sys.modules)
 
 from mTree.components import *
-t = BasicAgent()
+#t = BasicAgent()
 
 #importlib.import_module(".components.base_agent", package='packageser')
 
@@ -113,14 +117,14 @@ t = BasicAgent()
 
 print("mTree is launching")
 server = Server()
-mtree_controller = MTreeController()
-mtree_controller.run()
+#mtree_controller = MTreeController()
+#mtree_controller.run()
 
 
 
 #server.attach_experiment(InformationCascades)
-#server.run_server()
-#server.register_blueprint(admin_area)
+server.run_server()
+server.register_blueprint(admin_area)
 #server.list_rules()
 #server.run()
 print("thinking")

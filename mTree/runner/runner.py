@@ -24,7 +24,6 @@ class Runner():
             self.configuration = self.load_mtree_config(config_file)
         else:
             self.configuration = self.load_multiple_mtree_config(config_file)
-        print("Runner")
         print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
 
 
@@ -97,7 +96,16 @@ class Runner():
             # Make module with proper locking and get it inserted into sys.modules.
             a = loader.exec_module(module)
             sys.modules[module_name] = module
+            t = sys.modules[module_name]
+
+            ######
+            # This is the magic line... this forces the lazyloader to kick in.
+            ######
+
             print(sys.modules[module_name])
+
+            #######
+            #sys.modules[module_name]
             #return module
 
             #foo = importlib.util.module_from_spec(spec)

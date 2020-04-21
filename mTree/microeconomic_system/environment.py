@@ -38,13 +38,15 @@ class Environment(Actor):
     def receiveMessage(self, message, sender):
         #print("ENV GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
-        try:
-            directive_handler = self._enabled_directives.get(message.get_directive())
-            directive_handler(self, message)
-        except Exception as e:
-            logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-            self.actorSystemShutdown()
+        if isinstance(message, PoisonMessage):
+            logging.exception("Poison HAPPENED: %s -- %s", self, message)
+        else:
+            try:
+                directive_handler = self._enabled_directives.get(message.get_directive())
+                directive_handler(self, message)
+            except Exception as e:
+                logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+                self.actorSystemShutdown()
 
     def setup_agent(self, message):
         print("got a message")

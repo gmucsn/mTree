@@ -23,11 +23,13 @@ class Dispatcher(Actor):
         #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
         self.configurations_pending = []
         self.configurations_finished = []
-        print("Dispatcher started")
+        print("Starting to dispatch simulation(s)")
 
 
     def run_simulation(self, configuration, run_number=None):
         component_registry = registry.Registry()
+
+        print("ABOUT TO REGISTER AGENTS AND GET COMPONENTS")
 
         environment = component_registry.get_component_class(configuration["environment"])
         institution = component_registry.get_component_class(configuration["institution"])
@@ -69,9 +71,8 @@ class Dispatcher(Actor):
 
 
     def begin_simulations(self):
+        print("s")
         for simulation in self.configurations_pending:
-            print("E CONFIG")
-            print(simulation)
             if "number_of_runs" in simulation.keys():
                 for run_number in range(0, simulation["number_of_runs"]):
                     self.run_simulation(simulation, run_number)
@@ -84,9 +85,10 @@ class Dispatcher(Actor):
         logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
 
 
-        if message.get_directive() == "simulation_configurations":
-            self.configurations_pending = message.get_payload()
-            print(self.configurations_pending)
-            self.begin_simulations()
-            print("MESSAGE RECEIVED")
-            print(message.get_payload())
+        if isinstance(message, PoisonMessage):
+            logging.exception("Posioning HAPPENED: %s -- %s -- %s", self, message, "sssss")
+        else:
+            if message.get_directive() == "simulation_configurations":
+                self.configurations_pending = message.get_payload()
+                self.begin_simulations()
+
