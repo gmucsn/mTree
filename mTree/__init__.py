@@ -8,3 +8,4 @@ from .server import *
 from .system import *
 from .simulation import *
 from .templates import *
+from .generator import *

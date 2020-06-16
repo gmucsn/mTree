@@ -6,7 +6,7 @@ from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
 
-from socketIO_client import SocketIO, LoggingNamespace
+#from socketIO_client import SocketIO, LoggingNamespace
 
 import logging
 import json

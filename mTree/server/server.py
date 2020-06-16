@@ -33,6 +33,12 @@ from mTree.base.response import Response
 
 from mTree.server.admin import admin_area
 
+import signal
+from blessed import Terminal
+
+
+
+
 class MTreeController(object):
     app = None
 
@@ -119,7 +125,7 @@ class Server(object):
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
         thread = None
-        self.socketio = SocketIO(self.app, async_mode=self.async_mode)
+        self.socketio = SocketIO(self.app, async_mode=self.async_mode, cors_allowed_origins="*")
         template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
                                                jinja2.PackageLoader('mTree', 'base/admin_templates'),
                                                jinja2.PackageLoader('mTree', 'base/user_templates')])
@@ -130,7 +136,11 @@ class Server(object):
 
         #self.basic_auth = BasicAuth(self.app)
 
-        #self.add_routes()
+
+        self.term = Terminal()
+
+
+        self.add_routes()
         #self.scheduler = APScheduler()
         #self.scheduler.init_app(self.app)
         #self.scheduler.start()
@@ -143,6 +153,11 @@ class Server(object):
         print(self.app.url_map)
         print("LISTED")
 
+
+
+    def on_resize(self, sig, action):
+        print(f'height={self.term.height}, width={self.term.width}')
+
     def register_blueprint(self, bp):
         Flask.register_blueprint(self, bp)
 
@@ -153,6 +168,9 @@ class Server(object):
         print("RUNNING " * 20)
         self.list_rules()
         self.socketio.run(self.app, host='0.0.0.0')
+
+    def log_message(self):
+        print(f'height={self.term.height}, width={self.term.width}')
 
     def attach_experiment(self, experiment):
         self.experiment = experiment()
@@ -165,6 +183,14 @@ class Server(object):
 
     def get_response(self, emit):
         return Response(emit, self.app, self.db)
+
+    def add_routes(self):
+        @self.socketio.on('message')
+        def admin_control_message(message):
+            # self.experiment.admin_event_handler(message)
+            #self.experiment.start_experiment()
+            self.log_message()
+            emit('chat', "test")
 
     def add_scheduler(self, sched_function):
         self.scheduler.add_job(func=sched_function, trigger=IntervalTrigger(seconds=5),

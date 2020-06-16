@@ -20,6 +20,10 @@ Running the set up:
 
 Go to the directory and enter the following:
 
+```commandline
+python setup.py develop
+```
+
 If you are using macOS:
 ```commandline
 python3.6 setup.py bdist_egg

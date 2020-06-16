@@ -17,7 +17,7 @@ setup(
                       'PyYaml>=3.12',
                       'thespian>=3.10.0',
                       'pyfiglet==0.8.post1'],
-    scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner'],
+    scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner', 'bin/mTree_generate'],
     # metadata for upload to PyPI
     author="GMU CSN",
     author_email="mtree.email@gmail.com",
