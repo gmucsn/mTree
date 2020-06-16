@@ -33,6 +33,12 @@ from mTree.base.response import Response
 
 from mTree.server.admin import admin_area
 
+import signal
+from blessed import Terminal
+
+
+
+
 class MTreeController(object):
     app = None
 
@@ -48,30 +54,31 @@ class MTreeController(object):
         #self.app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 
         thread = None
-        self.socketio = SocketIO(self.app, async_mode=self.async_mode)
+        #self.socketio = SocketIO(self.app) #, async_mode=self.async_mode)
         self.component_registry = registry.Registry()
         self.component_registry.register_server(self)
         print("should have registered server")
         print(self)
 
-        template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
-                                               jinja2.PackageLoader('mTree', 'base/admin_templates'),
-                                               jinja2.PackageLoader('mTree', 'base/user_templates')])
-        self.app.jinja_loader = template_loader
+
+        # template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
+        #                                        jinja2.PackageLoader('mTree', 'base/admin_templates'),
+        #                                        jinja2.PackageLoader('mTree', 'base/user_templates')])
+        # self.app.jinja_loader = template_loader
 
         # self.app.config['BASIC_AUTH_USERNAME'] = '<PLACE USERNAME HERE>'
         # self.app.config['BASIC_AUTH_PASSWORD'] = '<PLACE PASSWORD HERE>'
 
-        self.basic_auth = BasicAuth(self.app)
+        # self.basic_auth = BasicAuth(self.app)
 
         # self.add_routes()
-        self.scheduler = APScheduler()
-        self.scheduler.init_app(self.app)
-        self.scheduler.start()
+        # self.scheduler = APScheduler()
+        # self.scheduler.init_app(self.app)
+        # self.scheduler.start()
         # self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
         #self.app.register_blueprint(admin_area, url_prefix='/admin')
-        self.app.register_blueprint(admin_area)
-        self.add_routes()
+        # self.app.register_blueprint(admin_area)
+        # self.add_routes()
 
     def add_routes(self):
         @self.socketio.on('admin_control', namespace='/admin')
@@ -118,28 +125,41 @@ class Server(object):
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
         thread = None
-        self.socketio = SocketIO(self.app, async_mode=self.async_mode)
+        self.socketio = SocketIO(self.app, async_mode=self.async_mode, cors_allowed_origins="*")
         template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
                                                jinja2.PackageLoader('mTree', 'base/admin_templates'),
                                                jinja2.PackageLoader('mTree', 'base/user_templates')])
-        #self.app.jinja_loader = template_loader
+        self.app.jinja_loader = template_loader
 
         #self.app.config['BASIC_AUTH_USERNAME'] = '<PLACE USERNAME HERE>'
         #self.app.config['BASIC_AUTH_PASSWORD'] = '<PLACE PASSWORD HERE>'
 
-        self.basic_auth = BasicAuth(self.app)
+        #self.basic_auth = BasicAuth(self.app)
 
-        #self.add_routes()
-        self.scheduler = APScheduler()
-        self.scheduler.init_app(self.app)
-        self.scheduler.start()
+
+        self.term = Terminal()
+
+
+        self.add_routes()
+        #self.scheduler = APScheduler()
+        #self.scheduler.init_app(self.app)
+        #self.scheduler.start()
         #self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
         self.app.register_blueprint(admin_area, url_prefix='/admin')
 
 
     def list_rules(self):
+        print("ANY RULES?")
         print(self.app.url_map)
+        print("LISTED")
 
+
+
+    def on_resize(self, sig, action):
+        print(f'height={self.term.height}, width={self.term.width}')
+
+    def register_blueprint(self, bp):
+        Flask.register_blueprint(self, bp)
 
     def my_listener(self, event):
         print("APSCHEDULER EVENT " + str(event))
@@ -147,7 +167,10 @@ class Server(object):
     def run_server(self):
         print("RUNNING " * 20)
         self.list_rules()
-        self.socketio.run(self.app, host='0.0.0.0', debug=True)
+        self.socketio.run(self.app, host='0.0.0.0')
+
+    def log_message(self):
+        print(f'height={self.term.height}, width={self.term.width}')
 
     def attach_experiment(self, experiment):
         self.experiment = experiment()
@@ -160,6 +183,14 @@ class Server(object):
 
     def get_response(self, emit):
         return Response(emit, self.app, self.db)
+
+    def add_routes(self):
+        @self.socketio.on('message')
+        def admin_control_message(message):
+            # self.experiment.admin_event_handler(message)
+            #self.experiment.start_experiment()
+            self.log_message()
+            emit('chat', "test")
 
     def add_scheduler(self, sched_function):
         self.scheduler.add_job(func=sched_function, trigger=IntervalTrigger(seconds=5),

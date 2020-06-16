@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 
 from mTree.server.server import Server, MTreeController
 from mTree.server.admin import admin_area
 from mTree.microeconomic_system.agent import Agent
-
+import pyfiglet
 
 import importlib
 import inspect
@@ -16,6 +16,48 @@ import sys
 # For illustrative purposes.
 import tokenize
 
+
+
+#import signal
+#from blessed import Terminal
+
+#term = Terminal()
+
+#def on_resize(sig, action):
+#    print(f'height={term.height}, width={term.width}')
+
+
+
+
+#signal.signal(signal.SIGWINCH, on_resize)
+
+# wait for keypress
+#term.inkey()
+
+
+
+
+
+
+
+ascii_banner = pyfiglet.figlet_format("mTree - Control")
+print(ascii_banner)
+
+import importlib.util
+def import_source(module_name):
+    module_file_path = module_name.__file__
+    module_name = module_name.__name__
+
+    module_spec = importlib.util.spec_from_file_location(
+        module_name, module_file_path)
+    module = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(module)
+    print(dir(module))
+
+    msg = 'The {module_name} module has the following methods:' \
+        ' {methods}'
+    print(msg.format(module_name=module_name,
+                     methods=dir(module)))
 
 def import_plugins(plugins_package_directory_path, base_class=None, create_instance=True, filter_abstract=True):
 
@@ -31,19 +73,30 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
     print(plugin_file_paths)
     print("trying to load all known files")
     for plugin_file_path in plugin_file_paths:
-        print("Examining a file...: " + plugin_file_path)
+        print("\tExamining a file...: " + plugin_file_path)
         plugin_file_name = os.path.basename(plugin_file_path)
-        print("plugin name")
-        print(plugin_file_path)
+        print("\tplugin name")
+        print("\t\t", plugin_file_path)
         module_name = os.path.splitext(plugin_file_name)[0]
-        print(module_name)
+        print("\t\t", module_name)
         if module_name.startswith("__"):
             continue
 
         # -----------------------------
         # Import python file
 
-        module = importlib.import_module("." + module_name) #\, package=plugins_package_name)
+        print("\t\t\t->", module_name, " -- ", plugins_package_name)
+
+        module_spec = importlib.util.spec_from_file_location(module_name, plugin_file_path)
+        module = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(module)
+        print(dir(module))
+
+
+        #module = importlib.import_module(module_name)#, package=plugins_package_name)
+
+
+
     '''
         # -----------------------------
         # Iterate items inside imported python file
@@ -69,7 +122,6 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
             yield value() if create_instance else value
     '''
 
-print("Trying to load local directory packages")
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 #SCRIPT_DIR = "/repos/mTree_dev_folder"
 plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
@@ -77,8 +129,8 @@ print("PLUGINS DIRECTORY")
 print(plugins_directory_path)
 print(os.getcwd())
 #plugins = import_plugins(plugins_directory_path, base_class=Agent)
-#plugins = import_plugins(os.path.join(os.getcwd(), 'components'), base_class=Agent)
-
+plugins = import_plugins(os.path.join(os.getcwd(), 'mes'), base_class=Agent)
+print("\t --> ", plugins)
 
 file_path = "/repos/mTree_dev_folder/components/basic_agent.py"
 module_name = "mTree.components"
@@ -86,18 +138,20 @@ print("aslkfj")
 print(file_path)
 print(module_name)
 
-spec = importlib.util.spec_from_file_location(module_name, file_path)
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
+
+####
+#spec = importlib.util.spec_from_file_location(module_name, file_path)
+#module = importlib.util.module_from_spec(spec)
+#spec.loader.exec_module(module)
 # Optional; only necessary if you want to be able to import the module
 # by name later.
-sys.modules[module_name] = module
+#sys.modules[module_name] = module
 
 print("module list")
 #print(sys.modules)
 
 from mTree.components import *
-t = BasicAgent()
+#t = BasicAgent()
 
 #importlib.import_module(".components.base_agent", package='packageser')
 
@@ -105,7 +159,8 @@ t = BasicAgent()
 
 #SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 #plugins_directory_path = os.path.join(SCRIPT_DIR, 'plugins')
-#plugins = import_plugins(plugins_directory_path, base_class=Agent)
+plugins = import_plugins(plugins_directory_path, base_class=Agent)
+print("\t 2 - --> ", plugins)
 
 #for plugin in plugins:
 #    plugin.foo()
@@ -113,14 +168,14 @@ t = BasicAgent()
 
 print("mTree is launching")
 server = Server()
-mtree_controller = MTreeController()
-mtree_controller.run()
+#mtree_controller = MTreeController()
+#mtree_controller.run()
 
 
 
 #server.attach_experiment(InformationCascades)
-#server.run_server()
-#server.register_blueprint(admin_area)
+server.run_server()
+server.register_blueprint(admin_area)
 #server.list_rules()
 #server.run()
 print("thinking")

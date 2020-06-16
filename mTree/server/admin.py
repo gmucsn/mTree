@@ -30,6 +30,11 @@ def show(page):
         #    abort(404)
 
 
+# @SocketIO.on('chat')
+# def handle_my_custom_namespace_event(json):
+#     print('received json: ' + str(json))
+#     emit('chat', json)
+
 @admin_area.route('/component_view')
 def components(page):
     #try:

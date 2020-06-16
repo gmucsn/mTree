@@ -3,6 +3,7 @@
 from mTree.development.development_server import DevelopmentServer, MTreeController
 from mTree.server.admin import admin_area
 from mTree.microeconomic_system.agent import Agent
+import pyfiglet
 
 
 import importlib
@@ -15,6 +16,10 @@ import sys
 
 # For illustrative purposes.
 import tokenize
+
+ascii_banner = pyfiglet.figlet_format("mTree - Developer")
+print(ascii_banner)
+
 
 
 def import_plugins(plugins_package_directory_path, base_class=None, create_instance=True, filter_abstract=True):

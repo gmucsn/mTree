@@ -9,7 +9,10 @@ import glob
 
 import importlib.util
 import sys
+import pyfiglet
 
+ascii_banner = pyfiglet.figlet_format("mTree")
+print(ascii_banner)
 
 from mTree.runner.runner import Runner
 
