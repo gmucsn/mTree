@@ -6,6 +6,9 @@ import logging
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.log_actor import LogActor
+
+
 
 import json
 
@@ -27,6 +30,9 @@ class Environment(Actor):
         return self.__str__()
 
     def __init__(self):
+        self.log_actor = None
+        self.simulation_id = None
+        self.run_number = None
         self.institutions = []
         self.agents = []
         self.mtree_properties = {}
@@ -58,6 +64,23 @@ class Environment(Actor):
         except:
             return None
 
+
+    @directive_decorator("initialize_log_actor")
+    def initialize_log_actor(self, message:Message):
+        self.log_actor = self.createActor(LogActor)
+        log_basis = {}
+        log_basis["message_type"] = "setup"
+        log_basis["simulation_id"] = self.simulation_id
+        if hasattr(self, 'run_number'):
+            log_basis["run_number"] = self.run_number
+        self.send(self.log_actor, log_basis)        
+
+
+
+
+    def log_experiment_data(self, data):
+        self.send(self.log_actor, data)
+
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
         if "mtree_properties" not in dir(self):
@@ -85,6 +108,7 @@ class Environment(Actor):
             new_message.set_directive("simulation_properties")
             payload = {}
             #if "mtree_properties" not in dir(self):
+            payload["log_actor"] = self.log_actor
             payload["properties"] = self.mtree_properties
 
             new_message.set_payload(payload)
@@ -102,6 +126,7 @@ class Environment(Actor):
         new_message.set_directive("simulation_properties")
         payload = {}
         #if "mtree_properties" not in dir(self):
+        payload["log_actor"] = self.log_actor
         payload["properties"] = self.mtree_properties
         payload["simulation_id"] = self.simulation_id
         if "run_number" in dir(self):

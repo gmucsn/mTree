@@ -5,7 +5,7 @@ from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
-
+from mTree.microeconomic_system.log_actor import LogActor
 #from socketIO_client import SocketIO, LoggingNamespace
 
 import logging
@@ -50,6 +50,14 @@ class Dispatcher(Actor):
                 payload["run_number"] = run_number
             message.set_payload(payload)
             self.send(environment, message)
+
+        # setup environment log actor
+        message = Message()
+        message.set_directive("initialize_log_actor")
+        payload = {}
+        message.set_payload(payload)
+        self.send(environment, message)
+
 
 
         message = Message()

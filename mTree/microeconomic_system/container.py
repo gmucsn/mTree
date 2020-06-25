@@ -1,5 +1,6 @@
 from thespian.actors import *
 import logging
+from pythonjsonlogger import jsonlogger
 from mTree.microeconomic_system.logging import logcfg
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
@@ -35,13 +36,13 @@ class Container:
                   'filters': {'isActorLog': {'()': actorLogFilter},
                               'notActorLog': {'()': notActorLogFilter}},
                   'handlers': {'h1': {'class': 'logging.FileHandler',
-                                      'filename': 'mtree.log',
-                                      'formatter': 'normal',
+                                      'filename': 'experiment_data.json',
+                                      'formatter': jsonlogger.JsonFormatter(),
                                       'filters': ['notActorLog'],
                                       'level': logging.INFO},
                                'h2': {'class': 'logging.FileHandler',
-                                      'filename': 'mtree.log',
-                                      'formatter': 'actor',
+                                      'filename': 'experiment_data.json',
+                                      'formatter': jsonlogger.JsonFormatter(),
                                       'filters': ['isActorLog'],
                                       'level': logging.INFO}, },
                   'loggers': {'': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
