@@ -27,6 +27,7 @@ class Institution(Actor):
         return self.__str__()
 
     def __init__(self):
+        self.log_actor = None
         self.agents = []
         self.agent_ids = []
         self.mtree_properties = {}
@@ -49,6 +50,9 @@ class Institution(Actor):
         except:
             return None
 
+    def log_experiment_data(self, data):
+        self.send(self.log_actor, data)
+
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
         if "mtree_properties" not in dir(self):
@@ -59,6 +63,7 @@ class Institution(Actor):
         self.simulation_id = message.get_payload()["simulation_id"]
         if "run_number" in message.get_payload().keys():
             self.run_number = message.get_payload()["run_number"]
+        self.log_actor = message.get_payload()["log_actor"]
 
     def add_agent(self, agent_class):
         if "agents" not in dir(self):

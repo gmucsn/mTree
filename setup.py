@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="mTree",
-    version="0.3-BETA-12",
+    version="0.3-BETA-13",
     packages=find_packages(),
     include_package_data=True,
     # Project uses reStructuredText, so ensure that the docutils get
@@ -16,7 +16,8 @@ setup(
                       'numpy>=1.11.1',
                       'PyYaml>=3.12',
                       'thespian>=3.10.0',
-                      'pyfiglet==0.8.post1'],
+                      'pyfiglet==0.8.post1',
+                      'python-json-logger==0.1.11'],
     scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner', 'bin/mTree_generate'],
     # metadata for upload to PyPI
     author="GMU CSN",
