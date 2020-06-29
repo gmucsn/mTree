@@ -32,7 +32,14 @@ class Dispatcher(Actor):
         print("ABOUT TO REGISTER AGENTS AND GET COMPONENTS")
 
         environment = component_registry.get_component_class(configuration["environment"])
-        institution = component_registry.get_component_class(configuration["institution"])
+        if "institution" in configuration.keys():
+            institution = component_registry.get_component_class(configuration["institution"])
+        elif "institutions" in configuration.keys():
+            institutions = []
+            for institution_d in configuration["institutions"]:
+                institution_class = component_registry.get_component_class(institution_d["institution"])
+                institutions.append(institution_class)
+
         agents = []
         for agent_d in configuration["agents"]:
             agent_class = component_registry.get_component_class(agent_d["agent_name"])
@@ -59,11 +66,17 @@ class Dispatcher(Actor):
         self.send(environment, message)
 
 
-
-        message = Message()
-        message.set_directive("setup_institution")
-        message.set_payload({"institution_class": institution})
-        self.send(environment, message)
+        if 'institutions' not in locals():
+            message = Message()
+            message.set_directive("setup_institution")
+            message.set_payload({"institution_class": institution})
+            self.send(environment, message)
+        else:
+            for institution in institutions:
+                message = Message()
+                message.set_directive("setup_institution")
+                message.set_payload({"institution_class": institution})
+                self.send(environment, message)
 
         for agent in agents:
             message = Message()
