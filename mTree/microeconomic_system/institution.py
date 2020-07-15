@@ -29,6 +29,7 @@ class Institution(Actor):
     def __init__(self):
         self.log_actor = None
         self.dispatcher = None
+        self.run_number = None
         self.agents = []
         self.agent_ids = []
         self.mtree_properties = {}

@@ -140,7 +140,6 @@ class Environment(Actor):
 
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
-        print("GETTING INSTITUTION ReADY")
         if "institutions" not in dir(self):
             self.institutions = []
 
