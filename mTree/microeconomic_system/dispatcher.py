@@ -163,12 +163,10 @@ class Dispatcher(Actor):
                 message.set_payload({"agent_class": agent[0], "num_agents": agent[1]})
                 self.send(environment, message)
 
-        print("starting environment")
         start_message = Message()
         start_message.set_sender("experimenter")
         start_message.set_directive("start_environment")
         self.send(environment, start_message)
-        print("STUFF")
 
     # def begin_simulations(self):
     #     for simulation in self.configurations_pending:
@@ -222,7 +220,7 @@ class Dispatcher(Actor):
             self.current_run += 1
             self.run_simulation(self.configurations_pending, self.current_run)
         else:
-            self.send(self, ActorExitRequest())
+            self.send(self.myAddress, ActorExitRequest())
             
 
 

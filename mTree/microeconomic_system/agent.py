@@ -78,8 +78,6 @@ class Agent(Actor):
         elif isinstance(message, ActorExitRequest):
             memory = self.__dict__
             
-            print("I have a memory")
-            print(self.agent_memory)
             new_message = Message()
             new_message.set_sender(self.myAddress)
             new_message.set_directive("store_agent_memory")
