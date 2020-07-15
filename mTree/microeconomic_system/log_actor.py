@@ -51,6 +51,10 @@ class LogActor(Actor):
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if isinstance(message, PoisonMessage):
             logging.exception("Poison HAPPENED: %s -- %s", self, message)
+        elif isinstance(message, ActorExitRequest):
+            logging.exception("ActorExitRequest: %s -- %s", self, message)
+        elif isinstance(message, ChildActorExited):
+            logging.exception("ChildActorExited: %s -- %s", self, message)
         else:
             try:
                 if "message_type" in message.keys():

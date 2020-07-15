@@ -33,6 +33,9 @@ from mTree.base.response import Response
 
 from mTree.server.admin import admin_area
 
+from mTree.server.subject import subject_area
+
+
 import signal
 from blessed import Terminal
 
@@ -146,6 +149,7 @@ class Server(object):
         #self.scheduler.start()
         #self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
         self.app.register_blueprint(admin_area, url_prefix='/admin')
+        self.app.register_blueprint(subject_area, url_prefix='/subject')
 
 
     def list_rules(self):
