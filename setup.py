@@ -18,7 +18,7 @@ setup(
                       'thespian>=3.10.0',
                       'pyfiglet==0.8.post1',
                       'python-json-logger==0.1.11'],
-    scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner', 'bin/mTree_generate'],
+    scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner', 'bin/mTree_generate', 'bin/mTree_server'],
     # metadata for upload to PyPI
     author="GMU CSN",
     author_email="mtree.email@gmail.com",

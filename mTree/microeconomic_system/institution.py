@@ -28,6 +28,7 @@ class Institution(Actor):
 
     def __init__(self):
         self.log_actor = None
+        self.dispatcher = None
         self.agents = []
         self.agent_ids = []
         self.mtree_properties = {}
@@ -36,7 +37,14 @@ class Institution(Actor):
         #print("INST GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if isinstance(message, PoisonMessage):
-            logging.exception("Poison HAPPENED: %s -- %s", self, message)
+            #logging.exception("Poison HAPPENED: %s -- %s", self, message)
+            pass
+        elif isinstance(message, ActorExitRequest):
+            #logging.exception("ActorExitRequest: %s -- %s", self, message)
+            pass
+        elif isinstance(message, ChildActorExited):
+            #logging.exception("ChildActorExited: %s -- %s", self, message)
+            pass
         else:
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
@@ -44,6 +52,7 @@ class Institution(Actor):
             except Exception as e:
                 logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
                 self.actorSystemShutdown()
+
     def get_property(self, property_name):
         try:
             return self.mtree_properties[property_name]
@@ -64,6 +73,8 @@ class Institution(Actor):
         if "run_number" in message.get_payload().keys():
             self.run_number = message.get_payload()["run_number"]
         self.log_actor = message.get_payload()["log_actor"]
+        self.dispatcher = message.get_payload()["dispatcher"]
+        self.environment = message.get_payload()["environment"]
 
     def add_agent(self, agent_class):
         if "agents" not in dir(self):

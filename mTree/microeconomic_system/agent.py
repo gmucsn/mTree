@@ -11,6 +11,8 @@ from mTree.microeconomic_system.directive_decorators import *
 import logging
 import json
 
+EXPERIMENT = 25
+
 
 @directive_enabled_class
 class Agent(Actor):
@@ -33,7 +35,7 @@ class Agent(Actor):
         #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
         self.log_actor = None
         self.mtree_properties = {}
-        print("Agent started")
+        self.agent_memory = {}
 
     @directive_decorator("register_subject_connection")
     def register_subject_connection(self, message: Message):
@@ -47,10 +49,19 @@ class Agent(Actor):
     def simulation_properties(self, message: Message):
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
+        if "agent_memory" not in dir(self):
+            self.agent_memory = {}
+        
 
         if "properties" in message.get_payload().keys():
             self.mtree_properties = message.get_payload()["properties"]
         self.log_actor = message.get_payload()["log_actor"]
+        self.dispatcher = message.get_payload()["dispatcher"]
+        if "agent_memory" in message.get_payload().keys():
+            print("setting my memory to... ", message.get_payload()["agent_memory"])
+            self.agent_memory = message.get_payload()["agent_memory"]
+        else:
+            self.agent_memory = {}
 
     def get_property(self, property_name):
         try:
@@ -59,10 +70,23 @@ class Agent(Actor):
             return None
 
     def receiveMessage(self, message, sender):
-        #print("AGENT GOT MESSAGE: " + message)
+        #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if isinstance(message, PoisonMessage):
-            logging.exception("Poison HAPPENED: %s -- %s", self, message)
+            #logging.exception("Poison HAPPENED: %s -- %s", self, message)
+            pass
+        elif isinstance(message, ActorExitRequest):
+            memory = self.__dict__
+            
+            print("I have a memory")
+            print(self.agent_memory)
+            new_message = Message()
+            new_message.set_sender(self.myAddress)
+            new_message.set_directive("store_agent_memory")
+            new_message.set_payload({"agent_memory": self.agent_memory})
+        
+            self.send(self.dispatcher, new_message)
+            
         else:
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())

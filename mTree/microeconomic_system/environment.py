@@ -35,17 +35,34 @@ class Environment(Actor):
         self.run_number = None
         self.institutions = []
         self.agents = []
+        self.agent_addresses = []
         self.mtree_properties = {}
 
     def close_environment(self):
         #asys.shutdown()
         pass
 
+    def end_round(self):
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("end_round")
+        payload = {}
+        payload["agents"] = self.agent_addresses
+        new_message.set_payload(payload)
+        self.send(self.dispatcher, new_message)
+        
     def receiveMessage(self, message, sender):
         #print("ENV GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if isinstance(message, PoisonMessage):
-            logging.exception("Poison HAPPENED: %s -- %s", self, message)
+            #logging.exception("Poison HAPPENED: %s -- %s", self, message)
+            pass
+        elif isinstance(message, ActorExitRequest):
+            #logging.exception("ActorExitRequest: %s -- %s", self, message)
+            pass
+        elif isinstance(message, ChildActorExited):
+            #logging.exception("ChildActorExited: %s -- %s", self, message)
+            pass
         else:
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
@@ -53,10 +70,6 @@ class Environment(Actor):
             except Exception as e:
                 logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
                 self.actorSystemShutdown()
-
-    def setup_agent(self, message):
-        print("got a message")
-        print(message)
 
     def get_property(self, property_name):
         try:
@@ -83,6 +96,8 @@ class Environment(Actor):
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
+        self.dispatcher = message.get_payload()["dispatcher"]
+        self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
 
@@ -95,13 +110,20 @@ class Environment(Actor):
     def setup_agents(self, message:Message):
         if "agents" not in dir(self):
             self.agents = []
+            self.agent_addresses = []
         # ensure that the actor system and institution are running...
         #message = MessageSpace.create_agent(agent_class)
         num_agents = message.get_payload()["num_agents"]
         agent_class = message.get_payload()["agent_class"]
+        memory = False
+        agent_memory = None
+        if "agent_memory" in message.get_payload().keys():
+            memory = True
+            agent_memory = message.get_payload()["agent_memory"]
 
         for i in range(num_agents):
             new_agent = self.createActor(agent_class)
+            self.agent_addresses.append(new_agent)
             self.agents.append([new_agent, agent_class, agent_class.__name__])
             new_message = Message()
             new_message.set_sender(self.myAddress)
@@ -109,13 +131,16 @@ class Environment(Actor):
             payload = {}
             #if "mtree_properties" not in dir(self):
             payload["log_actor"] = self.log_actor
+            payload["dispatcher"] = self.dispatcher
             payload["properties"] = self.mtree_properties
-
+            if memory:
+                payload["agent_memory"] = agent_memory
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
 
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
+        print("GETTING INSTITUTION ReADY")
         if "institutions" not in dir(self):
             self.institutions = []
 
@@ -127,6 +152,8 @@ class Environment(Actor):
         payload = {}
         #if "mtree_properties" not in dir(self):
         payload["log_actor"] = self.log_actor
+        payload["dispatcher"] = self.dispatcher
+        payload["environment"] = self.myAddress
         payload["properties"] = self.mtree_properties
         payload["simulation_id"] = self.simulation_id
         if "run_number" in dir(self):

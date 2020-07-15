@@ -104,18 +104,29 @@ class SimulationContainer():
                   'loggers': {'': {'handlers': ['h1', 'h2', 'exp', 'json'], 'level': logging.DEBUG}}
                   }
 
-        self.actor_system = ActorSystem(None, logDefs=logcfg)
-        #self.actor_system = ActorSystem('multiprocQueueBase', logDefs=logcfg)
+        #self.actor_system = ActorSystem(None, logDefs=logcfg)
+        self.actor_system = ActorSystem('multiprocQueueBase', logDefs=logcfg)
 
     def create_dispatcher(self):
         self.dispatcher = self.actor_system.createActor(Dispatcher)
 
 
     def send_dispatcher_simulation_configurations(self, configurations):
-        configuration_message = Message()
-        configuration_message.set_directive("simulation_configurations")
-        configuration_message.set_payload(configurations)
-        self.actor_system.tell(self.dispatcher, configuration_message)
+        for configuration in configurations:
+            print("CREATING DISPATCH FOR CONFIGURATION")
+            dispatcher = self.actor_system.createActor(Dispatcher)
+            configuration_message = Message()
+            configuration_message.set_directive("simulation_configurations")
+            configuration_message.set_payload(configuration)
+            self.actor_system.tell(dispatcher, configuration_message)
+
+    # def send_dispatcher_simulation_configurations(self, configurations):
+    #     configuration_message = Message()
+    #     configuration_message.set_directive("simulation_configurations")
+    #     configuration_message.set_payload(configurations)
+    #     self.actor_system.tell(self.dispatcher, configuration_message)
+
+
 
     def send_root_environment_message(self, environment_name, message):
         self.actor_system.tell(self.environments[environment_name], message)
