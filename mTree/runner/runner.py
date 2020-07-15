@@ -76,12 +76,8 @@ class Runner():
         modules_imported = []
         module_names = []
         for filename in glob.iglob('./mes/*.py', recursive=True):
-
-
             import_name = os.path.splitext(os.path.basename(filename))[0]
-
             module_name = "mes." + import_name.partition('.')[0]
-
             import importlib.util
 
 

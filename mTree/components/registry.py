@@ -34,6 +34,9 @@ class Registry:
                 Registry.instance.environment_list.append(class_name)
 
     def get_component_class(self, mes_class):
+        print("REGISTRY CLASSES AVAILABLE: ")
+        for i in Registry.instance.class_list.keys():
+            print("\t", i)
         classobject = Registry.instance.class_list[mes_class]["class"]
         return classobject
 
