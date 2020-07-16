@@ -49,21 +49,11 @@ class LogActor(Actor):
     def receiveMessage(self, message, sender):
         #print("AGENT GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        if isinstance(message, PoisonMessage):
-            logging.exception("Poison HAPPENED: %s -- %s", self, message)
-        elif isinstance(message, ActorExitRequest):
-            logging.exception("ActorExitRequest: %s -- %s", self, message)
-        elif isinstance(message, ChildActorExited):
-            logging.exception("ChildActorExited: %s -- %s", self, message)
-        else:
-            try:
-                if "message_type" in message.keys():
-                    self.simulation_id = message["simulation_id"]
-                    if "run_number" in message.keys():
-                        self.run_number = message["run_number"]
-                else:
-                    self.log_message(message)
+        if not isinstance(message, ActorSystemMessage):
+            if "message_type" in message.keys():
+                self.simulation_id = message["simulation_id"]
+                if "run_number" in message.keys():
+                    self.run_number = message["run_number"]
+            else:
+                self.log_message(message)
                     
-            except Exception as e:
-                logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()

@@ -42,6 +42,8 @@ class Environment(Actor):
         #asys.shutdown()
         pass
 
+    
+    
     def end_round(self):
         new_message = Message()
         new_message.set_sender(self.myAddress)
@@ -50,26 +52,24 @@ class Environment(Actor):
         payload["agents"] = self.agent_addresses
         new_message.set_payload(payload)
         self.send(self.dispatcher, new_message)
+
+        for agent in self.agent_addresses:
+            new_message = Message()
+            new_message.set_sender(self.myAddress)
+            new_message.set_directive("store_agent_memory")
+            self.send(agent, message)
+            
         
     def receiveMessage(self, message, sender):
         #print("ENV GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        if isinstance(message, PoisonMessage):
-            #logging.exception("Poison HAPPENED: %s -- %s", self, message)
-            pass
-        elif isinstance(message, ActorExitRequest):
-            #logging.exception("ActorExitRequest: %s -- %s", self, message)
-            pass
-        elif isinstance(message, ChildActorExited):
-            #logging.exception("ChildActorExited: %s -- %s", self, message)
-            pass
-        else:
+        if not isinstance(message, ActorSystemMessage):
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
             except Exception as e:
                 logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
+                #self.actorSystemShutdown()
 
     def get_property(self, property_name):
         try:

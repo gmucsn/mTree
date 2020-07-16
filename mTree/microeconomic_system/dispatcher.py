@@ -97,25 +97,43 @@ class Dispatcher(Actor):
         component_registry = registry.Registry()
         
 
-        environment = component_registry.get_component_class(configuration["environment"])
-        if "institution" in configuration.keys():
-            institution = component_registry.get_component_class(configuration["institution"])
-        elif "institutions" in configuration.keys():
-            institutions = []
-            for institution_d in configuration["institutions"]:
-                institution_class = component_registry.get_component_class(institution_d["institution"])
-                institutions.append(institution_class)
+        try:
+            environment = component_registry.get_component_class(configuration["environment"])
+        except Exception as e:
+            environment = configuration["environment"]
+
+        environment = self.createActor(environment)
+
+        self.environment = environment
+
+        try:
+            if "institution" in configuration.keys():
+                institution = component_registry.get_component_class(configuration["institution"])
+            elif "institutions" in configuration.keys():
+                institutions = []
+                for institution_d in configuration["institutions"]:
+                    institution_class = component_registry.get_component_class(institution_d["institution"])
+                    institutions.append(institution_class)
+        except Exception as e:
+            if "institution" in configuration.keys():
+                institution = configuration["institution"]
+            elif "institutions" in configuration.keys():
+                institutions = []
+                for institution_d in configuration["institutions"]:
+                    institution_class = institution_d["institution"]
+                    institutions.append(institution_class)
 
         agents = []
         for agent_d in configuration["agents"]:
-            agent_class = component_registry.get_component_class(agent_d["agent_name"])
+            try:
+                agent_class = component_registry.get_component_class(agent_d["agent_name"])
+            except Exception as e:
+                agent_class = agent_d["agent_name"]
             agent_count = agent_d["number"]
             for i in range(0, agent_count):
                 agents.append((agent_class, 1))
 
-        environment = self.createActor(environment)
-        
-        self.environment = environment
+
         
         if "properties" in configuration.keys():
             message = Message()
@@ -179,7 +197,11 @@ class Dispatcher(Actor):
     #             self.run_simulation(simulation)
 
     def begin_simulations(self):
-        self.log_actor = self.createActor(LogActor)
+        try:
+            self.log_actor = self.createActor(LogActor)
+        except Exception as e:
+            self.log_actor = self.createActor("LogActor")
+        
         log_basis = {}
         log_basis["message_type"] = "setup"
         log_basis["simulation_id"] = self.configurations_pending["id"]
@@ -226,33 +248,26 @@ class Dispatcher(Actor):
 
     def receiveMessage(self, message, sender):
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
-
-
-        if isinstance(message, PoisonMessage):
-            pass
-            #logging.exception("Posioning HAPPENED: %s -- %s -- %s", self, message, "sssss")
-        elif isinstance(message, ActorExitRequest):
-            pass
-            #logging.exception("ActorExitRequest: %s -- %s", self, message)
-        elif isinstance(message, ChildActorExited):
-            pass
-            #logging.exception("ChildActorExited: %s -- %s", self, message)
-        else:
+        if not isinstance(message, ActorSystemMessage):
             if message.get_directive() == "simulation_configurations":
                 self.configurations_pending = message.get_payload()
                 self.begin_simulations()
             elif message.get_directive() == "end_round":
-                self.end_round()
                 self.agent_memory = []
                 self.agents_to_wait = len(message.get_payload()["agents"])
             elif message.get_directive() == "store_agent_memory":
                 if self.agents_to_wait > 1:
                     self.agents_to_wait -= 1
                     self.agent_memory.append(message.get_payload()["agent_memory"])
+                    self.send(sender, ActorExitRequest())
+        
                 else:
                     self.agent_memory.append(message.get_payload()["agent_memory"])
                     self.agents_to_wait -= 1
                     self.agent_memory_prepared = True
-                    
+        
+                    self.send(sender, ActorExitRequest())
+        
+                    self.end_round()
                     self.next_run()
 

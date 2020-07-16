@@ -37,23 +37,14 @@ class Institution(Actor):
     def receiveMessage(self, message, sender):
         #print("INST GOT MESSAGE: " + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        if isinstance(message, PoisonMessage):
-            #logging.exception("Poison HAPPENED: %s -- %s", self, message)
-            pass
-        elif isinstance(message, ActorExitRequest):
-            #logging.exception("ActorExitRequest: %s -- %s", self, message)
-            pass
-        elif isinstance(message, ChildActorExited):
-            #logging.exception("ChildActorExited: %s -- %s", self, message)
-            pass
-        else:
+        if not isinstance(message, ActorSystemMessage):
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
             except Exception as e:
                 logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
-
+                #self.actorSystemShutdown()
+        
     def get_property(self, property_name):
         try:
             return self.mtree_properties[property_name]

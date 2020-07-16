@@ -41,6 +41,15 @@ class Agent(Actor):
     def register_subject_connection(self, message: Message):
         self.subject_id = "TEST!" #message.get_payload()["subject_id"]
 
+    @directive_decorator("store_agent_memory")
+    def store_agent_memory(self, message: Message):
+        self.subject_id = "TEST!" #message.get_payload()["subject_id"]
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("store_agent_memory")
+        new_message.set_payload({"agent_memory": self.agent_memory})
+        self.send(self.dispatcher, new_message)
+
 
     def log_experiment_data(self, data):
         self.send(self.log_actor, data)
@@ -72,23 +81,12 @@ class Agent(Actor):
     def receiveMessage(self, message, sender):
         #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        if isinstance(message, PoisonMessage):
-            #logging.exception("Poison HAPPENED: %s -- %s", self, message)
-            pass
-        elif isinstance(message, ActorExitRequest):
-            memory = self.__dict__
-            
-            new_message = Message()
-            new_message.set_sender(self.myAddress)
-            new_message.set_directive("store_agent_memory")
-            new_message.set_payload({"agent_memory": self.agent_memory})
-        
-            self.send(self.dispatcher, new_message)
-            
-        else:
+        if not isinstance(message, ActorSystemMessage):
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
             except Exception as e:
                 logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
+                #self.actorSystemShutdown()
+                
+            

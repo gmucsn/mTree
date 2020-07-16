@@ -105,20 +105,24 @@ class SimulationContainer():
                   }
 
         #self.actor_system = ActorSystem(None, logDefs=logcfg)
-        self.actor_system = ActorSystem('multiprocQueueBase', logDefs=logcfg)
+        #self.actor_system = ActorSystem('multiprocQueueBase', logDefs=logcfg)
+        self.actor_system = ActorSystem('multiprocTCPBase', logDefs=logcfg)
 
     def create_dispatcher(self):
-        self.dispatcher = self.actor_system.createActor(Dispatcher)
+        try:
+            self.dispatcher = ActorSystem().createActor(Dispatcher)
+        except Exception as e:
+            self.dispatcher = ActorSystem().createActor("Dispatcher")
 
 
     def send_dispatcher_simulation_configurations(self, configurations):
         for configuration in configurations:
-            print("CREATING DISPATCH FOR CONFIGURATION")
-            dispatcher = self.actor_system.createActor(Dispatcher)
+            print("CREATING DISPATCHER FOR CONFIGURATION")
+            
             configuration_message = Message()
             configuration_message.set_directive("simulation_configurations")
             configuration_message.set_payload(configuration)
-            self.actor_system.tell(dispatcher, configuration_message)
+            ActorSystem().tell(self.dispatcher, configuration_message)
 
     # def send_dispatcher_simulation_configurations(self, configurations):
     #     configuration_message = Message()
@@ -129,10 +133,14 @@ class SimulationContainer():
 
 
     def send_root_environment_message(self, environment_name, message):
-        self.actor_system.tell(self.environments[environment_name], message)
+        ActorSystem().tell(self.environments[environment_name], message)
+
+    def shutdown_thespian(self):
+        ActorSystem().shutdown()
 
     def kill_environment(self, environment_name):
-        self.send(self.dispatcher, ActorExitRequest())
+        #self.send(self.dispatcher, ActorExitRequest())
+        pass
 
 
 if __name__ == "__main__":  # This is what should be moved to the mTree level...
