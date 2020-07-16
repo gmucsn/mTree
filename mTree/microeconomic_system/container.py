@@ -68,7 +68,7 @@ class Container:
 
 
     def setup_environment_agents(self, agent_class, num_agents = 1):
-        logging.info("AGENTS BEING SETUP FROM ENV")
+        #logging.info("AGENTS BEING SETUP FROM ENV")
         message = Message()
         message.set_directive("setup_agents")
         message.set_payload({"agent_class": agent_class, "num_agents": num_agents})

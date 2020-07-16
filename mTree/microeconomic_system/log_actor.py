@@ -43,8 +43,8 @@ class LogActor(Actor):
             message["simulation_id"] = self.simulation_id
         if self.run_number is not None:
             message["run_number"] = self.run_number
-            
-        logging.log(EXPERIMENT_DATA, message)
+        print("LOG ACTOR SHOULD LOG")   
+        #logging.log(EXPERIMENT_DATA, message)
 
     def receiveMessage(self, message, sender):
         #print("AGENT GOT MESSAGE: " + message)

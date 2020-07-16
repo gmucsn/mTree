@@ -68,7 +68,8 @@ class Environment(Actor):
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
             except Exception as e:
-                logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+                print("ENV: ERROR")
+                #.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
                 #self.actorSystemShutdown()
 
     def get_property(self, property_name):

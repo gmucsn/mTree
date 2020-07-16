@@ -10,6 +10,10 @@ from mTree.microeconomic_system.message import Message
 import sys
 from datetime import timedelta
 from mTree.components import registry
+import os
+import glob
+import time
+import traceback
 
 class actorLogFilter(logging.Filter):
     def filter(self, logrecord):
@@ -58,6 +62,13 @@ logging.addLevelName(logger.MESSAGE, 'MESSAGE')
 #setattr(logging, 'experiment', lambda message, *args: logger._log(logging.EXPERIMENT, message, args))
 
 
+class SimpleSourceAuthority(ActorTypeDispatcher):
+    def receiveMsg_str(self, msg, sender):
+        self.registerSourceAuthority()
+    def receiveMsg_ValidateSource(self, msg, sender):
+        self.send(sender, ValidatedSource(msg.sourceHash,
+                                          msg.sourceData,
+                                          msg.sourceInfo))
 
 
 class SimulationContainer():
@@ -68,6 +79,15 @@ class SimulationContainer():
 
         self.create_actor_system()
 
+
+    def zip_source(self, filename):
+        zipname = 'mes.zip'
+        import zipfile
+        zf = zipfile.ZipFile(zipname, 'w')
+        
+        zf.writestr('mes.py', open(filename, 'r').read())
+        zf.close()
+        return zipname
 
     def create_actor_system(self):
         logcfg = {'version': 1,
@@ -104,9 +124,49 @@ class SimulationContainer():
                   'loggers': {'': {'handlers': ['h1', 'h2', 'exp', 'json'], 'level': logging.DEBUG}}
                   }
 
+        logcfg = { 'version': 1,
+           'formatters': {
+               'normal': {'format': '%(levelname)-8s %(message)s'},
+               'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
+           'filters': { 'isActorLog': { '()': actorLogFilter},
+                        'notActorLog': { '()': notActorLogFilter}},
+           'handlers': { 'h1': {'class': 'logging.StreamHandler',
+                                'formatter': 'normal',
+                                'filters': ['notActorLog'],
+                                'level': logging.INFO},
+                         'h2': {'class': 'logging.StreamHandler',
+                                'formatter': 'actor',
+                                'filters': ['isActorLog'],
+                                'level': logging.INFO},},
+           'loggers' : { '': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
+         }
+
         #self.actor_system = ActorSystem(None, logDefs=logcfg)
         #self.actor_system = ActorSystem('multiprocQueueBase', logDefs=logcfg)
-        self.actor_system = ActorSystem('multiprocTCPBase', logDefs=logcfg)
+        self.actor_system = ActorSystem('multiprocTCPBase',logDefs=logcfg)
+        actorSys = self.actor_system or ActorSystem()
+        try:
+            actorSys.tell(
+                actorSys.createActor(SimpleSourceAuthority),
+                'register')
+        except:
+            print('***ERROR starting source authority')
+            traceback.print_exc(limit=3)
+
+        cwd = os.getcwd()
+        sys.path.append(cwd)
+        for filename in glob.iglob(os.path.join(cwd, 'mes', '*.py'), recursive=True):
+            print("ADDING TO ZIP: ",filename)
+            loadHash = self.actor_system.loadActorSource(self.zip_source(filename))
+            time.sleep(1) # Allow source authority to authorize the load
+            try:
+                na = actorSys.createActor('mes.BasicEnvironment', sourceHash = loadHash)
+            except:
+                print ('***ERROR creating Actor t.TestActor from sourceHash %s'%(loadHash))
+                traceback.print_exc(limit=3)
+            else:
+                N,A = self.getOrAddAddress(na)
+                print ('Created new TestActor %d @ %s'%(N, str(A)))
 
     def create_dispatcher(self):
         try:
