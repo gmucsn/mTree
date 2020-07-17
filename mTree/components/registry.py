@@ -1,6 +1,8 @@
 from mTree.components.admin_message import AdminMessage
 import json
 import sys
+import inspect
+
 
 class Registry:
     class __Registry:
@@ -24,7 +26,8 @@ class Registry:
 
     def add_class(self, classobject):
         class_name = classobject.__name__
-        Registry.instance.class_list[class_name] = {"class": classobject}
+        class_source = inspect.getfile(classobject) #.__class__)
+        Registry.instance.class_list[class_name] = {"class": classobject, "source": class_source}
         for base_class in classobject.__bases__:
             if base_class.__name__ == "Agent":
                 Registry.instance.agent_list.append(class_name)
@@ -47,6 +50,13 @@ class Registry:
         with open(filename) as f:
             contents = f.read()
         return contents
+
+    def list_contents(self):
+        for target in Registry.instance.class_list.keys():
+            print(Registry.instance.class_list[target])
+        
+
+
 
     def list_classes(self):
         return Registry.instance.class_list

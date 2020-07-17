@@ -76,7 +76,7 @@ class SimulationContainer():
         self.actor_system = None
         self.dispatcher = None
         self.log_actor = None
-
+        self.component_registry = registry.Registry()
         self.create_actor_system()
 
 
@@ -155,18 +155,21 @@ class SimulationContainer():
 
         cwd = os.getcwd()
         sys.path.append(cwd)
-        for filename in glob.iglob(os.path.join(cwd, 'mes', '*.py'), recursive=True):
-            print("ADDING TO ZIP: ",filename)
-            loadHash = self.actor_system.loadActorSource(self.zip_source(filename))
-            time.sleep(1) # Allow source authority to authorize the load
-            try:
-                na = actorSys.createActor('mes.BasicEnvironment', sourceHash = loadHash)
-            except:
-                print ('***ERROR creating Actor t.TestActor from sourceHash %s'%(loadHash))
-                traceback.print_exc(limit=3)
-            else:
-                N,A = self.getOrAddAddress(na)
-                print ('Created new TestActor %d @ %s'%(N, str(A)))
+        mes_components = {}
+
+        # print(self.component_registry.list_contents())
+        # for filename in glob.iglob(os.path.join(cwd, 'mes', '*.py'), recursive=True):
+        #     print("ADDING TO ZIP: ",filename)
+        #     loadHash = self.actor_system.loadActorSource(self.zip_source(filename))
+        #     time.sleep(1) # Allow source authority to authorize the load
+        #     try:
+        #         na = actorSys.createActor('mes.BasicEnvironment', sourceHash = loadHash)
+        #     except:
+        #         print ('***ERROR creating Actor t.TestActor from sourceHash %s'%(loadHash))
+        #         traceback.print_exc(limit=3)
+        #     #else:
+        #     #    N,A = self.getOrAddAddress(na)
+        #     #    print ('Created new TestActor %d @ %s'%(N, str(A)))
 
     def create_dispatcher(self):
         try:
