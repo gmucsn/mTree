@@ -26,7 +26,8 @@ class Registry:
 
     def add_class(self, classobject):
         class_name = classobject.__name__
-        class_source = inspect.getfile(classobject) #.__class__)
+        #class_source = inspect.getfile(classobject).__class__
+        class_source = "temp"
         Registry.instance.class_list[class_name] = {"class": classobject, "source": class_source}
         for base_class in classobject.__bases__:
             if base_class.__name__ == "Agent":

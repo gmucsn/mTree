@@ -36,6 +36,22 @@ class Agent(Actor):
         self.log_actor = None
         self.mtree_properties = {}
         self.agent_memory = {}
+        self.outlets = {}
+        
+    def __setattr__(self, key, value):
+        """
+        magic function that passes change to the root object
+        :param key:
+        :param value:
+        :return:
+        """
+        super().__setattr__(key, value)
+        if hasattr(self, 'outlets'):
+            if key in self.outlets:
+                print("LETTING: " + str(self.user) + " -- " + str(self.outlets[key]) + " -- " + str(value))
+
+                self.response.let_user(self.user_id, self.outlets[key], value)
+                
 
     @directive_decorator("register_subject_connection")
     def register_subject_connection(self, message: Message):
@@ -77,6 +93,10 @@ class Agent(Actor):
             return self.mtree_properties[property_name]
         except:
             return None
+
+    def register_outlet(self, _property, target):  # _property used due to builtin use of property
+        self.outlets[_property] = target
+
 
     def receiveMessage(self, message, sender):
         #print("AGENT GOT MESSAGE: ", message) # + message)

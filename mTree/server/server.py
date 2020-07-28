@@ -2,7 +2,7 @@ import eventlet
 eventlet.monkey_patch()
 
 from flask import Flask, render_template, render_template_string, session, request, send_from_directory
-from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
+from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect,  Namespace
 import flask
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -26,6 +26,8 @@ from jinja2 import Environment, FileSystemLoader
 from flask_sqlalchemy import SQLAlchemy
 from jinja2 import Environment, FileSystemLoader
 import os
+from os import listdir
+from os.path import isfile, join
 
 from mTree.components import registry
 
@@ -35,11 +37,13 @@ from mTree.server.admin import admin_area
 
 from mTree.server.subject import subject_area
 
+from mTree.server.subject_pool import SubjectPool
 
 import signal
 from blessed import Terminal
-
-
+from mTree.server.admin_namespace import AdminNamespace
+from mTree.server.subject_namespace import SubjectNamespace
+from mTree.server.configuration_scanner import ConfigurationScanner
 
 
 class MTreeController(object):
@@ -60,8 +64,6 @@ class MTreeController(object):
         #self.socketio = SocketIO(self.app) #, async_mode=self.async_mode)
         self.component_registry = registry.Registry()
         self.component_registry.register_server(self)
-        print("should have registered server")
-        print(self)
 
 
         # template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
@@ -92,7 +94,7 @@ class MTreeController(object):
 
 
     def run(self):
-        print("starting server...")
+        print("SSSstarting server...")
         #self.list_rules()
         self.socketio.run(self.app, host='0.0.0.0', debug=True)
 
@@ -119,16 +121,25 @@ class NewServer(Flask):
 
 
 
+
+
 class Server(object):
     app = None
 
     def __init__(self):
         #  print("initializing " * 20)
+        self.configuration_scanner = ConfigurationScanner()
+        self.configuration_scanner.scan_configurations()
+
         self.async_mode = 'eventlet' # None
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
         thread = None
         self.socketio = SocketIO(self.app, async_mode=self.async_mode, cors_allowed_origins="*")
+        SubjectPool().register_flask_outlet(self.socketio)
+        self.socketio.on_namespace(AdminNamespace('/admin'))
+        self.socketio.on_namespace(SubjectNamespace('/subject'))        
+        
         template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
                                                jinja2.PackageLoader('mTree', 'base/admin_templates'),
                                                jinja2.PackageLoader('mTree', 'base/user_templates')])
@@ -153,10 +164,7 @@ class Server(object):
 
 
     def list_rules(self):
-        print("ANY RULES?")
-        print(self.app.url_map)
-        print("LISTED")
-
+        pass
 
 
     def on_resize(self, sig, action):
@@ -169,7 +177,6 @@ class Server(object):
         print("APSCHEDULER EVENT " + str(event))
 
     def run_server(self):
-        print("RUNNING " * 20)
         self.list_rules()
         self.socketio.run(self.app, host='0.0.0.0')
 
@@ -189,12 +196,10 @@ class Server(object):
         return Response(emit, self.app, self.db)
 
     def add_routes(self):
-        @self.socketio.on('message')
-        def admin_control_message(message):
-            # self.experiment.admin_event_handler(message)
-            #self.experiment.start_experiment()
-            self.log_message()
-            emit('chat', "test")
+        pass
+
+
+
 
     def add_scheduler(self, sched_function):
         self.scheduler.add_job(func=sched_function, trigger=IntervalTrigger(seconds=5),

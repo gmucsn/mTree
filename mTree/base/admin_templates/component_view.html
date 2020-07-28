@@ -150,6 +150,7 @@
             $('button').click(function(){
                     var button_pressed = this.id;
                     message = {};
+                    console.log("Should be routing...")
                     switch(button_pressed){
                     case "start_experiment":
                         message['control'] = "START";
