@@ -18,6 +18,49 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import SocketClientComponent from "./SocketClientComponent";
+import Typography from '@material-ui/core/Typography';
+
+
+class ExperimentConfiguration {
+  constructor()
+  {
+      if(!ExperimentConfiguration.instance){
+          //this._instance = new StateManager();
+          this.mtree_type = null;
+          this.name = null;
+          this.id = null;
+          this.environment = null;
+          // Multiple institutions...
+          this.institution = null;
+          this.agents = [];
+          this.properties = {}
+          this.agent_ui = null;
+
+          ExperimentConfiguration.instance = this;          
+        }
+     
+        return ExperimentConfiguration.instance;
+  }
+
+  readJson(json){
+    ExperimentConfiguration.instance.mtree_type = json["mtree_type"];
+    ExperimentConfiguration.instance.name = json.name;
+    ExperimentConfiguration.instance.id = json["id"];
+    ExperimentConfiguration.instance.environment = json["environment"];
+    ExperimentConfiguration.instance.institution = json["institution"];
+    ExperimentConfiguration.instance.number_of_runs = json["number_of_runs"];
+    ExperimentConfiguration.instance.agents = json["agents"];
+    ExperimentConfiguration.instance.properties = json["properties"];
+    ExperimentConfiguration.instance.agent_ui = json["agent_ui"];
+    console.log("STUFF");
+    console.log(json["name"]);
+    console.log(ExperimentConfiguration.instance.name);
+    console.log(json);
+  }
+
+
+}
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -37,7 +80,7 @@ const useStyles = makeStyles((theme) => ({
   
 
 function ExperimentConfigurations() {
-
+    let experiment = new ExperimentConfiguration();
     let { path, url } = useRouteMatch();
 
     const classes = useStyles();
@@ -68,7 +111,9 @@ function ExperimentConfigurations() {
                         {configurations.map((row) => (
                             <TableRow key={row}>
                             <TableCell component="th" scope="row">{row[0]}</TableCell>
-                            <TableCell component="th" scope="row"> <Link to={`${url}/${row[0]}`} onClick={() => {setConfiguration(row[1])}}>Details</Link></TableCell>
+                            <TableCell component="th" scope="row"> <Link to={`${url}/${row[0]}`} onClick={() => {
+                              ExperimentConfiguration.instance.readJson(JSON.parse(row[1]));
+                              }}>Details</Link></TableCell>
                             </TableRow>
                         ))}
                         </TableBody>
@@ -77,8 +122,90 @@ function ExperimentConfigurations() {
                 </Paper>
             </Route>
             <Route path={`${path}/:configuration`}>
-            <Paper>{configuration}</Paper>
+
+            <Paper>
+            <TableContainer component={Paper}>
+      <Table className={classes.table} aria-label="simple table">
+        <TableHead>
+          <TableRow>
+            <TableCell>Property</TableCell>
+            <TableCell align="right">Value</TableCell>
+            <TableCell align="right">Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+            <TableRow >
+              <TableCell component="th" scope="row">
+                Experiment Type
+              </TableCell>
+              <TableCell align="right">{ExperimentConfiguration.instance.mtree_type}</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+
+            <TableRow >
+              <TableCell component="th" scope="row">
+                Name
+              </TableCell>
+              <TableCell align="right">{ExperimentConfiguration.instance.name}</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+
+            <TableRow >
+              <TableCell component="th" scope="row">
+                ID
+              </TableCell>
+              <TableCell align="right">{ExperimentConfiguration.instance.id}</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+
+            <TableRow >
+              <TableCell component="th" scope="row">
+                Environment
+              </TableCell>
+              <TableCell align="right">{ExperimentConfiguration.instance.environment}</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+
+            <TableRow >
+              <TableCell component="th" scope="row">
+                Institution
+              </TableCell>
+              <TableCell align="right">{ExperimentConfiguration.instance.institution}</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+
+            <TableRow >
+              <TableCell component="th" scope="row">
+                Agents
+              </TableCell>
+              <TableCell align="right">{ExperimentConfiguration.instance.mtree_type}</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+
+            <TableRow >
+              <TableCell component="th" scope="row">
+                Properties
+              </TableCell>
+              <TableCell align="right">{ExperimentConfiguration.instance.mtree_type}</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+
+            <TableRow >
+              <TableCell component="th" scope="row">
+                Agent UI
+              </TableCell>
+              <TableCell align="right">{ExperimentConfiguration.instance.agent_ui}</TableCell>
+              <TableCell align="right"></TableCell>
+            </TableRow>
+
+        </TableBody>
+      </Table>
+    </TableContainer>
+              </Paper>
+
+            
             </Route>
+
       </Switch>
         
       </div>
