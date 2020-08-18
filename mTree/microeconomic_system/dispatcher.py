@@ -204,17 +204,17 @@ class Dispatcher(Actor):
         
         log_basis = {}
         log_basis["message_type"] = "setup"
-        log_basis["simulation_id"] = self.configurations_pending["id"]
+        log_basis["simulation_id"] = self.configurations_pending[0]["id"]
         self.send(self.log_actor, log_basis)        
 
 
 
-        if "number_of_runs" in self.configurations_pending.keys():
-            self.runs_remaining = self.configurations_pending["number_of_runs"]
+        if "number_of_runs" in self.configurations_pending[0].keys():
+            self.runs_remaining = self.configurations_pending[0]["number_of_runs"]
             self.current_run = 0
-            self.run_simulation(self.configurations_pending, self.current_run)
+            self.run_simulation(self.configurations_pending[0], self.current_run)
         else:
-            self.run_simulation(self.configurations_pending)
+            self.run_simulation(self.configurations_pending[0])
 
 
     def end_round(self):

@@ -1,7 +1,7 @@
 from thespian.actors import *
 import logging
 from pythonjsonlogger import jsonlogger
-from mTree.microeconomic_system.logging import logcfg
+from mTree.microeconomic_system.log_cfg import logcfg
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 import sys

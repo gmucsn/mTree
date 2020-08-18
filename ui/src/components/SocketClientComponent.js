@@ -83,6 +83,12 @@ class SocketClientComponent {
         this.socket.emit("get_components", "");
     }
 
+    runSimulationConfiguration(configuration_name){
+        this.configurations = {"configuration": configuration_name};
+        this.socket.emit("run_simulation_configuration", this.configurations);
+        console.log("should be getting configurations")
+    }
+
     getSubjectPool(subjectPoolIDs, subjectPool){
         this.subjectPoolIDs = subjectPoolIDs;
         this.subjectPool = subjectPool;

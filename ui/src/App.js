@@ -28,6 +28,9 @@ import SubjectPool from './components/SubjectPool';
 import ComponentList from './components/ComponentList';
 import LayersIcon from '@material-ui/icons/Layers';
 import ExperimentConfigurations from './components/ExperimentConfigurations';
+import SimulationRunner from './components/SimulationRunner';
+import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
+import RemoveRedEyeIcon from '@material-ui/icons/RemoveRedEye';
 
 function Copyright() {
   return (
@@ -210,7 +213,24 @@ export default function App() {
           </ListItemIcon>
           <ListItemText primary="Subject Pool" />
         </ListItem>
+        
+
+        <ListItem button component={Link} to="/run_subject_experiment">
+          <ListItemIcon>
+          <PlayCircleOutlineIcon />
+          </ListItemIcon>
+          <ListItemText primary="Run Subject Experiment" />
+        </ListItem>
+
+        <ListItem button component={Link} to="/run_simulation">
+          <ListItemIcon>
+          <RemoveRedEyeIcon />
+          </ListItemIcon>
+          <ListItemText primary="Run Simulation" />
+        </ListItem>
+
         </List>
+
   </div>
         
       </Drawer>
@@ -222,6 +242,8 @@ export default function App() {
               <Route path="/subject_pool" component={SubjectPool}  />
               <Route path="/component_list" component={ComponentList}  />
               <Route path="/experiment_configurations" component={ExperimentConfigurations}  />
+              <Route path="/run_subject_experiment" component={ExperimentConfigurations}  />
+              <Route path="/run_simulation" component={SimulationRunner}  />
           </Switch>
         </Container>
       </main>

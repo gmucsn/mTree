@@ -39,6 +39,8 @@ from mTree.server.subject import subject_area
 
 from mTree.server.subject_pool import SubjectPool
 
+from mTree.runner.server_runner import ServerRunner
+from mTree.server.component_registrar import ComponentRegistrar
 import signal
 from blessed import Terminal
 from mTree.server.admin_namespace import AdminNamespace
@@ -150,6 +152,8 @@ class Server(object):
 
         #self.basic_auth = BasicAuth(self.app)
 
+        #self.server_runner = ServerRunner()
+        self.component_registrar = ComponentRegistrar()
 
         self.term = Terminal()
 

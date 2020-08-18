@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+
+import time
+from mTree.server.actor_system_startup import ActorSystemStartup
+import sys
+
+print("mTree Server Backend Starting Up....")
+
+if sys.argv[1] == "startup":
+    actor_system = ActorSystemStartup()
+elif sys.argv[1] == "shutdown":
+    ActorSystemStartup().shutdown()

@@ -2,7 +2,7 @@ from thespian.actors import *
 #from thespian.system.multiprocQueueBase import
 import logging
 import pythonjsonlogger
-from mTree.microeconomic_system.logging import logcfg
+from mTree.microeconomic_system.log_cfg import logcfg
 from mTree.microeconomic_system.dispatcher import Dispatcher
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.message_space import MessageSpace
