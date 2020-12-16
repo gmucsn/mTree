@@ -46,6 +46,7 @@ from blessed import Terminal
 from mTree.server.admin_namespace import AdminNamespace
 from mTree.server.subject_namespace import SubjectNamespace
 from mTree.server.configuration_scanner import ConfigurationScanner
+from mTree.server.subject_configuration_scanner import SubjectConfigurationScanner
 
 
 class MTreeController(object):
@@ -132,6 +133,10 @@ class Server(object):
         #  print("initializing " * 20)
         self.configuration_scanner = ConfigurationScanner()
         self.configuration_scanner.scan_configurations()
+
+        self.subject_configuration_scanner = SubjectConfigurationScanner()
+        self.subject_configuration_scanner.scan_configurations()
+
 
         self.async_mode = 'eventlet' # None
         self.app = Flask(__name__)

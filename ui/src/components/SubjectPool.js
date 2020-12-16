@@ -62,7 +62,9 @@ function SubjectPool() {
                         <TableCell component="th" scope="row">Connection Time</TableCell>
                         <TableCell component="th" scope="row">Last Activity</TableCell>
                         <TableCell component="th" scope="row">Current State</TableCell>
-                        <TableCell component="th" scope="row">Details</TableCell>
+                        <TableCell component="th" scope="row"><Link to={`${row[0]}`} onClick={() => {
+                              console.log("STUFF");
+                              }}>Details</Link></TableCell>
                         </TableRow>
                     ))}
                     </TableBody>

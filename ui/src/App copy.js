@@ -1,7 +1,6 @@
 import React, { useState, useEffect, Component } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import clsx from 'clsx';
-import { withStyles } from '@material-ui/core/styles';
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
@@ -42,9 +41,10 @@ function Copyright() {
     </Typography>
   );
 }
+
 const drawerWidth = 240;
 
-const useStyles = theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
   },
@@ -121,42 +121,41 @@ const useStyles = theme => ({
   fixedHeight: {
     height: 240,
   },
-});
+}));
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    //this.handleChange = this.handleChange.bind(this);
-    //this.open = false;
-    this.handleDrawerOpen = this.handleDrawerOpen.bind(this);
-    this.handleDrawerClose = this.handleDrawerClose.bind(this);
-    this.state = { open: true };
-  }
+export default function App() {
+  useEffect(() => {
+    console.log("STARTING SOMETHING HERE");
+    SocketClientComponent.echo();
+    SocketClientComponent.sendMessage();
+    // Some initialization logic here
+  }, []);
 
-  handleDrawerOpen() {
-    console.log(this.state.open);
-    this.setState({ open: true });
-  }
 
-  handleDrawerClose() {
-    console.log(this.state.open);
-    this.setState({ open: false });
-    //this.state.open = false;
-  }
 
-  render() {
-    const {classes, theme, backgroundColor} = this.props;
-    return (
-      <div className={classes.root}>
+  const classes = useStyles();
+  const [loadClient, setLoadClient] = useState(true);
+  const [open, setOpen] = React.useState(true);
+  const handleDrawerOpen = () => {
+    setOpen(true);
+  };
+  const handleDrawerClose = () => {
+    setOpen(false);
+  };
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+
+
+  return (
+    <div className={classes.root}>
       <CssBaseline />
-      <AppBar position="absolute" className={clsx(classes.appBar, this.state.open && classes.appBarShift)}>
+      <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
         <Toolbar className={classes.toolbar}>
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
-            onClick={this.handleDrawerOpen}
-            className={clsx(classes.menuButton, this.state.open && classes.menuButtonHidden)}
+            onClick={handleDrawerOpen}
+            className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
           >
             <MenuIcon />
           </IconButton>
@@ -173,12 +172,12 @@ class App extends React.Component {
       <Drawer
         variant="permanent"
         classes={{
-          paper: clsx(classes.drawerPaper, !this.state.open && classes.drawerPaperClose),
+          paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
         }}
-        open={this.state.open}
+        open={open}
       >
         <div className={classes.toolbarIcon}>
-          <IconButton onClick={this.handleDrawerClose}>
+          <IconButton onClick={handleDrawerClose}>
             <ChevronLeftIcon />
           </IconButton>
         </div>
@@ -249,8 +248,5 @@ class App extends React.Component {
         </Container>
       </main>
     </div>
-    );
-  }
+  );
 }
-
-export default withStyles(useStyles)(App);

@@ -7,7 +7,7 @@ import pyfiglet
 
 
 import importlib
-import inspectf
+#import inspectf
 import os
 import glob
 
