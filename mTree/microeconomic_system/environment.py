@@ -6,7 +6,10 @@ import logging
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.log_actor import LogActor
 
+
+import traceback
 import json
 
 
@@ -27,37 +30,141 @@ class Environment(Actor):
         return self.__str__()
 
     def __init__(self):
+        self.log_actor = None
+        self.simulation_id = None
+        self.run_number = None
         self.institutions = []
         self.agents = []
+        self.agent_addresses = []
+        self.mtree_properties = {}
 
     def close_environment(self):
         #asys.shutdown()
         pass
 
-    def receiveMessage(self, message, sender):
-        self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        directive_handler = self._enabled_directives.get(message.get_directive())
-        directive_handler(self, message)
+    
+    
+    def end_round(self):
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("end_round")
+        payload = {}
+        payload["agents"] = self.agent_addresses
+        new_message.set_payload(payload)
+        self.send(self.dispatcher, new_message)
 
-    def setup_agent(self, message):
-        print("got a message")
-        print(message)
+        for agent in self.agent_addresses:
+            new_message = Message()
+            new_message.set_sender(self.myAddress)
+            new_message.set_directive("store_agent_memory")
+            self.send(agent, message)
+            
+        
+    def receiveMessage(self, message, sender):
+        #print("ENV GOT MESSAGE: " + message)
+        #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
+        if not isinstance(message, ActorSystemMessage):
+            try:
+                directive_handler = self._enabled_directives.get(message.get_directive())
+                directive_handler(self, message)
+            except Exception as e:
+                print("ENV: ERROR")
+                traceback.print_exc()
+                #.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+                #self.actorSystemShutdown()
+
+    def get_property(self, property_name):
+        try:
+            return self.mtree_properties[property_name]
+        except:
+            return None
+
+
+    @directive_decorator("initialize_log_actor")
+    def initialize_log_actor(self, message:Message):
+        self.log_actor = self.createActor(LogActor)
+        log_basis = {}
+        log_basis["message_type"] = "setup"
+        log_basis["simulation_id"] = self.simulation_id
+        if hasattr(self, 'run_number'):
+            log_basis["run_number"] = self.run_number
+        self.send(self.log_actor, log_basis)        
+
+
+
+
+    def log_experiment_data(self, data):
+        self.send(self.log_actor, data)
+
+    @directive_decorator("simulation_properties")
+    def simulation_properties(self, message: Message):
+        self.dispatcher = message.get_payload()["dispatcher"]
+        #self.log_actor = message.get_payload()["log_actor"]
+        if "mtree_properties" not in dir(self):
+            self.mtree_properties = {}
+
+        self.mtree_properties = message.get_payload()["properties"]
+        self.simulation_id = message.get_payload()["simulation_id"]
+        if "run_number" in message.get_payload().keys():
+            self.run_number = message.get_payload()["run_number"]
 
     @directive_decorator("setup_agents")
     def setup_agents(self, message:Message):
+        if "agents" not in dir(self):
+            self.agents = []
+            self.agent_addresses = []
         # ensure that the actor system and institution are running...
         #message = MessageSpace.create_agent(agent_class)
         num_agents = message.get_payload()["num_agents"]
         agent_class = message.get_payload()["agent_class"]
+        source_hash = message.get_payload()["source_hash"]
+        memory = False
+        agent_memory = None
+        if "agent_memory" in message.get_payload().keys():
+            memory = True
+            agent_memory = message.get_payload()["agent_memory"]
+
         for i in range(num_agents):
-            new_agent = self.createActor(agent_class)
-            self.agents.append(new_agent)
+            new_agent = self.createActor(agent_class, sourceHash=source_hash)
+            self.agent_addresses.append(new_agent)
+            self.agents.append([new_agent, agent_class])
+            new_message = Message()
+            new_message.set_sender(self.myAddress)
+            new_message.set_directive("simulation_properties")
+            payload = {}
+            #if "mtree_properties" not in dir(self):
+            #payload["log_actor"] = self.log_actor
+            payload["dispatcher"] = self.dispatcher
+            payload["properties"] = self.mtree_properties
+            if memory:
+                payload["agent_memory"] = agent_memory
+            new_message.set_payload(payload)
+            self.send(new_agent, new_message)
 
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
-        institution_class = message.get_payload()["institution_class"]
+        if "institutions" not in dir(self):
+            self.institutions = []
 
-        new_institution = self.createActor(institution_class)
+        institution_class = message.get_payload()["institution_class"]
+        source_hash = message.get_payload()["source_hash"]
+        new_institution = self.createActor(institution_class, sourceHash=source_hash)
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("simulation_properties")
+        payload = {}
+        #if "mtree_properties" not in dir(self):
+        payload["dispatcher"] = self.dispatcher
+        payload["environment"] = self.myAddress
+        payload["properties"] = self.mtree_properties
+        payload["simulation_id"] = self.simulation_id
+        if "run_number" in dir(self):
+            payload["run_number"] = self.run_number
+
+
+        new_message.set_payload(payload)
+        self.send(new_institution, new_message)
+
         self.institutions.append(new_institution)
 
     def list_agents(self):

@@ -37,6 +37,8 @@ class BasicExperiment:
         self.static_file_location = None
         self.static_content_location = None
 
+        self.agent_map = {}
+
         # for mechanical turk purposes
         self.task_preview = None
 
@@ -165,3 +167,4 @@ class BasicExperiment:
     def record(self, *args):
         output = ",".join(str(arg) for arg in args)
         self.recorder(self.__class__.__name__, output)
+

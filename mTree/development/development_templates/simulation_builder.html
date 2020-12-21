@@ -1,0 +1,171 @@
+{% extends 'developer_base.html' %}
+
+
+
+{% block content %}
+<style type="text/css" media="screen">
+
+#parent {
+    width: 900px;
+    height: 450px;
+    position: relative;
+    background-color: red;
+}
+#editor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+</style>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+<h1 class="h2">Simulation Builder</h1>
+</div>
+
+
+<div class="row">
+    <form id="simulation_base_form">
+      <div class="form-group">
+        <label for="name">Simulation Name</label>
+        <input name="simulation_name" type="text" class="form-control" id="name" aria-describedby="name" placeholder="Enter simulation name">
+      </div>
+        <div class="form-group">
+        <label for="simulation_id">Simulation ID</label>
+        <input name="simulation_id" type="text" class="form-control" id="simulation_id" aria-describedby="simulation_id" placeholder="Enter simulation ID (Or it will auto-generate)">
+      </div>
+        <div class="form-group">
+        <label for="description">Description</label>
+        <textarea name="simulation_description" class="form-control" id="description" rows="3"></textarea>
+      </div>
+
+        <div class="form-group">
+            <label for="environment">Environment Selection</label>
+            <select name="simulation_environment" class="form-control" id="environment">
+              {% for item in registry.environment_list() %}
+
+                <option>{{ item }}</option>
+                {% endfor %}
+            </select>
+          </div>
+
+        <div class="form-group">
+            <label for="institution">Institution Selection</label>
+            <select name="simulation_institution" class="form-control" id="institution">
+              {% for item in registry.institution_list() %}
+                <option>{{ item }}</option>
+                {% endfor %}
+            </select>
+          </div>
+
+        <div class="form-group">
+            <h3>Agent Selection</h3>
+            <div id="agent_list">
+                <div class="form-row" id="agent-row-1">
+                    <div class="col">
+                      <select name="agent-type-1" class="form-control" id="agent-type-1">
+                          {% for item in registry.agent_list() %}
+                            <option>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col">
+                      <input name="agent-number-1" id="agent-number-1" type="number" class="form-control" placeholder="Number of Agents">
+                    </div>
+                    <div class="col">
+                      <button id="agent-number-1-confirm" type="button" class="btn btn-outline-success">Add Additional Agent</button>
+                    </div>
+                </div>
+
+            </div>
+
+
+          </div>
+
+
+
+        <button id="create_simulation_config" type="submit" class="btn btn-primary">Create Simulation Config</button>
+    </form>
+</div>
+
+
+<script>
+    var agent_num = 1;
+    var agent_types = null;
+    $( document ).ready(function() {
+         $.ajax({url: "/_agent_type_list", success: (result) => {
+            agent_types = result.agent_types;
+        }});
+    });
+
+
+
+    $( "#agent-number-1-confirm" ).click(() => {
+      agent_num += 1
+      var div = $('<div/>',{
+                id: 'agent-row-' + agent_num,
+                'class':'form-row'
+            });
+      var div_col_1 = $('<div/>',{
+                'class':'col'
+            });
+      var div_col_2 = $('<div/>',{
+                'class':'col'
+            });
+      var div_col_3 = $('<div/>',{
+                'class':'col'
+            });
+
+        var sel = $('<select>', { id: 'agent-type-' + agent_num,
+        'name': 'agent-type-' + agent_num,
+        'class': "form-control"});
+        $(agent_types).each((item) => {
+
+         sel.append($("<option>").attr('value',agent_types[item]).text(agent_types[item]));
+        });
+        div_col_1.append(sel);
+
+        var agent_number = $('<input/>',{
+                 'id': 'agent-number-' + agent_num,
+                 'name':'agent-number-' + agent_num,
+                'class':'form-control',
+                'type':"number",
+                "placeholder":"Number of Agents"
+            })
+        div_col_2.append(agent_number);
+
+
+      var button = $('<button/>',{
+                 'id': 'agent-number-' + agent_num + '-confirm',
+                'class':'btn btn-outline-success',
+                'type':"button"
+            }).text("Add Additional Agent");
+        //div_col_3.append(button);
+
+      div.append(div_col_1);
+      div.append(div_col_2);
+      div.append(div_col_3);
+       $("#agent_list").append(div);
+
+    });
+
+    var form = $('#simulation_base_form');
+    var formData = $(form).serialize();
+
+$(form).submit((event) => {
+	    event.preventDefault();
+	    var values = form.serializeArray();
+        $.ajax({url: "/_generate_simulation_config",
+        type: 'POST',
+        data: values,
+        success: (result) => {
+        console.log("SUCCESS");
+        console.log(result);
+            agent_types = result.agent_types;
+        }});
+
+});
+
+</script>
+
+{% endblock %}

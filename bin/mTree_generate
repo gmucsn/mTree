@@ -1,0 +1,27 @@
+ #!/usr/bin/env python
+import pyfiglet
+import importlib
+import inspect
+import os
+import glob
+import importlib.util
+import sys
+import tokenize
+
+from mTree.generator import Generate
+
+
+ascii_banner = pyfiglet.figlet_format("mTree - Generate")
+print(ascii_banner)
+
+from os.path import exists
+from time import strftime
+import sys
+
+def main():
+    project_name = input("Enter a name for your project: ")
+    mTree_generator = Generate()
+    mTree_generator.build_project(project_name)
+
+if __name__ == "__main__":
+	main()

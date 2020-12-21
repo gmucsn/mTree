@@ -40,12 +40,16 @@ class Session:  # TODO(@messiest) There needs to be a way to set the number of p
         # self.total_periods = len(set([type(x) for x in self.periods]))
 
     def run_period(self):
+        print("running the period...")
+        print(self.periods)
         if self.periods:  # periods still remain
             period = self.periods.pop(0)  # retrieve first period
             self.current_period = self.total_periods - len(self.periods)  # gives the difference between total and current
+            print("about to start")
             period.start()
         elif not self.periods:
             self.end_session()
+        print("period returned...")
 
     def run(self):
         pass
