@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-from mTree.development.development_server import DevelopmentServer, MTreeController
+from mTree.development.development_server import DevelopmentServer#, MTreeController
 from mTree.server.admin import admin_area
 from mTree.microeconomic_system.agent import Agent
 import pyfiglet
@@ -106,15 +106,17 @@ plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
 #    plugin.foo()
 
 
-print("mTree is launching")
-server = DevelopmentServer()
+
 #mtree_controller = MTreeController()
 #mtree_controller.run()
 
 
 
 #server.attach_experiment(InformationCascades)
-server.run_server()
+
 #server.register_blueprint(admin_area)
 #server.list_rules()
 #server.run()
+print("mTree is launching")
+server = DevelopmentServer()
+server.run_server()

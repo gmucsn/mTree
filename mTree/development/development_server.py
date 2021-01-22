@@ -115,6 +115,23 @@ class MTreeController(object):
             print("Shoud start to run a sim")
             #return self.component_registry.message(message)
 
+        @self.app.route('/subject')  # URL path for the subject screen
+        def not_search():
+            assignment_id = request.args.get('assignmentId')
+            hit_id = request.args.get('hitId')
+            turk_submit_to = request.args.get('turkSubmitTo')
+            worker_id = request.args.get('workerId')
+
+            if assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE":
+                # display the preview screen... presumably
+                context = {}
+                template = Environment(loader=FileSystemLoader(self.experiment.get_template_location() or './')).get_template(
+                    self.experiment.get_task_preview()).render(context)
+                print("PREPARING FOR A PREVIEW...")
+                
+            else:
+                return render_template('subject_base.html', async_mode=self.socketio.async_mode)
+
     def scan_for_classes(self):
         print("SCANNING FOR CLASSES")
 
@@ -150,7 +167,7 @@ class DevelopmentServer(object):
     app = None
 
     def __init__(self):
-        #  print("initializing " * 20)
+        print("initializing " * 20)
         self.async_mode = 'eventlet' # None
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
@@ -167,9 +184,9 @@ class DevelopmentServer(object):
         self.basic_auth = BasicAuth(self.app)
 
         self.add_routes()
-        self.scheduler = APScheduler()
-        self.scheduler.init_app(self.app)
-        self.scheduler.start()
+        # self.scheduler = APScheduler()
+        # self.scheduler.init_app(self.app)
+        # self.scheduler.start()
         #self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
         self.app.register_blueprint(development_area, url_prefix='/')
         self.subject_container = None #SubjectContainer()
@@ -183,7 +200,7 @@ class DevelopmentServer(object):
         handler.addFilter(myfilter)
         #formatter = LogstashFormatter(self.logger_name.upper())
         #handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        #self.logger.addHandler(handler)
 
 
     def list_rules(self):
@@ -210,7 +227,7 @@ class DevelopmentServer(object):
         modules_imported = []
         module_names = []
         for filename in glob.iglob('./mes/*.py', recursive=True):
-
+            print("EXAMINING: ", filename)
 
             import_name = os.path.splitext(os.path.basename(filename))[0]
 
@@ -231,7 +248,7 @@ class DevelopmentServer(object):
             a = loader.exec_module(module)
             sys.modules[module_name] = module
             #return module
-
+            print(sys.modules[module_name])
             #foo = importlib.util.module_from_spec(spec)
             #loader = importlib.util.LazyLoader(spec.loader)
 
@@ -303,31 +320,51 @@ class DevelopmentServer(object):
         #     component_details = registry.get_mes_component_details(component_name)
         #     return render_template('component_view.html', component_details=component_details, component_name=component_name, component_type=component_type)
 
-        @self.socketio.on('developer_control', namespace='/developer')
-        def admin_control_message(message):
-            return self.component_registry.message(message)
-            # self.experiment.admin_event_handler(message)
+        # @self.socketio.on('developer_control', namespace='/developer')
+        # def admin_control_message(message):
+        #     return self.component_registry.message(message)
+        #     # self.experiment.admin_event_handler(message)
 
-        @self.socketio.on('run_simulation', namespace='/developer')
-        def run_simulation_message(message):
+        # @self.socketio.on('run_simulation', namespace='/developer')
+        # def run_simulation_message(message):
 
-            #emit("admin_action",{"TEST":"TEST"}, namespace="/developer")
-            #module = globals()[]
-            module = sys.modules["cva_mes.cva_environment"]
-            import inspect
-            target_class = None
-            for name, obj in inspect.getmembers(module):
-                if inspect.isclass(obj):
-                    if obj.__name__ == "CVAEnvironment":
-                        target_class = obj
-            self.subject_container = SubjectContainer()
-            self.subject_container.create_environment(target_class, 1)
-            #return self.component_registry.message(message)
+        #     #emit("admin_action",{"TEST":"TEST"}, namespace="/developer")
+        #     #module = globals()[]
+        #     module = sys.modules["cva_mes.cva_environment"]
+        #     import inspect
+        #     target_class = None
+        #     for name, obj in inspect.getmembers(module):
+        #         if inspect.isclass(obj):
+        #             if obj.__name__ == "CVAEnvironment":
+        #                 target_class = obj
+        #     self.subject_container = SubjectContainer()
+        #     self.subject_container.create_environment(target_class, 1)
+        #     #return self.component_registry.message(message)
+        print("ADDED")
+        # @self.app.route('/subject')  # URL path for the subject screen
+        # def not_search():
+        #     assignment_id = request.args.get('assignmentId')
+        #     hit_id = request.args.get('hitId')
+        #     turk_submit_to = request.args.get('turkSubmitTo')
+        #     worker_id = request.args.get('workerId')
+
+        #     if assignment_id == "ASSIGNMENT_ID_NOT_AVAILABLE":
+        #         # display the preview screen... presumably
+        #         context = {}
+        #         template = Environment(loader=FileSystemLoader(self.experiment.get_template_location() or './')).get_template(
+        #             self.experiment.get_task_preview()).render(context)
+        #         print("PREPARING FOR A PREVIEW...")
+        #         return template
+        #     else:
+        #         return render_template('subject_base.html', async_mode=self.socketio.async_mode)
+
 
     def run_server(self):
         self.examine_directory()
         self.list_rules()
-        self.socketio.run(self.app, host='0.0.0.0', debug=True)
+        print("ABOUT TO START SERVER")
+        self.socketio.run(self.app, host='0.0.0.0', log_output=True)
+        print("SERVER STARTED")
 
     def attach_experiment(self, experiment):
         self.experiment = experiment()
