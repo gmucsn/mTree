@@ -25,8 +25,9 @@ development_area.jinja_loader = jinja2.ChoiceLoader([
 def show(page):
     #try:
         component_registry = registry.Registry()
-
+        print("COMPONENTS AVAILABLE")
         print(component_registry)
+        print(component_registry.agent_list())
         return render_template('developer_base.html', registry=component_registry)
         #except TemplateNotFound:
         #    abort(404)
