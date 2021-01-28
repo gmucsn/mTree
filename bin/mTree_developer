@@ -22,6 +22,18 @@ print(ascii_banner)
 
 
 
+
+import atexit
+
+# @atexit.register
+# def goodbye():
+#     actor_system = ActorSystemStartup()
+#     actor_system.shutdown()
+#     print("mTree finished shutting down")
+    
+
+
+
 def import_plugins(plugins_package_directory_path, base_class=None, create_instance=True, filter_abstract=True):
 
 
@@ -117,6 +129,30 @@ plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
 #server.register_blueprint(admin_area)
 #server.list_rules()
 #server.run()
+
+
+# load browser...
+import random, threading, webbrowser
+
+port = 5000
+url = "http://127.0.0.1:{0}".format(port)
+
+threading.Timer(3, lambda: webbrowser.open(url) ).start()
+from mTree.server.actor_system_startup import ActorSystemStartup
+
+# from threading import Thread 
+# def start_thespian():
+#     print("STARTING THESPIAN")
+#     #actor_system = ActorSystemStartup()
+#     actor_system = ActorSystem('multiprocQueueBase') #,logDefs=logcfg)
+# thread = Thread(target=start_thespian)
+# thread.start()
+
+
+#actor_system = ActorSystem('multiprocTCPBase')
+
+
+
 print("mTree is launching")
 server = DevelopmentServer()
 server.run_server()

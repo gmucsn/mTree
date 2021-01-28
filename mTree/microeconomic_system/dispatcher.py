@@ -6,6 +6,7 @@ from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.outconnect import OutConnect
 
 #from socketIO_client import SocketIO, LoggingNamespace
 
@@ -247,6 +248,10 @@ class Dispatcher(Actor):
 
 
     def receiveMessage(self, message, sender):
+
+        #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
+        #self.send(outconnect, message)
+
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         if not isinstance(message, ActorSystemMessage):
             if message.get_directive() == "simulation_configurations":

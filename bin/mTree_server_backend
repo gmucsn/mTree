@@ -2,11 +2,12 @@
 
 import time
 from mTree.server.actor_system_startup import ActorSystemStartup
+from thespian.actors import *
 import sys
 
 print("mTree Server Backend Starting Up....")
 
 if sys.argv[1] == "startup":
-    actor_system = ActorSystemStartup()
+    ActorSystem("multiprocTCPBase")
 elif sys.argv[1] == "shutdown":
-    ActorSystemStartup().shutdown()
+    ActorSystem("multiprocTCPBase").shutdown()

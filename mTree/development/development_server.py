@@ -38,6 +38,7 @@ from mTree.components import registry
 from mTree.base.response import Response
 
 from mTree.development.development_endpoints import development_area
+from mTree.server.actor_system_connector import ActorSystemConnector
 
 
 class RequestsHandler(Handler):
@@ -101,6 +102,7 @@ class MTreeController(object):
         # self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
         #self.app.register_blueprint(admin_area, url_prefix='/admin')
         self.app.register_blueprint(development_area)
+        #self.app.register_blueprint(chat, url_prefix='/development_control')
         self.add_routes()
 
     def add_routes(self):
@@ -114,6 +116,8 @@ class MTreeController(object):
         def run_simulation_message(message):
             print("Shoud start to run a sim")
             #return self.component_registry.message(message)
+
+
 
         @self.app.route('/subject')  # URL path for the subject screen
         def not_search():
@@ -190,6 +194,8 @@ class DevelopmentServer(object):
         #self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
         self.app.register_blueprint(development_area, url_prefix='/')
         self.subject_container = None #SubjectContainer()
+
+        self.actor_system = ActorSystemConnector()
 
         # attempts at logger adding...
         self.logger = logging.getLogger()
@@ -313,6 +319,23 @@ class DevelopmentServer(object):
         print("APSCHEDULER EVENT " + str(event))
 
     def add_routes(self):
+        @self.socketio.on('run_test_configuration', namespace='/developer')
+        def run_test_configuration(message):
+            print("Shoud start to run a sim")
+            print(message)
+            self.actor_system.send_message()
+            #return self.component_registry.message(message)
+
+        @self.socketio.on('log_message_display', namespace='/log_messages')
+        def actor_messages(message):
+            print("Shoud start to run a sim")
+            print(message)
+            self.socketio.emit('log_message', {'data': 'foo'}, namespace='/developer', broadcast=True)
+
+            #self.actor_system.send_message()
+            #return self.component_registry.message(message)
+
+
         # @self.app.route('/component_view')
         # def component_view():
         #     component_type = request.args.get('component_type')
