@@ -33,6 +33,8 @@ def show(page):
         #    abort(404)
 
 
+
+
 @development_area.route('/component_view')
 def component_view():
     #try:
@@ -52,6 +54,12 @@ def component_view():
 def simulation_builder():
     component_registry = registry.Registry()
     return render_template('simulation_builder.html', registry=component_registry)
+
+@development_area.route('/test_runner')
+def test_runner():
+    component_registry = registry.Registry()
+    return render_template('test_runner.html', registry=component_registry)
+
 
 @development_area.route('/simulation_library')
 def simulation_library():

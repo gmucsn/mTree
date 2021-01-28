@@ -2,7 +2,7 @@ from types import FunctionType
 from jsonschema import validate
 from mTree.components import registry
 
-def directive_decorator(directive_name, schema=None, message_callback=None, ui_callback=None):
+def directive_decorator(directive_name, message_schema=None, message_callback=None, ui_callback=None):
     def real_decorator(func):
         func.message_directive = directive_name
         if schema is not None:
@@ -11,7 +11,7 @@ def directive_decorator(directive_name, schema=None, message_callback=None, ui_c
     return real_decorator
 
 
-def directive_enabled_class(cls):
+def directive_enabled_class(cls, expected_properties=None):
     functions = [attr for attr in vars(cls).values() if isinstance(attr, FunctionType)]
     component_registry = registry.Registry()
 
