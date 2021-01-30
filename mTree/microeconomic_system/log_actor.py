@@ -39,21 +39,25 @@ class LogActor(Actor):
             return None
 
     def log_message(self, message):
+        print("SHOULD BE WRITING OUT LOG LINE")
         if self.simulation_id is not None:
             message["simulation_id"] = self.simulation_id
         if self.run_number is not None:
             message["run_number"] = self.run_number
         print("LOG ACTOR SHOULD LOG")   
-        #logging.log(EXPERIMENT_DATA, message)
+        logging.log(EXPERIMENT_DATA, message)
 
     def receiveMessage(self, message, sender):
-        #print("AGENT GOT MESSAGE: " + message)
+        print("LOGGER GOT MESSAGE: ")
+        print(str(message))
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            if "message_type" in message.keys():
-                self.simulation_id = message["simulation_id"]
-                if "run_number" in message.keys():
-                    self.run_number = message["run_number"]
-            else:
-                self.log_message(message)
-                    
+            try:
+                if "message_type" in message.keys():
+                    self.simulation_id = message["simulation_id"]
+                    if "run_number" in message.keys():
+                        self.run_number = message["run_number"]
+                else:
+                    self.log_message(message)
+            except:
+                pass            

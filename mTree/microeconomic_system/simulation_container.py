@@ -102,7 +102,7 @@ class SimulationContainer():
                                       'filename': 'mtree.log',
                                       'formatter': 'normal',
                                       'filters': ['notActorLog'],
-                                      'level': logging.INFO},
+                                      'level': logging.DEBUG},
                                'h2': {'class': 'logging.FileHandler',
                                       'filename': 'mtree.log',
                                       'formatter': 'actor',
@@ -124,27 +124,27 @@ class SimulationContainer():
                   'loggers': {'': {'handlers': ['h1', 'h2', 'exp', 'json'], 'level': logging.DEBUG}}
                   }
 
-        logcfg = { 'version': 1,
-           'formatters': {
-               'normal': {'format': '%(levelname)-8s %(message)s'},
-               'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
-           'filters': { 'isActorLog': { '()': actorLogFilter},
-                        'notActorLog': { '()': notActorLogFilter}},
-           'handlers': { 'h1': {'class': 'logging.StreamHandler',
-                                'formatter': 'normal',
-                                'filters': ['notActorLog'],
-                                'level': logging.INFO},
-                         'h2': {'class': 'logging.StreamHandler',
-                                'formatter': 'actor',
-                                'filters': ['isActorLog'],
-                                'level': logging.INFO},},
-           'loggers' : { '': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
-         }
+        # logcfg = { 'version': 1,
+        #    'formatters': {
+        #        'normal': {'format': '%(levelname)-8s %(message)s'},
+        #        'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
+        #    'filters': { 'isActorLog': { '()': actorLogFilter},
+        #                 'notActorLog': { '()': notActorLogFilter}},
+        #    'handlers': { 'h1': {'class': 'logging.StreamHandler',
+        #                         'formatter': 'normal',
+        #                         'filters': ['notActorLog'],
+        #                         'level': logging.INFO},
+        #                  'h2': {'class': 'logging.StreamHandler',
+        #                         'formatter': 'actor',
+        #                         'filters': ['isActorLog'],
+        #                         'level': logging.INFO},},
+        #    'loggers' : { '': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
+        #  }
 
         #self.actor_system = ActorSystem(None, logDefs=logcfg)
         #self.actor_system = ActorSystem('multiprocQueueBase', logDefs=logcfg)
         self.actor_system = ActorSystem('multiprocTCPBase',logDefs=logcfg)
-        actorSys = self.actor_system or ActorSystem()
+        actorSys = self.actor_system or ActorSystem('multiprocTCPBase') #'multiprocQueueBase')
         try:
             actorSys.tell(
                 actorSys.createActor(SimpleSourceAuthority),
@@ -162,20 +162,20 @@ class SimulationContainer():
         #     print("ADDING TO ZIP: ",filename)
         #     loadHash = self.actor_system.loadActorSource(self.zip_source(filename))
         #     time.sleep(1) # Allow source authority to authorize the load
-        #     try:
-        #         na = actorSys.createActor('mes.BasicEnvironment', sourceHash = loadHash)
-        #     except:
-        #         print ('***ERROR creating Actor t.TestActor from sourceHash %s'%(loadHash))
-        #         traceback.print_exc(limit=3)
+        #     # try:
+        #     #     na = actorSys.createActor('mes.BasicEnvironment', sourceHash = loadHash)
+        #     # except:
+        #     #     print ('***ERROR creating Actor t.TestActor from sourceHash %s'%(loadHash))
+        #     #     traceback.print_exc(limit=3)
         #     #else:
         #     #    N,A = self.getOrAddAddress(na)
         #     #    print ('Created new TestActor %d @ %s'%(N, str(A)))
 
     def create_dispatcher(self):
         try:
-            self.dispatcher = ActorSystem().createActor(Dispatcher)
+            self.dispatcher = ActorSystem().createActor(Dispatcher, globalName="dispatcher")
         except Exception as e:
-            self.dispatcher = ActorSystem().createActor("Dispatcher")
+            self.dispatcher = ActorSystem().createActor("Dispatcher", globalName="dispatcher")
 
 
     def send_dispatcher_simulation_configurations(self, configurations):
@@ -187,6 +187,7 @@ class SimulationContainer():
             configuration_message.set_payload(configuration)
             ActorSystem().tell(self.dispatcher, configuration_message)
 
+    # DEPRECATED
     # def send_dispatcher_simulation_configurations(self, configurations):
     #     configuration_message = Message()
     #     configuration_message.set_directive("simulation_configurations")

@@ -29,69 +29,73 @@ class Dispatcher(Actor):
         
 
 
-    def memory_run_simulation(self, configuration, run_number=None):
-        component_registry = registry.Registry()
+    # def memory_run_simulation(self, configuration, run_number=None):
+    #     component_registry = registry.Registry()
 
 
-        environment = component_registry.get_component_class(configuration["environment"])
-        if "institution" in configuration.keys():
-            institution = component_registry.get_component_class(configuration["institution"])
-        elif "institutions" in configuration.keys():
-            institutions = []
-            for institution_d in configuration["institutions"]:
-                institution_class = component_registry.get_component_class(institution_d["institution"])
-                institutions.append(institution_class)
+    #     environment = component_registry.get_component_class(configuration["environment"])
+    #     if "institution" in configuration.keys():
+    #         institution = component_registry.get_component_class(configuration["institution"])
+    #     elif "institutions" in configuration.keys():
+    #         institutions = []
+    #         for institution_d in configuration["institutions"]:
+    #             institution_class = component_registry.get_component_class(institution_d["institution"])
+    #             institutions.append(institution_class)
 
-        agents = []
-        for agent_d in configuration["agents"]:
-            agent_class = component_registry.get_component_class(agent_d["agent_name"])
-            agent_count = agent_d["number"]
-            agents.append((agent_class, agent_count))
+    #     agents = []
+    #     for agent_d in configuration["agents"]:
+    #         agent_class = component_registry.get_component_class(agent_d["agent_name"])
+    #         agent_count = agent_d["number"]
+    #         agents.append((agent_class, agent_count))
 
-        environment = self.createActor(environment)
+    #     environment = self.createActor(environment)
+    #     print("$" * 25)
+    #     print("CONFIGURATION CHECK")
+    #     print(configuration)
+    #     print("^" * 25)
+    #     if "properties" in configuration.keys():
+    #         message = Message()
+    #         message.set_directive("simulation_properties")
+    #         payload = {"properties": configuration["properties"]}
+    #         payload["simulation_id"] = configuration["id"]
+    #         payload["log_actor"] = self.log_actor
+    #         if run_number is not None:
+    #             payload["run_number"] = run_number
+    #         message.set_payload(payload)
+    #         print("SENDING SIMULATION CONFIGURATION INFORMATION")
+    #         self.send(environment, message)
 
-        if "properties" in configuration.keys():
-            message = Message()
-            message.set_directive("simulation_properties")
-            payload = {"properties": configuration["properties"]}
-            payload["simulation_id"] = configuration["id"]
-            payload["log_actor"] = self.log_actor
-            if run_number is not None:
-                payload["run_number"] = run_number
-            message.set_payload(payload)
-            self.send(environment, message)
-
-        # setup environment log actor
-        # message = Message()
-        # message.set_directive("initialize_log_actor")
-        # payload = {}
-        # message.set_payload(payload)
-        # self.send(environment, message)
-
-
-        if 'institutions' not in locals():
-            message = Message()
-            message.set_directive("setup_institution")
-            message.set_payload({"institution_class": institution})
-            self.send(environment, message)
-        else:
-            for institution in institutions:
-                message = Message()
-                message.set_directive("setup_institution")
-                message.set_payload({"institution_class": institution})
-                self.send(environment, message)
-
-        for agent in agents:
-            message = Message()
-            message.set_directive("setup_agents")
-            message.set_payload({"agent_class": agent[0], "num_agents": agent[1]})
-            self.send(environment, message)
+    #     # setup environment log actor
+    #     # message = Message()
+    #     # message.set_directive("initialize_log_actor")
+    #     # payload = {}
+    #     # message.set_payload(payload)
+    #     # self.send(environment, message)
 
 
-        start_message = Message()
-        start_message.set_sender("experimenter")
-        start_message.set_directive("start_environment")
-        self.send(environment, start_message)
+    #     if 'institutions' not in locals():
+    #         message = Message()
+    #         message.set_directive("setup_institution")
+    #         message.set_payload({"institution_class": institution})
+    #         self.send(environment, message)
+    #     else:
+    #         for institution in institutions:
+    #             message = Message()
+    #             message.set_directive("setup_institution")
+    #             message.set_payload({"properties": configuration["properties"], "institution_class": institution})
+    #             self.send(environment, message)
+
+    #     for agent in agents:
+    #         message = Message()
+    #         message.set_directive("setup_agents")
+    #         message.set_payload({"properties": configuration["properties"], "agent_class": agent[0], "num_agents": agent[1]})
+    #         self.send(environment, message)
+
+
+    #     start_message = Message()
+    #     start_message.set_sender("experimenter")
+    #     start_message.set_directive("start_environment")
+    #     self.send(environment, start_message)
 
 
     def run_simulation(self, configuration, run_number=None):
@@ -135,17 +139,24 @@ class Dispatcher(Actor):
                 agents.append((agent_class, 1))
 
 
-        
+        print("$" * 25)
+        print("CONFIGURATION CHECK")
+        print(configuration)
+        print("^" * 25)
+
         if "properties" in configuration.keys():
             message = Message()
             message.set_directive("simulation_properties")
-            payload = {"properties": configuration["properties"], "dispatcher":self.myAddress}
+            payload = {"properties": configuration["properties"]} #, "dispatcher":self.myAddress}
             payload["simulation_id"] = configuration["id"]
-            payload["log_actor"] = self.log_actor
+            #payload["log_actor"] = self.log_actor
             
             if run_number is not None:
                 payload["run_number"] = run_number
             message.set_payload(payload)
+            print("Environment: Simulation Properties Loading")
+            print(payload)
+            print("^!" * 25 )
             self.send(environment, message)
 
         # setup environment log actor
@@ -199,23 +210,31 @@ class Dispatcher(Actor):
 
     def begin_simulations(self):
         try:
-            self.log_actor = self.createActor(LogActor)
+            self.log_actor = self.createActor(LogActor, globalName="log_actor")
         except Exception as e:
-            self.log_actor = self.createActor("LogActor")
+            self.log_actor = self.createActor("LogActor", globalName="log_actor")
         
         log_basis = {}
         log_basis["message_type"] = "setup"
-        log_basis["simulation_id"] = self.configurations_pending[0]["id"]
+        print("CONFIGURATIONS PENDING")
+        print(self.configurations_pending)
+        target_configuration = None
+        try:
+            target_configuration = self.configurations_pending[0]
+        except Exception as e:
+            target_configuration = self.configurations_pending
+        
+        log_basis["simulation_id"] = target_configuration["id"]
         self.send(self.log_actor, log_basis)        
 
 
 
-        if "number_of_runs" in self.configurations_pending[0].keys():
-            self.runs_remaining = self.configurations_pending[0]["number_of_runs"]
+        if "number_of_runs" in target_configuration.keys():
+            self.runs_remaining = target_configuration["number_of_runs"]
             self.current_run = 0
-            self.run_simulation(self.configurations_pending[0], self.current_run)
+            self.run_simulation(target_configuration, self.current_run)
         else:
-            self.run_simulation(self.configurations_pending[0])
+            self.run_simulation(target_configuration)
 
 
     def end_round(self):

@@ -232,6 +232,8 @@ class Runner():
         self.container.send_dispatcher_simulation_configurations(self.configuration)
 
     def launch_simulation(self):
+        """ DEPRECATED """
+        
         component_registry = registry.Registry()
 
         environment = component_registry.get_component_class(self.configuration["environment"])
