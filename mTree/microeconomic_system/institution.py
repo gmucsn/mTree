@@ -5,10 +5,10 @@ import uuid
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
-
+from mTree.microeconomic_system.log_actor import LogActor
 import logging
 import json
-
+import traceback
 
 
 class Institution(Actor):
@@ -35,7 +35,7 @@ class Institution(Actor):
         self.mtree_properties = {}
 
     def receiveMessage(self, message, sender):
-        #print("INST GOT MESSAGE: " + message)
+        print("INST GOT MESSAGE: " + str(message))
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
             try:
@@ -43,8 +43,10 @@ class Institution(Actor):
                 directive_handler(self, message)
             except Exception as e:
                 print("INSTITUTION: ERROR")
+                traceback.print_exc()
+                print("&^" * 25)
                 #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                #self.actorSystemShutdown()
+                self.actorSystemShutdown()
         
     def get_property(self, property_name):
         try:
@@ -53,6 +55,7 @@ class Institution(Actor):
             return None
 
     def log_experiment_data(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
         self.send(self.log_actor, data)
 
     @directive_decorator("simulation_properties")
@@ -65,8 +68,10 @@ class Institution(Actor):
         self.simulation_id = message.get_payload()["simulation_id"]
         if "run_number" in message.get_payload().keys():
             self.run_number = message.get_payload()["run_number"]
-        self.log_actor = message.get_payload()["log_actor"]
-        self.dispatcher = message.get_payload()["dispatcher"]
+        #self.log_actor = message.get_payload()["log_actor"]
+        #self.dispatcher = message.get_payload()["dispatcher"]
+        self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        
         self.environment = message.get_payload()["environment"]
 
     def add_agent(self, agent_class):

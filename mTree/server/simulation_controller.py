@@ -47,6 +47,8 @@ class SimulationController:
         source_hash = SimulationController.instance.component_registrar.get_source_hash()
         for configuration in configurations:
             configuration["source_hash"] = source_hash
+            print(configuration)
+            print(configuration["source_hash"])
             print("CREATING DISPATCHER FOR CONFIGURATION")
             
             configuration_message = Message()
