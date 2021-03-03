@@ -150,6 +150,7 @@ class LiveDispatcher(Actor):
 
 
     def receiveMessage(self, message, sender):
+        print("RECEIVED A MESSAGE")
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         if not isinstance(message, ActorSystemMessage):
             if message.get_directive() == "simulation_configurations":

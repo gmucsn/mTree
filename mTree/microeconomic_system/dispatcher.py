@@ -28,7 +28,99 @@ class Dispatcher(Actor):
         self.agent_memory = {}
         
 
+    def run_simulation(self, configuration, run_number=None):
+        #self.component_registrar.instance.components[""]
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("STARTING TO RUN " + "\n")
+        
+        source_hash = configuration["source_hash"]
+        environment_class = configuration["environment"]
+        environment = self.createActor(environment_class,sourceHash=source_hash)
+        #self.send(environment, "ALKFJASLKJF LKAJSFL")
+        self.environment = environment
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("Environment created " + str(environment) + " - " + str(environment_class) + "\n")
 
+        if "institution" in configuration.keys():
+            institution = configuration["institution"]
+        elif "institutions" in configuration.keys():
+            institutions = []
+            for institution_d in configuration["institutions"]:
+                institution_class = institution_d["institution"]
+                institutions.append(institution_class)
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("Insituttion created " + str(institution)  + "\n")
+
+
+        agents = []
+        for agent_d in configuration["agents"]:
+            agent_type = agent_d["agent_name"]
+            agent_count = agent_d["number"]
+            for i in range(0, agent_count):
+                agents.append((agent_type, 1))
+
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("Agents... created " + str(agents)  + "\n")
+
+        
+        if "properties" in configuration.keys():
+            with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+                file_object.write("properties... " + "\n")
+
+            message = Message()
+            message.set_directive("simulation_properties")
+            payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
+            payload["simulation_id"] = configuration["id"]
+            
+            
+            if run_number is not None:
+                payload["run_number"] = run_number
+            message.set_payload(payload)
+            
+            self.send(environment, message)
+
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("after properties"  + "\n")
+
+
+        if 'institutions' not in locals():
+            message = Message()
+            message.set_directive("setup_institution")
+            message.set_payload({"institution_class": institution, "source_hash": source_hash})
+            self.send(environment, message)
+        else:
+            for institution in institutions:
+                message = Message()
+                message.set_directive("setup_institution")
+                message.set_payload({"institution_class": institution, "source_hash": source_hash})
+                self.send(environment, message)
+
+        if hasattr(self, 'agent_memory_prepared'):
+            for agent in zip(agents, self.agent_memory):
+                message = Message()
+                message.set_directive("setup_agents")
+                message.set_payload({"agent_class": agent[0][0], "num_agents": agent[0][1], "agent_memory": agent[1], "source_hash": source_hash})
+                self.send(environment, message)
+        else:
+            for agent in agents:
+                message = Message()
+                message.set_directive("setup_agents")
+                message.set_payload({"agent_class": agent[0], "num_agents": agent[1], "source_hash": source_hash})
+                self.send(environment, message)
+
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("About tostart env " + "\n")
+
+
+        start_message = Message()
+        start_message.set_sender("experimenter")
+        start_message.set_directive("start_environment")
+        self.send(environment, start_message)
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("env should have started " + str(start_message) + "\n")
+
+
+    # TODO examine this to verify that the component registry is the problem in live launch...
     # def memory_run_simulation(self, configuration, run_number=None):
     #     component_registry = registry.Registry()
 
@@ -98,115 +190,117 @@ class Dispatcher(Actor):
     #     self.send(environment, start_message)
 
 
-    def run_simulation(self, configuration, run_number=None):
-        component_registry = registry.Registry()
-        
+    # def run_simulation(self, configuration, run_number=None):
+    #     component_registry = registry.Registry()
+    #     with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+    #         file_object.write("SHOULD BE RUNNING SIMULATION" + "\n")
+                
 
-        try:
-            environment = component_registry.get_component_class(configuration["environment"])
-        except Exception as e:
-            environment = configuration["environment"]
+    #     try:
+    #         environment = component_registry.get_component_class(configuration["environment"])
+    #     except Exception as e:
+    #         environment = configuration["environment"]
 
-        environment = self.createActor(environment)
+    #     environment = self.createActor(environment)
 
-        self.environment = environment
+    #     self.environment = environment
 
-        try:
-            if "institution" in configuration.keys():
-                institution = component_registry.get_component_class(configuration["institution"])
-            elif "institutions" in configuration.keys():
-                institutions = []
-                for institution_d in configuration["institutions"]:
-                    institution_class = component_registry.get_component_class(institution_d["institution"])
-                    institutions.append(institution_class)
-        except Exception as e:
-            if "institution" in configuration.keys():
-                institution = configuration["institution"]
-            elif "institutions" in configuration.keys():
-                institutions = []
-                for institution_d in configuration["institutions"]:
-                    institution_class = institution_d["institution"]
-                    institutions.append(institution_class)
+    #     try:
+    #         if "institution" in configuration.keys():
+    #             institution = component_registry.get_component_class(configuration["institution"])
+    #         elif "institutions" in configuration.keys():
+    #             institutions = []
+    #             for institution_d in configuration["institutions"]:
+    #                 institution_class = component_registry.get_component_class(institution_d["institution"])
+    #                 institutions.append(institution_class)
+    #     except Exception as e:
+    #         if "institution" in configuration.keys():
+    #             institution = configuration["institution"]
+    #         elif "institutions" in configuration.keys():
+    #             institutions = []
+    #             for institution_d in configuration["institutions"]:
+    #                 institution_class = institution_d["institution"]
+    #                 institutions.append(institution_class)
 
-        agents = []
-        for agent_d in configuration["agents"]:
-            try:
-                agent_class = component_registry.get_component_class(agent_d["agent_name"])
-            except Exception as e:
-                agent_class = agent_d["agent_name"]
-            agent_count = agent_d["number"]
-            for i in range(0, agent_count):
-                agents.append((agent_class, 1))
+    #     agents = []
+    #     for agent_d in configuration["agents"]:
+    #         try:
+    #             agent_class = component_registry.get_component_class(agent_d["agent_name"])
+    #         except Exception as e:
+    #             agent_class = agent_d["agent_name"]
+    #         agent_count = agent_d["number"]
+    #         for i in range(0, agent_count):
+    #             agents.append((agent_class, 1))
 
 
-        print("$" * 25)
-        print("CONFIGURATION CHECK")
-        print(configuration)
-        print("^" * 25)
+    #     print("$" * 25)
+    #     print("CONFIGURATION CHECK")
+    #     print(configuration)
+    #     print("^" * 25)
 
-        if "properties" in configuration.keys():
-            message = Message()
-            message.set_directive("simulation_properties")
-            payload = {"properties": configuration["properties"]} #, "dispatcher":self.myAddress}
-            payload["simulation_id"] = configuration["id"]
-            #payload["log_actor"] = self.log_actor
+    #     if "properties" in configuration.keys():
+    #         message = Message()
+    #         message.set_directive("simulation_properties")
+    #         payload = {"properties": configuration["properties"]} #, "dispatcher":self.myAddress}
+    #         payload["simulation_id"] = configuration["id"]
+    #         #payload["log_actor"] = self.log_actor
             
-            if run_number is not None:
-                payload["run_number"] = run_number
-            message.set_payload(payload)
-            print("Environment: Simulation Properties Loading")
-            print(payload)
-            print("^!" * 25 )
-            self.send(environment, message)
+    #         if run_number is not None:
+    #             payload["run_number"] = run_number
+    #         message.set_payload(payload)
+    #         print("Environment: Simulation Properties Loading")
+    #         print(payload)
+    #         print("^!" * 25 )
+    #         self.send(environment, message)
 
-        # setup environment log actor
-        # message = Message()
-        # message.set_directive("initialize_log_actor")
-        # payload = {}
-        # message.set_payload(payload)
-        # self.send(environment, message)
+    #     # setup environment log actor
+    #     # message = Message()
+    #     # message.set_directive("initialize_log_actor")
+    #     # payload = {}
+    #     # message.set_payload(payload)
+    #     # self.send(environment, message)
 
 
-        if 'institutions' not in locals():
-            message = Message()
-            message.set_directive("setup_institution")
-            message.set_payload({"institution_class": institution})
-            self.send(environment, message)
-        else:
-            for institution in institutions:
-                message = Message()
-                message.set_directive("setup_institution")
-                message.set_payload({"institution_class": institution})
-                self.send(environment, message)
+    #     if 'institutions' not in locals():
+    #         message = Message()
+    #         message.set_directive("setup_institution")
+    #         message.set_payload({"institution_class": institution})
+    #         self.send(environment, message)
+    #     else:
+    #         for institution in institutions:
+    #             message = Message()
+    #             message.set_directive("setup_institution")
+    #             message.set_payload({"institution_class": institution})
+    #             self.send(environment, message)
 
-        if hasattr(self, 'agent_memory_prepared'):
-            for agent in zip(agents, self.agent_memory):
-                message = Message()
-                message.set_directive("setup_agents")
-                message.set_payload({"agent_class": agent[0][0], "num_agents": agent[0][1],
-                "agent_memory": agent[1]})
-                self.send(environment, message)
-        else:
-            for agent in agents:
-                message = Message()
-                message.set_directive("setup_agents")
-                message.set_payload({"agent_class": agent[0], "num_agents": agent[1]})
-                self.send(environment, message)
+    #     if hasattr(self, 'agent_memory_prepared'):
+    #         for agent in zip(agents, self.agent_memory):
+    #             message = Message()
+    #             message.set_directive("setup_agents")
+    #             message.set_payload({"agent_class": agent[0][0], "num_agents": agent[0][1],
+    #             "agent_memory": agent[1]})
+    #             self.send(environment, message)
+    #     else:
+    #         for agent in agents:
+    #             message = Message()
+    #             message.set_directive("setup_agents")
+    #             message.set_payload({"agent_class": agent[0], "num_agents": agent[1]})
+    #             self.send(environment, message)
 
-        start_message = Message()
-        start_message.set_sender("experimenter")
-        start_message.set_directive("start_environment")
-        self.send(environment, start_message)
+    #     start_message = Message()
+    #     start_message.set_sender("experimenter")
+    #     start_message.set_directive("start_environment")
+    #     self.send(environment, start_message)
 
-    # def begin_simulations(self):
-    #     for simulation in self.configurations_pending:
-    #         print("SIUMAUTLALJKF ")
-    #         print(simulation)
-    #         if "number_of_runs" in simulation.keys():
-    #             for run_number in range(0, simulation["number_of_runs"]):
-    #                 self.run_simulation(simulation, run_number)
-    #         else:
-    #             self.run_simulation(simulation)
+    # # def begin_simulations(self):
+    # #     for simulation in self.configurations_pending:
+    # #         print("SIUMAUTLALJKF ")
+    # #         print(simulation)
+    # #         if "number_of_runs" in simulation.keys():
+    # #             for run_number in range(0, simulation["number_of_runs"]):
+    # #                 self.run_simulation(simulation, run_number)
+    # #         else:
+    # #             self.run_simulation(simulation)
 
     def begin_simulations(self):
         try:
@@ -235,7 +329,7 @@ class Dispatcher(Actor):
             self.run_simulation(target_configuration, self.current_run)
         else:
             self.run_simulation(target_configuration)
-
+        
 
     def end_round(self):
         self.send(self.environment, ActorExitRequest())
@@ -267,12 +361,18 @@ class Dispatcher(Actor):
 
 
     def receiveMessage(self, message, sender):
-
+        print("DISPATCHER RECEIVED")
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+                file_object.write("dispatcher -- " + str(message) + "\n")
+            
+        
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
         #self.send(outconnect, message)
 
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         if not isinstance(message, ActorSystemMessage):
+            with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+                file_object.write("dispatcher 2 -- " + str(message) + "\n")
             if message.get_directive() == "simulation_configurations":
                 self.configurations_pending = message.get_payload()
                 self.begin_simulations()

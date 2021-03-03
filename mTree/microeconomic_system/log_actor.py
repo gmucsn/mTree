@@ -5,6 +5,7 @@ from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.outconnect import OutConnect
 
 #from socketIO_client import SocketIO, LoggingNamespace
 
@@ -39,6 +40,8 @@ class LogActor(Actor):
             return None
 
     def log_message(self, message):
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write(message + "\n")
         print("SHOULD BE WRITING OUT LOG LINE")
         if self.simulation_id is not None:
             message["simulation_id"] = self.simulation_id
@@ -50,14 +53,18 @@ class LogActor(Actor):
     def receiveMessage(self, message, sender):
         print("LOGGER GOT MESSAGE: ")
         print(str(message))
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write(json.dumps(message) + "\n")
+        # outconnect = self.createActor(OutConnect, globalName = "OutConnect")
+        # self.send(outconnect, message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            try:
+            #try:
                 if "message_type" in message.keys():
                     self.simulation_id = message["simulation_id"]
                     if "run_number" in message.keys():
                         self.run_number = message["run_number"]
                 else:
                     self.log_message(message)
-            except:
-                pass            
+            #except:
+            #    pass            

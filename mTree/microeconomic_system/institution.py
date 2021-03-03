@@ -36,6 +36,9 @@ class Institution(Actor):
 
     def receiveMessage(self, message, sender):
         print("INST GOT MESSAGE: " + str(message))
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write(str(message) + "\n")
+        
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
             try:

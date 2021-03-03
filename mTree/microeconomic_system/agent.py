@@ -103,6 +103,9 @@ class Agent(Actor):
 
     def receiveMessage(self, message, sender):
         print("AGENT GOT MESSAGE: " + str(message))
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write(str(message) + "\n")
+        
         #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):

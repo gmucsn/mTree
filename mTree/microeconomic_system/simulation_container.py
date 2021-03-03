@@ -45,9 +45,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         # else:
         #     log_record['level'] = record.levelname
 
-formatter = CustomJsonFormatter('(timestamp) (level) (name) (message)')
-
-
+formatter = CustomJsonFormatter('%(timestamp)s %(level)s %(name)s %(message)s')
 
 logger = logging.getLogger("mTree")
 # set success level

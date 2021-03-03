@@ -1,14 +1,21 @@
 import socketio
 from thespian.actors import *
-
+import requests
 
 class OutConnect(Actor):
     def __init__(self):
-        self.sio = socketio.Client()
-        self.sio.connect('http://localhost:5000', namespaces=['/log_messages'])
+        print("SETTING UP OUCONNECT")
+       
+
 
     def receiveMessage(self, message, sender):
-        self.sio.emit('log_message_display', {'foo': 'bar'}, namespace='/log_messages')
+        url = 'http://127.0.0.1:5000/post_back'
+        data = {
+            "message": message
+            }
+        response = requests.post(url, data=data)
+        #print("RESPONSE", response)
+        #self.sio.emit('log_message_display') #, message, namespace='/log_messages')
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         # if not isinstance(message, ActorSystemMessage):
         #     if message.get_directive() == "simulation_configurations":

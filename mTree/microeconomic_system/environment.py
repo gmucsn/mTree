@@ -30,6 +30,9 @@ class Environment(Actor):
         return self.__str__()
 
     def __init__(self):
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("Environment initialized " + "\n")
+        
         self.log_actor = None
         self.simulation_id = None
         self.run_number = None
@@ -62,18 +65,21 @@ class Environment(Actor):
             
         
     def receiveMessage(self, message, sender):
-        print("ENV GOT MESSAGE: " + str(message))
+        #print("ENV GOT MESSAGE: " + str(message))
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("ENV RECEIVED SOETIHNGstr(message)" + "\n")
+        
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            try:
+            #try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            except Exception as e:
-                print("ENV: ERROR")
-                traceback.print_exc()
-                print("%^" * 25)
-                #.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
+            # except Exception as e:
+            #     print("ENV: ERROR")
+            #     traceback.print_exc()
+            #     print("%^" * 25)
+            #     #.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            #     self.actorSystemShutdown()
 
     def get_property(self, property_name):
         try:

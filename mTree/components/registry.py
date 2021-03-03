@@ -56,6 +56,59 @@ class Registry:
         for target in Registry.instance.class_list.keys():
             print(Registry.instance.class_list[target])
         
+    def clear_contents(self):
+        Registry.instance.class_list = {}
+        Registry.instance.agent_list = []
+        Registry.instance.institution_list = []
+        Registry.instance.environment_list = []
+
+
+    def examine_directory(self, target_directory):
+        import importlib
+        from importlib import import_module
+        module = importlib.import_module("mTree.components")
+
+        import glob
+        import sys
+        from types import ModuleType
+        import os
+        
+        sys.path.append(target_directory)
+
+        base_module = ModuleType('mTree.components')
+
+        modules_imported = []
+        module_names = []
+        for filename in glob.iglob(target_directory + '/mes/*.py', recursive=True):
+            import_name = os.path.splitext(os.path.basename(filename))[0]
+            module_name = "mes." + import_name.partition('.')[0]
+            import importlib.util
+
+
+            #try:
+            #    return sys.modules[fullname]
+            #except KeyError:
+            spec = importlib.util.spec_from_file_location(module_name, filename)
+            #spec = importlib.util.find_spec(fullname)
+            #sys.modules[module_name] = ModuleType(module_name)
+            module = importlib.util.module_from_spec(spec)
+            loader = importlib.util.LazyLoader(spec.loader)
+            # Make module with proper locking and get it inserted into sys.modules.
+            a = loader.exec_module(module)
+            sys.modules[module_name] = module
+            t = sys.modules[module_name]
+
+            print(sys.modules[module_name])
+
+         
+        sys.modules['mes'] = ModuleType('mes')
+
+        import inspect
+        target_class = None
+        for name, obj in inspect.getmembers(sys.modules["mTree.server"]):
+            if inspect.isclass(obj):
+                if obj.__name__ == "CVAEnvironment":
+                    target_class = obj
 
 
 
