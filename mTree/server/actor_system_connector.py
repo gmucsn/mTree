@@ -124,11 +124,39 @@ class ActorSystemConnector():
 
 
     def run_simulation(self, mes_base_dir, run_configuration):
+        sa = ActorSystem("multiprocTCPBase").createActor(SimpleSourceAuthority)
+        ActorSystem("multiprocTCPBase").tell(sa, True)
+        
+        
         source_hash = self.load_base_mes(mes_base_dir)
         # if self.instance.container is None:
         #     self.instance.container = SimulationContainer()
         # self.instance.container.create_dispatcher()
         
+        test_environment = ActorSystem("multiprocTCPBase").createActor("t_environment.TEnvironment",sourceHash=source_hash)
+        message = Message()
+        message.set_directive("outlog")
+        payload = {"properties": "ALFKJASLKFJ"}
+        payload["simulation_id"] = 15
+        payload["run_number"] = 1
+        message.set_payload(payload)
+        
+        ActorSystem("multiprocTCPBase").tell(test_environment, message)
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        
+
+        #return
         # actor_system = ActorSystem()
         dispatcher = ActorSystem("multiprocTCPBase").createActor(Dispatcher, globalName = "Dispatcher")
 

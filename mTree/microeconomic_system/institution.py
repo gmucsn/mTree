@@ -41,15 +41,15 @@ class Institution(Actor):
         
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            try:
+            #try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            except Exception as e:
-                print("INSTITUTION: ERROR")
-                traceback.print_exc()
-                print("&^" * 25)
-                #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
+            # except Exception as e:
+            #     print("INSTITUTION: ERROR")
+            #     traceback.print_exc()
+            #     print("&^" * 25)
+            #     #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            #     self.actorSystemShutdown()
         
     def get_property(self, property_name):
         try:

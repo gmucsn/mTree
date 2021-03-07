@@ -33,6 +33,29 @@ class Dispatcher(Actor):
         with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
             file_object.write("STARTING TO RUN " + "\n")
         
+        # test_environment = self.createActor("mTree.microeconomic_system.environment.Environment")
+        # message = Message()
+        # message.set_directive("simulation_properties")
+        # payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
+        # payload["simulation_id"] = configuration["id"]
+        # payload["run_number"] = 1
+        # message.set_payload(payload)
+        
+        #self.send(test_environment, message)
+        source_hash = configuration["source_hash"]
+        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        test_environment = self.createActor("t_environment.TEnvironment",sourceHash=source_hash)
+        message = Message()
+        message.set_directive("outlog")
+        payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
+        payload["simulation_id"] = configuration["id"]
+        payload["run_number"] = 1
+        message.set_payload(payload)
+        
+        self.send(test_environment, message)
+
+        #return
+
         source_hash = configuration["source_hash"]
         environment_class = configuration["environment"]
         environment = self.createActor(environment_class,sourceHash=source_hash)
@@ -94,6 +117,8 @@ class Dispatcher(Actor):
                 message.set_directive("setup_institution")
                 message.set_payload({"institution_class": institution, "source_hash": source_hash})
                 self.send(environment, message)
+
+        return
 
         if hasattr(self, 'agent_memory_prepared'):
             for agent in zip(agents, self.agent_memory):

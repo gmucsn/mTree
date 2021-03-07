@@ -109,15 +109,15 @@ class Agent(Actor):
         #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            try:
+            #try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            except Exception as e:
-                print("AGENT: ERROR")
-                traceback.print_exc()
-                print("&^" * 25)
-                self.log_experiment_data(e)
-                #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
+            # except Exception as e:
+            #     print("AGENT: ERROR")
+            #     traceback.print_exc()
+            #     print("&^" * 25)
+            #     self.log_experiment_data(e)
+            #     #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            #     self.actorSystemShutdown()
                 
             

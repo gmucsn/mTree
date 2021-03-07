@@ -65,9 +65,6 @@ class Environment(Actor):
             
         
     def receiveMessage(self, message, sender):
-        #print("ENV GOT MESSAGE: " + str(message))
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write("ENV RECEIVED SOETIHNGstr(message)" + "\n")
         
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
@@ -131,7 +128,7 @@ class Environment(Actor):
         agent_class = message.get_payload()["agent_class"]
         
         # need to check source hash for simulation
-        #source_hash = message.get_payload()["source_hash"]
+        source_hash = message.get_payload()["source_hash"]
         
         memory = False
         agent_memory = None
@@ -140,7 +137,7 @@ class Environment(Actor):
             agent_memory = message.get_payload()["agent_memory"]
 
         for i in range(num_agents):
-            new_agent = self.createActor(agent_class) #, sourceHash=source_hash)
+            new_agent = self.createActor(agent_class, sourceHash=source_hash)
             self.agent_addresses.append(new_agent)
             self.agents.append([new_agent, agent_class])
             new_message = Message()
@@ -162,23 +159,32 @@ class Environment(Actor):
             self.institutions = []
 
         institution_class = message.get_payload()["institution_class"]
-        #source_hash = message.get_payload()["source_hash"]
-        new_institution = self.createActor(institution_class) #, sourceHash=source_hash)
+        source_hash = message.get_payload()["source_hash"]
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("Trying to create institution: " + institution_class + " -- "  + source_hash + "\n")
+        
+        new_institution = self.createActor(institution_class, sourceHash=source_hash)
         new_message = Message()
-        new_message.set_sender(self.myAddress)
+        #new_message.set_sender(self.myAddress)
         new_message.set_directive("simulation_properties")
         payload = {}
+
+        
         #if "mtree_properties" not in dir(self):
-        payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
+        #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
         payload["environment"] = self.myAddress
         payload["properties"] = self.mtree_properties
         payload["simulation_id"] = self.simulation_id
         if "run_number" in dir(self):
             payload["run_number"] = self.run_number
 
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("institution message created: " + "\n")
 
         new_message.set_payload(payload)
         self.send(new_institution, new_message)
+        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+            file_object.write("institution first message sent" + "\n")
 
         self.institutions.append(new_institution)
 

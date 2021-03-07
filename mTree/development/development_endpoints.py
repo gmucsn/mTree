@@ -138,6 +138,7 @@ def mes_run_simulation():
 
     actor_system = ActorSystemConnector()
     working_dir = os.path.join(os.getcwd(), mes_directory)
+    #actor_system.send_message()
     actor_system.run_simulation(working_dir, simulation["description"].to_hash())
 
     # sim_controller = SimulationController()
