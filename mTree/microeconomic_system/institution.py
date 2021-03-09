@@ -36,7 +36,7 @@ class Institution(Actor):
 
     def receiveMessage(self, message, sender):
         print("INST GOT MESSAGE: " + str(message))
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
             file_object.write(str(message) + "\n")
         
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
@@ -73,7 +73,7 @@ class Institution(Actor):
             self.run_number = message.get_payload()["run_number"]
         #self.log_actor = message.get_payload()["log_actor"]
         #self.dispatcher = message.get_payload()["dispatcher"]
-        self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         
         self.environment = message.get_payload()["environment"]
 

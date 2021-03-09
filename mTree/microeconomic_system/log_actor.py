@@ -40,7 +40,7 @@ class LogActor(Actor):
             return None
 
     def log_message(self, message):
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
             file_object.write(message + "\n")
         print("SHOULD BE WRITING OUT LOG LINE")
         if self.simulation_id is not None:
@@ -53,7 +53,7 @@ class LogActor(Actor):
     def receiveMessage(self, message, sender):
         print("LOGGER GOT MESSAGE: ")
         print(str(message))
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
             file_object.write(json.dumps(message) + "\n")
         # outconnect = self.createActor(OutConnect, globalName = "OutConnect")
         # self.send(outconnect, message)

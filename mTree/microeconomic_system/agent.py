@@ -83,7 +83,7 @@ class Agent(Actor):
             self.mtree_properties = message.get_payload()["properties"]
         #self.log_actor = message.get_payload()["log_actor"]
         #self.dispatcher = message.get_payload()["dispatcher"]
-        self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         
         if "agent_memory" in message.get_payload().keys():
             print("setting my memory to... ", message.get_payload()["agent_memory"])
@@ -103,8 +103,8 @@ class Agent(Actor):
 
     def receiveMessage(self, message, sender):
         print("AGENT GOT MESSAGE: " + str(message))
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write(str(message) + "\n")
+        #with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        #    file_object.write(str(message) + "\n")
         
         #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))

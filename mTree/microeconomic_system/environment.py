@@ -30,7 +30,7 @@ class Environment(Actor):
         return self.__str__()
 
     def __init__(self):
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
             file_object.write("Environment initialized " + "\n")
         
         self.log_actor = None
@@ -65,6 +65,9 @@ class Environment(Actor):
             
         
     def receiveMessage(self, message, sender):
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
+                file_object.write("environment -- " + str(message) + "\n")
+        
         
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
@@ -105,7 +108,7 @@ class Environment(Actor):
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
         print("LOADING SIMULATION PROPERTIES")
-        self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         #self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
@@ -155,12 +158,15 @@ class Environment(Actor):
 
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
+                file_object.write("environment starting institution... -- " + str(message) + "\n")
+        
         if "institutions" not in dir(self):
             self.institutions = []
 
         institution_class = message.get_payload()["institution_class"]
         source_hash = message.get_payload()["source_hash"]
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
             file_object.write("Trying to create institution: " + institution_class + " -- "  + source_hash + "\n")
         
         new_institution = self.createActor(institution_class, sourceHash=source_hash)
@@ -178,12 +184,12 @@ class Environment(Actor):
         if "run_number" in dir(self):
             payload["run_number"] = self.run_number
 
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
             file_object.write("institution message created: " + "\n")
 
         new_message.set_payload(payload)
         self.send(new_institution, new_message)
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
             file_object.write("institution first message sent" + "\n")
 
         self.institutions.append(new_institution)

@@ -30,8 +30,6 @@ class Dispatcher(Actor):
 
     def run_simulation(self, configuration, run_number=None):
         #self.component_registrar.instance.components[""]
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write("STARTING TO RUN " + "\n")
         
         # test_environment = self.createActor("mTree.microeconomic_system.environment.Environment")
         # message = Message()
@@ -43,17 +41,11 @@ class Dispatcher(Actor):
         
         #self.send(test_environment, message)
         source_hash = configuration["source_hash"]
-        print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
-        test_environment = self.createActor("t_environment.TEnvironment",sourceHash=source_hash)
-        message = Message()
-        message.set_directive("outlog")
-        payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
-        payload["simulation_id"] = configuration["id"]
-        payload["run_number"] = 1
-        message.set_payload(payload)
         
-        self.send(test_environment, message)
-
+        
+        # print("WHAT IS MY SOURCE HASH????????? ", str(source_hash))
+        # test_environment = self.createActor("t_environment.TEnvironment",sourceHash=source_hash)
+        
         #return
 
         source_hash = configuration["source_hash"]
@@ -61,9 +53,7 @@ class Dispatcher(Actor):
         environment = self.createActor(environment_class,sourceHash=source_hash)
         #self.send(environment, "ALKFJASLKJF LKAJSFL")
         self.environment = environment
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write("Environment created " + str(environment) + " - " + str(environment_class) + "\n")
-
+        
         if "institution" in configuration.keys():
             institution = configuration["institution"]
         elif "institutions" in configuration.keys():
@@ -71,9 +61,7 @@ class Dispatcher(Actor):
             for institution_d in configuration["institutions"]:
                 institution_class = institution_d["institution"]
                 institutions.append(institution_class)
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write("Insituttion created " + str(institution)  + "\n")
-
+        
 
         agents = []
         for agent_d in configuration["agents"]:
@@ -82,14 +70,10 @@ class Dispatcher(Actor):
             for i in range(0, agent_count):
                 agents.append((agent_type, 1))
 
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write("Agents... created " + str(agents)  + "\n")
-
+        
         
         if "properties" in configuration.keys():
-            with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-                file_object.write("properties... " + "\n")
-
+            
             message = Message()
             message.set_directive("simulation_properties")
             payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
@@ -102,9 +86,7 @@ class Dispatcher(Actor):
             
             self.send(environment, message)
 
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write("after properties"  + "\n")
-
+        
 
         if 'institutions' not in locals():
             message = Message()
@@ -118,32 +100,26 @@ class Dispatcher(Actor):
                 message.set_payload({"institution_class": institution, "source_hash": source_hash})
                 self.send(environment, message)
 
-        return
+        # if hasattr(self, 'agent_memory_prepared'):
+        #     for agent in zip(agents, self.agent_memory):
+        #         message = Message()
+        #         message.set_directive("setup_agents")
+        #         message.set_payload({"agent_class": agent[0][0], "num_agents": agent[0][1], "agent_memory": agent[1], "source_hash": source_hash})
+        #         self.send(environment, message)
+        # else:
+        for agent in agents:
+            message = Message()
+            message.set_directive("setup_agents")
+            message.set_payload({"agent_class": agent[0], "num_agents": agent[1], "source_hash": source_hash})
+            self.send(environment, message)
 
-        if hasattr(self, 'agent_memory_prepared'):
-            for agent in zip(agents, self.agent_memory):
-                message = Message()
-                message.set_directive("setup_agents")
-                message.set_payload({"agent_class": agent[0][0], "num_agents": agent[0][1], "agent_memory": agent[1], "source_hash": source_hash})
-                self.send(environment, message)
-        else:
-            for agent in agents:
-                message = Message()
-                message.set_directive("setup_agents")
-                message.set_payload({"agent_class": agent[0], "num_agents": agent[1], "source_hash": source_hash})
-                self.send(environment, message)
-
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write("About tostart env " + "\n")
-
+        
 
         start_message = Message()
         start_message.set_sender("experimenter")
         start_message.set_directive("start_environment")
         self.send(environment, start_message)
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-            file_object.write("env should have started " + str(start_message) + "\n")
-
+        
 
     # TODO examine this to verify that the component registry is the problem in live launch...
     # def memory_run_simulation(self, configuration, run_number=None):
@@ -387,7 +363,7 @@ class Dispatcher(Actor):
 
     def receiveMessage(self, message, sender):
         print("DISPATCHER RECEIVED")
-        with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
                 file_object.write("dispatcher -- " + str(message) + "\n")
             
         
@@ -396,8 +372,6 @@ class Dispatcher(Actor):
 
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         if not isinstance(message, ActorSystemMessage):
-            with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-                file_object.write("dispatcher 2 -- " + str(message) + "\n")
             if message.get_directive() == "simulation_configurations":
                 self.configurations_pending = message.get_payload()
                 self.begin_simulations()
