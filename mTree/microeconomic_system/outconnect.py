@@ -13,7 +13,7 @@ class OutConnect(Actor):
         data = {
             "message": message
             }
-        response = requests.post(url, data=data)
+        #response = requests.post(url, data=data)
         #print("RESPONSE", response)
         #self.sio.emit('log_message_display') #, message, namespace='/log_messages')
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)

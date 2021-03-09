@@ -57,11 +57,11 @@
           console.log("Setting up WebSocket connection");
           this.namespace = '/developer';
           this.user_id = '';
-          this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + this.namespace);
+          //this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + this.namespace);
           
           // register
-          this.socket.on('connect', () => this.connected);
-          this.socket.on('log_message', (msg) => this.logMessage(msg));
+          //this.socket.on('connect', () => this.connected);
+          //this.socket.on('log_message', (msg) => this.logMessage(msg));
 
 
 

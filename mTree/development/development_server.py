@@ -171,7 +171,6 @@ class DevelopmentServer(object):
     app = None
 
     def __init__(self):
-        print("initializing " * 20)
         self.async_mode = 'eventlet' # None
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
@@ -233,8 +232,6 @@ class DevelopmentServer(object):
         modules_imported = []
         module_names = []
         for filename in glob.iglob('./mes/*.py', recursive=True):
-            print("EXAMINING: ", filename)
-
             import_name = os.path.splitext(os.path.basename(filename))[0]
 
             module_name = "mes." + import_name.partition('.')[0]

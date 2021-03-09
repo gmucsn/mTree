@@ -30,9 +30,6 @@ class Environment(Actor):
         return self.__str__()
 
     def __init__(self):
-        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
-            file_object.write("Environment initialized " + "\n")
-        
         self.log_actor = None
         self.simulation_id = None
         self.run_number = None
@@ -65,10 +62,6 @@ class Environment(Actor):
             
         
     def receiveMessage(self, message, sender):
-        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
-                file_object.write("environment -- " + str(message) + "\n")
-        
-        
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
             #try:
@@ -99,9 +92,12 @@ class Environment(Actor):
         self.send(self.log_actor, log_basis)        
 
 
+    def log_message(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        self.send(self.log_actor, data)
 
 
-    def log_experiment_data(self, data):
+    def record_data(self, data):
         self.log_actor = self.createActor(LogActor, globalName="log_actor")
         self.send(self.log_actor, data)
 
@@ -120,8 +116,6 @@ class Environment(Actor):
 
     @directive_decorator("setup_agents")
     def setup_agents(self, message:Message):
-        print("SETTING UP AGENTS")
-        print(message)
         if "agents" not in dir(self):
             self.agents = []
             self.agent_addresses = []
@@ -133,13 +127,14 @@ class Environment(Actor):
         # need to check source hash for simulation
         source_hash = message.get_payload()["source_hash"]
         
-        memory = False
-        agent_memory = None
-        if "agent_memory" in message.get_payload().keys():
-            memory = True
-            agent_memory = message.get_payload()["agent_memory"]
-
+        # memory = False
+        # agent_memory = None
+        # if "agent_memory" in message.get_payload().keys():
+        #     memory = True
+        #     agent_memory = message.get_payload()["agent_memory"]
+        self.log_message("Should be starting to get things ready for agents: " + str(message))
         for i in range(num_agents):
+            self.log_message("CREATING A NEW AGENT: " + agent_class)
             new_agent = self.createActor(agent_class, sourceHash=source_hash)
             self.agent_addresses.append(new_agent)
             self.agents.append([new_agent, agent_class])
@@ -151,23 +146,18 @@ class Environment(Actor):
             #payload["log_actor"] = self.log_actor
             #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
             #payload["properties"] = self.mtree_properties
-            if memory:
-                payload["agent_memory"] = agent_memory
+            # if memory:
+            #     payload["agent_memory"] = agent_memory
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
 
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
-        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
-                file_object.write("environment starting institution... -- " + str(message) + "\n")
-        
         if "institutions" not in dir(self):
             self.institutions = []
 
         institution_class = message.get_payload()["institution_class"]
         source_hash = message.get_payload()["source_hash"]
-        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
-            file_object.write("Trying to create institution: " + institution_class + " -- "  + source_hash + "\n")
         
         new_institution = self.createActor(institution_class, sourceHash=source_hash)
         new_message = Message()
@@ -184,13 +174,8 @@ class Environment(Actor):
         if "run_number" in dir(self):
             payload["run_number"] = self.run_number
 
-        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
-            file_object.write("institution message created: " + "\n")
-
         new_message.set_payload(payload)
         self.send(new_institution, new_message)
-        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
-            file_object.write("institution first message sent" + "\n")
 
         self.institutions.append(new_institution)
 

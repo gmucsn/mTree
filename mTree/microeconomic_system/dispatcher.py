@@ -320,6 +320,7 @@ class Dispatcher(Actor):
             target_configuration = self.configurations_pending
         
         log_basis["simulation_id"] = target_configuration["id"]
+        log_basis["mes_directory"] = target_configuration["mes_directory"]
         self.send(self.log_actor, log_basis)        
 
 
@@ -362,14 +363,8 @@ class Dispatcher(Actor):
 
 
     def receiveMessage(self, message, sender):
-        print("DISPATCHER RECEIVED")
-        with open("C:/Users/skuna/repos/mTree_auction_examples/tatonnement/experiment.log", "a") as file_object:
-                file_object.write("dispatcher -- " + str(message) + "\n")
-            
-        
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
         #self.send(outconnect, message)
-
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         if not isinstance(message, ActorSystemMessage):
             if message.get_directive() == "simulation_configurations":

@@ -153,6 +153,7 @@ class ActorSystemConnector():
         #         }
         #     }]
         run_configuration["source_hash"] = source_hash
+        run_configuration["mes_directory"] = mes_base_dir
         configuration_message.set_payload(run_configuration)
         ActorSystem().tell(dispatcher, configuration_message)
 

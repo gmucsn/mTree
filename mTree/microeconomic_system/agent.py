@@ -24,6 +24,14 @@ class Agent(Actor):
     def experiment_log(self, log_message):
         self.mTree_logger().log(25, log_message)
 
+    def log_message(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        self.send(self.log_actor, data)
+
+
+    def record_data(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        self.send(self.log_actor, data)
 
     def __str__(self):
         return "<Agent: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
@@ -75,8 +83,8 @@ class Agent(Actor):
     def simulation_properties(self, message: Message):
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
-        if "agent_memory" not in dir(self):
-            self.agent_memory = {}
+        # if "agent_memory" not in dir(self):
+        #     self.agent_memory = {}
         
 
         if "properties" in message.get_payload().keys():
@@ -85,11 +93,11 @@ class Agent(Actor):
         #self.dispatcher = message.get_payload()["dispatcher"]
         #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         
-        if "agent_memory" in message.get_payload().keys():
-            print("setting my memory to... ", message.get_payload()["agent_memory"])
-            self.agent_memory = message.get_payload()["agent_memory"]
-        else:
-            self.agent_memory = {}
+        # if "agent_memory" in message.get_payload().keys():
+        #     print("setting my memory to... ", message.get_payload()["agent_memory"])
+        #     self.agent_memory = message.get_payload()["agent_memory"]
+        # else:
+        #     self.agent_memory = {}
 
     def get_property(self, property_name):
         try:
@@ -102,10 +110,6 @@ class Agent(Actor):
 
 
     def receiveMessage(self, message, sender):
-        print("AGENT GOT MESSAGE: " + str(message))
-        #with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-        #    file_object.write(str(message) + "\n")
-        
         #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
