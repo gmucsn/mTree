@@ -24,6 +24,14 @@ class Agent(Actor):
     def experiment_log(self, log_message):
         self.mTree_logger().log(25, log_message)
 
+    def log_message(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        self.send(self.log_actor, data)
+
+
+    def record_data(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        self.send(self.log_actor, data)
 
     def __str__(self):
         return "<Agent: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
@@ -75,21 +83,21 @@ class Agent(Actor):
     def simulation_properties(self, message: Message):
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
-        if "agent_memory" not in dir(self):
-            self.agent_memory = {}
+        # if "agent_memory" not in dir(self):
+        #     self.agent_memory = {}
         
 
         if "properties" in message.get_payload().keys():
             self.mtree_properties = message.get_payload()["properties"]
         #self.log_actor = message.get_payload()["log_actor"]
         #self.dispatcher = message.get_payload()["dispatcher"]
-        self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         
-        if "agent_memory" in message.get_payload().keys():
-            print("setting my memory to... ", message.get_payload()["agent_memory"])
-            self.agent_memory = message.get_payload()["agent_memory"]
-        else:
-            self.agent_memory = {}
+        # if "agent_memory" in message.get_payload().keys():
+        #     print("setting my memory to... ", message.get_payload()["agent_memory"])
+        #     self.agent_memory = message.get_payload()["agent_memory"]
+        # else:
+        #     self.agent_memory = {}
 
     def get_property(self, property_name):
         try:
@@ -102,19 +110,18 @@ class Agent(Actor):
 
 
     def receiveMessage(self, message, sender):
-        print("AGENT GOT MESSAGE: " + str(message))
         #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            try:
+            #try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            except Exception as e:
-                print("AGENT: ERROR")
-                traceback.print_exc()
-                print("&^" * 25)
-                self.log_experiment_data(e)
-                #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
+            # except Exception as e:
+            #     print("AGENT: ERROR")
+            #     traceback.print_exc()
+            #     print("&^" * 25)
+            #     self.log_experiment_data(e)
+            #     #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            #     self.actorSystemShutdown()
                 
             

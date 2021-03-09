@@ -6,6 +6,7 @@ from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
 from mTree.server.component_registrar import ComponentRegistrar
 
 import logging
@@ -42,15 +43,10 @@ class SimulationController:
 
     def run_simulation(self, configurations, run_number=None):
         #self.component_registrar.instance.components[""]
-        
         asys = ActorSystem('multiprocTCPBase', capabilities)
         source_hash = SimulationController.instance.component_registrar.get_source_hash()
         for configuration in configurations:
             configuration["source_hash"] = source_hash
-            print(configuration)
-            print(configuration["source_hash"])
-            print("CREATING DISPATCHER FOR CONFIGURATION")
-            
             configuration_message = Message()
             configuration_message.set_directive("simulation_configurations")
             configuration_message.set_payload(configuration)

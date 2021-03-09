@@ -5,9 +5,10 @@ from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.outconnect import OutConnect
 
 #from socketIO_client import SocketIO, LoggingNamespace
-
+import os
 import logging
 import json
 
@@ -39,25 +40,52 @@ class LogActor(Actor):
             return None
 
     def log_message(self, message):
-        print("SHOULD BE WRITING OUT LOG LINE")
-        if self.simulation_id is not None:
-            message["simulation_id"] = self.simulation_id
-        if self.run_number is not None:
-            message["run_number"] = self.run_number
-        print("LOG ACTOR SHOULD LOG")   
-        logging.log(EXPERIMENT_DATA, message)
+        # print("ANOTHER MESSAGE LOGGED....")
+        with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
+            file_object.write(message + "\n")
+        # print("SHOULD BE WRITING OUT LOG LINE")
+        # if self.simulation_id is not None:
+        #     message["simulation_id"] = self.simulation_id
+        # if self.run_number is not None:
+        #     message["run_number"] = self.run_number
+        # print("LOG ACTOR SHOULD LOG")   
+        # logging.log(EXPERIMENT_DATA, message)
 
     def receiveMessage(self, message, sender):
-        print("LOGGER GOT MESSAGE: ")
-        print(str(message))
+        # outconnect = self.createActor(OutConnect, globalName = "OutConnect")
+        # self.send(outconnect, message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
+        
         if not isinstance(message, ActorSystemMessage):
-            try:
-                if "message_type" in message.keys():
+            #try:
+                if type(message) is dict:
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print(message)
                     self.simulation_id = message["simulation_id"]
+                    self.mes_directory = message["mes_directory"]
                     if "run_number" in message.keys():
                         self.run_number = message["run_number"]
                 else:
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print("LOG ACTOR SHOULD LOG") 
+                    print(message)
                     self.log_message(message)
-            except:
-                pass            
+
+                # if "message_type" in message.keys():
+                #     self.simulation_id = message["simulation_id"]
+                #     self.mes_directory = message["mes_directory"]
+                #     if "run_number" in message.keys():
+                #         self.run_number = message["run_number"]
+                # else:
+                #     self.log_message(message)
+            #except:
+            #    pass            

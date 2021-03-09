@@ -62,18 +62,17 @@ class Environment(Actor):
             
         
     def receiveMessage(self, message, sender):
-        print("ENV GOT MESSAGE: " + str(message))
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            try:
+            #try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            except Exception as e:
-                print("ENV: ERROR")
-                traceback.print_exc()
-                print("%^" * 25)
-                #.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
+            # except Exception as e:
+            #     print("ENV: ERROR")
+            #     traceback.print_exc()
+            #     print("%^" * 25)
+            #     #.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            #     self.actorSystemShutdown()
 
     def get_property(self, property_name):
         try:
@@ -93,16 +92,19 @@ class Environment(Actor):
         self.send(self.log_actor, log_basis)        
 
 
+    def log_message(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        self.send(self.log_actor, data)
 
 
-    def log_experiment_data(self, data):
+    def record_data(self, data):
         self.log_actor = self.createActor(LogActor, globalName="log_actor")
         self.send(self.log_actor, data)
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
         print("LOADING SIMULATION PROPERTIES")
-        self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         #self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
@@ -114,8 +116,6 @@ class Environment(Actor):
 
     @directive_decorator("setup_agents")
     def setup_agents(self, message:Message):
-        print("SETTING UP AGENTS")
-        print(message)
         if "agents" not in dir(self):
             self.agents = []
             self.agent_addresses = []
@@ -125,16 +125,17 @@ class Environment(Actor):
         agent_class = message.get_payload()["agent_class"]
         
         # need to check source hash for simulation
-        #source_hash = message.get_payload()["source_hash"]
+        source_hash = message.get_payload()["source_hash"]
         
-        memory = False
-        agent_memory = None
-        if "agent_memory" in message.get_payload().keys():
-            memory = True
-            agent_memory = message.get_payload()["agent_memory"]
-
+        # memory = False
+        # agent_memory = None
+        # if "agent_memory" in message.get_payload().keys():
+        #     memory = True
+        #     agent_memory = message.get_payload()["agent_memory"]
+        self.log_message("Should be starting to get things ready for agents: " + str(message))
         for i in range(num_agents):
-            new_agent = self.createActor(agent_class) #, sourceHash=source_hash)
+            self.log_message("CREATING A NEW AGENT: " + agent_class)
+            new_agent = self.createActor(agent_class, sourceHash=source_hash)
             self.agent_addresses.append(new_agent)
             self.agents.append([new_agent, agent_class])
             new_message = Message()
@@ -145,8 +146,8 @@ class Environment(Actor):
             #payload["log_actor"] = self.log_actor
             #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
             #payload["properties"] = self.mtree_properties
-            if memory:
-                payload["agent_memory"] = agent_memory
+            # if memory:
+            #     payload["agent_memory"] = agent_memory
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
 
@@ -156,20 +157,22 @@ class Environment(Actor):
             self.institutions = []
 
         institution_class = message.get_payload()["institution_class"]
-        #source_hash = message.get_payload()["source_hash"]
-        new_institution = self.createActor(institution_class) #, sourceHash=source_hash)
+        source_hash = message.get_payload()["source_hash"]
+        
+        new_institution = self.createActor(institution_class, sourceHash=source_hash)
         new_message = Message()
-        new_message.set_sender(self.myAddress)
+        #new_message.set_sender(self.myAddress)
         new_message.set_directive("simulation_properties")
         payload = {}
+
+        
         #if "mtree_properties" not in dir(self):
-        payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
+        #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
         payload["environment"] = self.myAddress
         payload["properties"] = self.mtree_properties
         payload["simulation_id"] = self.simulation_id
         if "run_number" in dir(self):
             payload["run_number"] = self.run_number
-
 
         new_message.set_payload(payload)
         self.send(new_institution, new_message)

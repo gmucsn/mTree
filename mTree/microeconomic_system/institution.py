@@ -18,7 +18,14 @@ class Institution(Actor):
     def experiment_log(self, *log_message):
         self.mTree_logger().log(25, log_message)
 
+    def log_message(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        self.send(self.log_actor, data)
 
+
+    def record_data(self, data):
+        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        self.send(self.log_actor, data)
 
     def __str__(self):
         return "<Institution: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
@@ -35,18 +42,17 @@ class Institution(Actor):
         self.mtree_properties = {}
 
     def receiveMessage(self, message, sender):
-        print("INST GOT MESSAGE: " + str(message))
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            try:
+            #try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            except Exception as e:
-                print("INSTITUTION: ERROR")
-                traceback.print_exc()
-                print("&^" * 25)
-                #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-                self.actorSystemShutdown()
+            # except Exception as e:
+            #     print("INSTITUTION: ERROR")
+            #     traceback.print_exc()
+            #     print("&^" * 25)
+            #     #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
+            #     self.actorSystemShutdown()
         
     def get_property(self, property_name):
         try:
@@ -60,6 +66,7 @@ class Institution(Actor):
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
+        self.log_message("Institution receives simulation properties.")
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
 
@@ -70,7 +77,7 @@ class Institution(Actor):
             self.run_number = message.get_payload()["run_number"]
         #self.log_actor = message.get_payload()["log_actor"]
         #self.dispatcher = message.get_payload()["dispatcher"]
-        self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         
         self.environment = message.get_payload()["environment"]
 

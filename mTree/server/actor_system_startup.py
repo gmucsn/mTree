@@ -35,7 +35,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         # else:
         #     log_record['level'] = record.levelname
 
-formatter = CustomJsonFormatter('(timestamp) (level) (name) (message)')
+#formatter = CustomJsonFormatter('(timestamp) (level) (name) (message)')
 
 
 

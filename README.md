@@ -50,3 +50,10 @@ import mTree
 If there are no error messages, the build was successful.
 You can now access mTree as you would any other python package.
 
+
+Thespian Logging notes:
+
+THESPLOG_FILE
+THESPLOG_FILE_MAXSIZE
+export THESPLOG_FILE="/tmp/thespian.log"
+export THESPLOG_THRESHOLD="DEBUG"

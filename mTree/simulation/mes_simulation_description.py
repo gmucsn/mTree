@@ -101,7 +101,9 @@ class MESSimulationDescription():
     def import_json(self, input_json):
         print("importing json")
         try:
-            validate(instance=input_json, schema=simulation_description_schema)
+            # TODO Fix configuration schema validation
+            # currently there is an issue on the properties setup...
+            #validate(instance=input_json, schema=simulation_description_schema)
             self.configure_from_json(input_json)
         except Exception as e:
             print(e)
@@ -167,6 +169,18 @@ class MESSimulationDescription():
         temp_dict["properties"] = self.properties
         json_output = json.dumps(temp_dict)
         print(json_output)
-
+    
+    def to_hash(self):
+        temp_dict = {}
+        temp_dict["mtree_type"] = self.mtree_type
+        temp_dict["name"] = self.name
+        temp_dict["id"] = self.id
+        temp_dict["description"] = self.description
+        temp_dict["environment"] = self.environment
+        temp_dict["institution"] = self.institution
+        temp_dict["agents"] = self.agents
+        temp_dict["properties"] = self.properties
+        return temp_dict
+        
 
 

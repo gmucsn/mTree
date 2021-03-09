@@ -84,6 +84,11 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
             yield value() if create_instance else value
     '''
 
+#os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
+#os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "THESPIAN_OUT.LOG")
+#os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
+
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 #SCRIPT_DIR = "/repos/mTree_dev_folder"
 plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
@@ -137,7 +142,7 @@ import random, threading, webbrowser
 port = 5000
 url = "http://127.0.0.1:{0}".format(port)
 
-threading.Timer(3, lambda: webbrowser.open(url) ).start()
+threading.Timer(2, lambda: webbrowser.open(url) ).start()
 from mTree.server.actor_system_startup import ActorSystemStartup
 
 # from threading import Thread 
