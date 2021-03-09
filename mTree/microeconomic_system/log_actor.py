@@ -29,9 +29,11 @@ class LogActor(Actor):
 
     def __init__(self):
         #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
+        self.message_counter = 0
         self.mtree_properties = {}
         self.simulation_id = None
         self.run_number = None
+        self.message_buffer = ""
     
     def get_property(self, property_name):
         try:
@@ -41,6 +43,13 @@ class LogActor(Actor):
 
     def log_message(self, message):
         print("ANOTHER MESSAGE LOGGED....")
+        self.message_buffer += "logger contorl " + str(self.message_counter) + " -- " + str(message) +  "\n"
+        self.message_counter += 1
+        #if self.message_counter % 10 == 0:
+        with open("/Users/Shared/repos/mTree_auction_examples/experiment_data", "a") as file_object:
+            file_object.write(self.message_buffer)
+            self.message_buffer = ""
+    
         # with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
         #     file_object.write(message + "\n")
         # print("SHOULD BE WRITING OUT LOG LINE")

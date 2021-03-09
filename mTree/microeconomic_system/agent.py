@@ -10,6 +10,8 @@ from mTree.microeconomic_system.log_actor import LogActor
 import traceback
 import logging
 import json
+from datetime import datetime, timedelta
+import time
 
 EXPERIMENT = 25
 
@@ -25,8 +27,10 @@ class Agent(Actor):
         self.mTree_logger().log(25, log_message)
 
     def log_message(self, data):
+        d2 = datetime.now()
+        unixtime2 = time.time()
         self.log_actor = self.createActor(LogActor, globalName="log_actor")
-        self.send(self.log_actor, data)
+        self.send(self.log_actor, str(unixtime2) + data)
 
 
     def record_data(self, data):

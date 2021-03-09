@@ -81,23 +81,24 @@ class ActorSystemConnector():
     def load_base_mes(self, mes_base_dir):
         #script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system")
         #script_dir = os.path.join(mes_base_dir, "mes")
-        script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system")
+        # script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system")
         
-        #plugins_directory_path = os.path.join(os.getcwd(), 'mes')
-        #print("\t plugin path: ", plugins_directory_path)
-        plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
-        print(plugin_file_paths)
-        base_components = []
-        for plugin_file_path in plugin_file_paths:
-            print("\t\t !--> ", plugin_file_path)
-            plugin_file_name = os.path.basename(plugin_file_path)
-            module_name = os.path.splitext(plugin_file_name)[0]
-            print(module_name)
-            if module_name.startswith("__"):
-                continue
-            print("PLUGIN SHOULD LOAD...", plugin_file_path)
-            base_components.append([plugin_file_path, plugin_file_name])
+        # #plugins_directory_path = os.path.join(os.getcwd(), 'mes')
+        # #print("\t plugin path: ", plugins_directory_path)
+        # plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
+        # print(plugin_file_paths)
+        # base_components = []
+        # for plugin_file_path in plugin_file_paths:
+        #     print("\t\t !--> ", plugin_file_path)
+        #     plugin_file_name = os.path.basename(plugin_file_path)
+        #     module_name = os.path.splitext(plugin_file_name)[0]
+        #     print(module_name)
+        #     if module_name.startswith("__"):
+        #         continue
+        #     print("PLUGIN SHOULD LOAD...", plugin_file_path)
+        #     base_components.append([plugin_file_path, plugin_file_name])
 
+        base_components = []
         script_dir = os.path.join(mes_base_dir, "mes")
         plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
         

@@ -156,6 +156,14 @@ from mTree.server.actor_system_startup import ActorSystemStartup
 
 #actor_system = ActorSystem('multiprocTCPBase')
 
+print("mTree - Background starting up...")
+import sys
+from subprocess import Popen, PIPE
+background_actor_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "mTree", "server", "background_actor_system.py")
+        
+process = Popen([sys.executable, background_actor_py]) #, stdout=PIPE, stderr=PIPE)
+#stdout, stderr = process.communicate()
+#print(stdout)
 
 
 print("mTree is launching")

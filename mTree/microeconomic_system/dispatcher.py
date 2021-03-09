@@ -366,6 +366,9 @@ class Dispatcher(Actor):
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
         #self.send(outconnect, message)
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
+        # with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        #     file_object.write("SHOULD BE RUNNING SIMULATION" + str(message) +  "\n")
+    
         if not isinstance(message, ActorSystemMessage):
             if message.get_directive() == "simulation_configurations":
                 self.configurations_pending = message.get_payload()

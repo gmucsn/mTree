@@ -1,13 +1,13 @@
 from thespian.actors import *
-from datetime import timedelta
-
+from datetime import datetime, timedelta
+  
 import logging
 
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
-
+import time
 
 import traceback
 import json
@@ -93,8 +93,10 @@ class Environment(Actor):
 
 
     def log_message(self, data):
+        d2 = datetime.now()
+        unixtime2 = time.time()
         self.log_actor = self.createActor(LogActor, globalName="log_actor")
-        self.send(self.log_actor, data)
+        self.send(self.log_actor, str(unixtime2) + data)
 
 
     def record_data(self, data):
