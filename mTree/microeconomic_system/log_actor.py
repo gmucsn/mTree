@@ -42,16 +42,10 @@ class LogActor(Actor):
             return None
 
     def log_message(self, message):
-        print("ANOTHER MESSAGE LOGGED....")
-        self.message_buffer += "logger contorl " + str(self.message_counter) + " -- " + str(message) +  "\n"
-        self.message_counter += 1
-        #if self.message_counter % 10 == 0:
-        with open("/Users/Shared/repos/mTree_auction_examples/experiment_data", "a") as file_object:
-            file_object.write(self.message_buffer)
-            self.message_buffer = ""
-    
-        # with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
-        #     file_object.write(message + "\n")
+        # print("ANOTHER MESSAGE LOGGED....")
+        with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
+            file_object.write(message + "\n")
+
         # print("SHOULD BE WRITING OUT LOG LINE")
         # if self.simulation_id is not None:
         #     message["simulation_id"] = self.simulation_id
