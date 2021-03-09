@@ -40,9 +40,9 @@ class LogActor(Actor):
             return None
 
     def log_message(self, message):
-        print("ANOTHER MESSAGE LOGGED....")
-        # with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
-        #     file_object.write(message + "\n")
+        # print("ANOTHER MESSAGE LOGGED....")
+        with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
+            file_object.write(message + "\n")
         # print("SHOULD BE WRITING OUT LOG LINE")
         # if self.simulation_id is not None:
         #     message["simulation_id"] = self.simulation_id

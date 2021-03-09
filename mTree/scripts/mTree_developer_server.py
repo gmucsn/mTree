@@ -31,7 +31,7 @@ def goodbye():
 
 def main():
     # Set Thespian log file location so we can track issues...
-    os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "THESPIAN_OUT.LOG")
+    os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
     os.environ['THESPLOG_THRESHOLD'] =  "DEBUG"
 
     ascii_banner = pyfiglet.figlet_format("mTree - Developer Server")
