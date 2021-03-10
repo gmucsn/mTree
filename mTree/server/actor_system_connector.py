@@ -38,6 +38,9 @@ class SimpleSourceAuthority(Actor):
                                       getattr(msg, 'sourceInfo', None)))
 
 
+capabilities = dict([('Admin Port', 19000)])
+
+
 class ActorSystemConnector():
 
     # class __ActorSystemConnector:
@@ -71,7 +74,6 @@ class ActorSystemConnector():
             self.container = None
             self.configuration = None
             ActorSystemConnector.__instance = self
-            print("Object initialized")
 
     # def __new__(self):
     #     if not ActorSystemConnector.instance:
@@ -103,10 +105,8 @@ class ActorSystemConnector():
         plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
         
         for plugin_file_path in plugin_file_paths:
-            print("\t\t !--> ", plugin_file_path)
             plugin_file_name = os.path.basename(plugin_file_path)
             module_name = os.path.splitext(plugin_file_name)[0]
-            print(module_name)
             if module_name.startswith("__"):
                 continue
             print("PLUGIN SHOULD LOAD...", plugin_file_path)
@@ -117,7 +117,7 @@ class ActorSystemConnector():
             for component in base_components:
                 zipObj2.write(component[0],arcname=component[1])
 
-        asys = ActorSystem('multiprocTCPBase') #, capabilities)
+        asys = ActorSystem('multiprocTCPBase', capabilities)
         source_hash = asys.loadActorSource('temp_components.zip')
         #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
         #os.remove("temp_components.zip")
@@ -125,8 +125,8 @@ class ActorSystemConnector():
 
 
     def run_simulation(self, mes_base_dir, run_configuration):
-        sa = ActorSystem("multiprocTCPBase").createActor(SimpleSourceAuthority)
-        ActorSystem("multiprocTCPBase").tell(sa, True)
+        #sa = ActorSystem("multiprocTCPBase", capabilities).createActor(SimpleSourceAuthority)
+        #ActorSystem("multiprocTCPBase").tell(sa, True)
         
         
         source_hash = self.load_base_mes(mes_base_dir)
@@ -136,7 +136,7 @@ class ActorSystemConnector():
        
         #return
         # actor_system = ActorSystem()
-        dispatcher = ActorSystem("multiprocTCPBase").createActor(Dispatcher, globalName = "Dispatcher")
+        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
 
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
 
@@ -164,13 +164,13 @@ class ActorSystemConnector():
         #     self.instance.container = SimulationContainer()
         # self.instance.container.create_dispatcher()
         
-        actor_system = ActorSystem("multiprocTCPBase")
+        actor_system = ActorSystem("multiprocTCPBase", capabilities)
 
         sa = actor_system.createActor(SimpleSourceAuthority)
         actor_system.tell(sa, True)
-        dispatcher = ActorSystem("multiprocTCPBase").createActor(Dispatcher, globalName = "Dispatcher")
+        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
 
-        outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
+        outconnect = ActorSystem("multiprocTCPBase", capabilities).createActor(OutConnect, globalName = "OutConnect")
 
         configuration_message = Message()
         configuration_message.set_directive("simulation_configurations")

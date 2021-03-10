@@ -57,3 +57,10 @@ THESPLOG_FILE
 THESPLOG_FILE_MAXSIZE
 export THESPLOG_FILE="/tmp/thespian.log"
 export THESPLOG_THRESHOLD="DEBUG"
+
+Checking for python processes in powershell:
+ ps *python* 
+
+kill all python processes in powershell:
+Stop-Process -Name "python" -Force
+

@@ -52,13 +52,13 @@ logging.addLevelName(logger.MESSAGE, 'MESSAGE')
 #setattr(logging, 'experiment', lambda message, *args: logger._log(logging.EXPERIMENT, message, args))
 
 
-class SimpleSourceAuthority(ActorTypeDispatcher):
-    def receiveMsg_str(self, msg, sender):
-        self.registerSourceAuthority()
-    def receiveMsg_ValidateSource(self, msg, sender):
-        self.send(sender, ValidatedSource(msg.sourceHash,
-                                          msg.sourceData,
-                                          msg.sourceInfo))
+# class SimpleSourceAuthority(ActorTypeDispatcher):
+#     def receiveMsg_str(self, msg, sender):
+#         self.registerSourceAuthority()
+#     def receiveMsg_ValidateSource(self, msg, sender):
+#         self.send(sender, ValidatedSource(msg.sourceHash,
+#                                           msg.sourceData,
+#                                           msg.sourceInfo))
 
 
 
@@ -79,7 +79,7 @@ logcfg = { 'version': 1,
     'loggers' : { '': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
     }
 
-capabilities = dict([('Admin Port', 1900)])
+capabilities = dict([('Admin Port', 19000)])
 
 import os
 import glob
@@ -90,14 +90,15 @@ from mTree.microeconomic_system import *
 
 class SimpleSourceAuthority(Actor):
     def receiveMessage(self, msg, sender):
-        if msg is True:
-            self.registerSourceAuthority()
-        if isinstance(msg, ValidateSource):
-            self.send(sender,
-                      ValidatedSource(msg.sourceHash,
-                                      msg.sourceData,
-                                      # Thespian pre 3.2.0 has no sourceInfo
-                                      getattr(msg, 'sourceInfo', None)))
+        if not isinstance(message, ActorSystemMessage):        
+            if msg is True:
+                self.registerSourceAuthority()
+            if isinstance(msg, ValidateSource):
+                self.send(sender,
+                        ValidatedSource(msg.sourceHash,
+                                        msg.sourceData,
+                                        # Thespian pre 3.2.0 has no sourceInfo
+                                        getattr(msg, 'sourceInfo', None)))
 
 
 class ActorSystemStartup:
@@ -105,9 +106,12 @@ class ActorSystemStartup:
         self.actor_system = None
         print("ACTOR SYSTEM STARTING")
         self.actor_system = ActorSystem('multiprocTCPBase', capabilities)
-        self.sa = self.actor_system.createActor(SimpleSourceAuthority)
+        print("ACTOR SYSTEM STARTED")
+        
+    def startup(self):
+        self.sa = ActorSystem('multiprocTCPBase', capabilities).createActor(SimpleSourceAuthority)
         self.actor_system.tell(self.sa, True)
-        self.load_base_mes()
+        #self.load_base_mes()
 
     # def load_base_mes(self):
     #     script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system")
