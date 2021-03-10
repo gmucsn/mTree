@@ -22,7 +22,9 @@ from thespian.actors import *
 
 @atexit.register
 def goodbye():
-    ActorSystem().shutdown()
+    capabilities = dict([('Admin Port', 19000)])
+    actors = ActorSystem('multiprocTCPBase', capabilities)
+    actors.shutdown()
     time.sleep(2)
     print("You are now leaving mTree Runner.")
 
@@ -40,7 +42,10 @@ class MTreePrompt(Cmd):
     def do_force_shutdown(self, args):
         """Forces an exit on all MES components"""
         print("Forcing system shutdown")
-        ActorSystem().shutdown()
+        capabilities = dict([('Admin Port', 19000)])
+        actors = ActorSystem('multiprocTCPBase', capabilities)
+        actors.shutdown()
+
 
 
     def do_hello(self, args):

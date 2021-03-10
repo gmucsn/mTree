@@ -105,10 +105,13 @@ class ActorSystemStartup:
     def __init__(self):
         self.actor_system = None
         print("ACTOR SYSTEM STARTING")
+        capabilities = dict([('Admin Port', 19000)])
         self.actor_system = ActorSystem('multiprocTCPBase', capabilities)
         print("ACTOR SYSTEM STARTED")
         
     def startup(self):
+        capabilities = dict([('Admin Port', 19000)])
+
         self.sa = ActorSystem('multiprocTCPBase', capabilities).createActor(SimpleSourceAuthority)
         self.actor_system.tell(self.sa, True)
         #self.load_base_mes()
@@ -187,4 +190,6 @@ class ActorSystemStartup:
     @staticmethod
     def shutdown():
         print('Shutting down actor system....')
+        capabilities = dict([('Admin Port', 19000)])
+
         ActorSystem('multiprocTCPBase', capabilities).shutdown()

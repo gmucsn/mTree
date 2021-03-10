@@ -141,8 +141,10 @@ class SimulationContainer():
 
         #self.actor_system = ActorSystem(None, logDefs=logcfg)
         #self.actor_system = ActorSystem('multiprocQueueBase', logDefs=logcfg)
-        self.actor_system = ActorSystem('multiprocTCPBase',logDefs=logcfg)
-        actorSys = self.actor_system or ActorSystem('multiprocTCPBase') #'multiprocQueueBase')
+        capabilities = dict([('Admin Port', 19000)])
+    
+        self.actor_system = ActorSystem('multiprocTCPBase', capabilities) #, logDefs=logcfg)
+        actorSys = self.actor_system or ActorSystem('multiprocTCPBase', capabilities) #'multiprocQueueBase')
         try:
             actorSys.tell(
                 actorSys.createActor(SimpleSourceAuthority),
@@ -170,20 +172,28 @@ class SimulationContainer():
         #     #    print ('Created new TestActor %d @ %s'%(N, str(A)))
 
     def create_dispatcher(self):
+        capabilities = dict([('Admin Port', 19000)])
+    
         try:
-            self.dispatcher = ActorSystem().createActor(Dispatcher, globalName="dispatcher")
+            self.dispatcher = ActorSystem('multiprocTCPBase', capabilities).createActor(Dispatcher, globalName="dispatcher")
         except Exception as e:
-            self.dispatcher = ActorSystem().createActor("Dispatcher", globalName="dispatcher")
+            self.dispatcher = ActorSystem('multiprocTCPBase', capabilities).createActor("Dispatcher", globalName="dispatcher")
 
 
     def send_dispatcher_simulation_configurations(self, configurations):
+        capabilities = dict([('Admin Port', 19000)])
+    
         for configuration in configurations:
             print("CREATING DISPATCHER FOR CONFIGURATION")
             
             configuration_message = Message()
             configuration_message.set_directive("simulation_configurations")
+            
+            working_dir = os.path.join(os.getcwd())
+            #run_configuration["source_hash"] = source_hash
+            configuration["mes_directory"] = working_dir
             configuration_message.set_payload(configuration)
-            ActorSystem().tell(self.dispatcher, configuration_message)
+            ActorSystem('multiprocTCPBase', capabilities).tell(self.dispatcher, configuration_message)
 
     # DEPRECATED
     # def send_dispatcher_simulation_configurations(self, configurations):
@@ -195,10 +205,14 @@ class SimulationContainer():
 
 
     def send_root_environment_message(self, environment_name, message):
-        ActorSystem().tell(self.environments[environment_name], message)
+        capabilities = dict([('Admin Port', 19000)])
+    
+        ActorSystem('multiprocTCPBase', capabilities).tell(self.environments[environment_name], message)
 
     def shutdown_thespian(self):
-        ActorSystem().shutdown()
+        capabilities = dict([('Admin Port', 19000)])
+    
+        ActorSystem('multiprocTCPBase', capabilities).shutdown()
 
     def kill_environment(self, environment_name):
         #self.send(self.dispatcher, ActorExitRequest())

@@ -35,7 +35,7 @@ def goodbye():
 import sys
 from subprocess import Popen, PIPE
 import subprocess
-
+from subprocess import HIGH_PRIORITY_CLASS, DETACHED_PROCESS, CREATE_NO_WINDOW
 
 def main():
     # Set Thespian log file location so we can track issues...
@@ -44,10 +44,10 @@ def main():
 
     print("mTree - Background starting up...")
     background_actor_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "server", "background_actor_system.py")
-            
-    with open(os.devnull, 'w') as DEVNULL:
-        process = Popen([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
-    #process = subprocess.run([sys.executable, background_actor_py]) #, stdout=PIPE, stderr=PIPE)
+    
+    #with open(os.devnull, 'w') as DEVNULL:
+    process = Popen([sys.executable, background_actor_py], creationflags=CREATE_NO_WINDOW|DETACHED_PROCESS|HIGH_PRIORITY_CLASS) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
+    #process = subprocess.run([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
 
 
     ascii_banner = pyfiglet.figlet_format("mTree - Developer Server")

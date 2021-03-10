@@ -117,6 +117,8 @@ class ActorSystemConnector():
             for component in base_components:
                 zipObj2.write(component[0],arcname=component[1])
 
+        capabilities = dict([('Admin Port', 19000)])
+
         asys = ActorSystem('multiprocTCPBase', capabilities)
         source_hash = asys.loadActorSource('temp_components.zip')
         #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
@@ -136,6 +138,8 @@ class ActorSystemConnector():
        
         #return
         # actor_system = ActorSystem()
+        capabilities = dict([('Admin Port', 19000)])
+
         dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
 
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
@@ -163,7 +167,8 @@ class ActorSystemConnector():
         # if self.instance.container is None:
         #     self.instance.container = SimulationContainer()
         # self.instance.container.create_dispatcher()
-        
+        capabilities = dict([('Admin Port', 19000)])
+
         actor_system = ActorSystem("multiprocTCPBase", capabilities)
 
         sa = actor_system.createActor(SimpleSourceAuthority)

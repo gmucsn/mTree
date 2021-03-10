@@ -42,9 +42,9 @@ class LogActor(Actor):
             return None
 
     def log_message(self, message):
-        # print("ANOTHER MESSAGE LOGGED....")
-        with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
-            file_object.write(message + "\n")
+        print("ANOTHER MESSAGE LOGGED....")
+        #with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
+        #    file_object.write(message + "\n")
 
         # print("SHOULD BE WRITING OUT LOG LINE")
         # if self.simulation_id is not None:
@@ -62,12 +62,6 @@ class LogActor(Actor):
         if not isinstance(message, ActorSystemMessage):
             #try:
                 if type(message) is dict:
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
                     print(message)
                     self.simulation_id = message["simulation_id"]
                     self.mes_directory = message["mes_directory"]
