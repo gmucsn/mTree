@@ -35,7 +35,7 @@ def goodbye():
 import sys
 from subprocess import Popen, PIPE
 import subprocess
-from subprocess import HIGH_PRIORITY_CLASS, DETACHED_PROCESS, CREATE_NO_WINDOW
+#from subprocess import HIGH_PRIORITY_CLASS, DETACHED_PROCESS, CREATE_NO_WINDOW
 
 def main():
     # Set Thespian log file location so we can track issues...
@@ -46,7 +46,8 @@ def main():
     background_actor_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "server", "background_actor_system.py")
     
     #with open(os.devnull, 'w') as DEVNULL:
-    process = Popen([sys.executable, background_actor_py], creationflags=CREATE_NO_WINDOW|DETACHED_PROCESS|HIGH_PRIORITY_CLASS) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
+    import subprocess
+    process = Popen([sys.executable, background_actor_py], creationflags=subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.HIGH_PRIORITY_CLASS) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
     #process = subprocess.run([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
 
 
