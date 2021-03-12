@@ -47,7 +47,8 @@ def main():
     
     #with open(os.devnull, 'w') as DEVNULL:
     import subprocess
-    process = Popen([sys.executable, background_actor_py], creationflags=subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.HIGH_PRIORITY_CLASS) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
+    # creationflags=subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.HIGH_PRIORITY_CLASS
+    process = Popen([sys.executable, background_actor_py]) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
     #process = subprocess.run([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
 
 

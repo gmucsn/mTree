@@ -4,6 +4,7 @@ import numpy as np
 from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.outconnect import OutConnect
 
@@ -41,10 +42,13 @@ class LogActor(Actor):
         except:
             return None
 
+    def log_data(self, message):
+        with open(os.path.join(self.data_target), "a") as file_object:
+           file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
+
     def log_message(self, message):
-        print("ANOTHER MESSAGE LOGGED....")
-        #with open(os.path.join(self.mes_directory, "experiment.log"), "a") as file_object:
-        #    file_object.write(message + "\n")
+        with open(os.path.join(self.log_target), "a") as file_object:
+           file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
 
         # print("SHOULD BE WRITING OUT LOG LINE")
         # if self.simulation_id is not None:
@@ -58,24 +62,28 @@ class LogActor(Actor):
         # outconnect = self.createActor(OutConnect, globalName = "OutConnect")
         # self.send(outconnect, message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        
         if not isinstance(message, ActorSystemMessage):
             #try:
                 if type(message) is dict:
-                    print(message)
                     self.simulation_id = message["simulation_id"]
+                    self.simulation_run_id = message["simulation_run_id"]
                     self.mes_directory = message["mes_directory"]
+                    self.output_log_folder = os.path.join(self.mes_directory, "logs")
+                    if not os.path.isdir(self.output_log_folder):
+                        os.mkdir(self.output_log_folder)
+                    self.log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.log")
+                    self.data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.data")
+                    self.tmp_log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.log.tmp")
+                    self.tmp_data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.data.tmp")
+                    
+
                     if "run_number" in message.keys():
                         self.run_number = message["run_number"]
-                else:
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print("LOG ACTOR SHOULD LOG") 
-                    print(message)
-                    self.log_message(message)
+                elif type(message) is LogMessage:
+                    if message.get_message_type() == "data":
+                        self.log_data(message)
+                    elif message.get_message_type() == "log":
+                        self.log_message(message)
 
                 # if "message_type" in message.keys():
                 #     self.simulation_id = message["simulation_id"]

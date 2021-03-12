@@ -21,6 +21,8 @@ import os
 import glob
 from zipfile import ZipFile
 
+import datetime
+
 
 class Hello(Actor):
     def receiveMessage(self, message, sender):
@@ -81,26 +83,22 @@ class ActorSystemConnector():
     #     return self
 
     def load_base_mes(self, mes_base_dir):
-        #script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system")
+        script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system")
         #script_dir = os.path.join(mes_base_dir, "mes")
         # script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system")
         
         # #plugins_directory_path = os.path.join(os.getcwd(), 'mes')
-        # #print("\t plugin path: ", plugins_directory_path)
-        # plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
-        # print(plugin_file_paths)
-        # base_components = []
-        # for plugin_file_path in plugin_file_paths:
-        #     print("\t\t !--> ", plugin_file_path)
-        #     plugin_file_name = os.path.basename(plugin_file_path)
-        #     module_name = os.path.splitext(plugin_file_name)[0]
-        #     print(module_name)
-        #     if module_name.startswith("__"):
-        #         continue
-        #     print("PLUGIN SHOULD LOAD...", plugin_file_path)
-        #     base_components.append([plugin_file_path, plugin_file_name])
-
+        #print("\t plugin path: ", plugins_directory_path)
+        plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
         base_components = []
+        for plugin_file_path in plugin_file_paths:
+            plugin_file_name = os.path.basename(plugin_file_path)
+            module_name = os.path.splitext(plugin_file_name)[0]
+            if module_name.startswith("__"):
+                continue
+            base_components.append([plugin_file_path, plugin_file_name])
+
+        #base_components = []
         script_dir = os.path.join(mes_base_dir, "mes")
         plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
         
@@ -109,7 +107,6 @@ class ActorSystemConnector():
             module_name = os.path.splitext(plugin_file_name)[0]
             if module_name.startswith("__"):
                 continue
-            print("PLUGIN SHOULD LOAD...", plugin_file_path)
             base_components.append([plugin_file_path, plugin_file_name])
 
 
@@ -122,7 +119,7 @@ class ActorSystemConnector():
         asys = ActorSystem('multiprocTCPBase', capabilities)
         source_hash = asys.loadActorSource('temp_components.zip')
         #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
-        #os.remove("temp_components.zip")
+        os.remove("temp_components.zip")
         return source_hash
 
 
@@ -158,6 +155,12 @@ class ActorSystemConnector():
         #         }
         #     }]
         run_configuration["source_hash"] = source_hash
+
+
+        nowtime = datetime.datetime.now().timestamp()
+        simulation_run_id = str(nowtime).split(".")[0]
+
+        run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
         configuration_message.set_payload(run_configuration)
         ActorSystem().tell(dispatcher, configuration_message)

@@ -5,24 +5,19 @@ import logging
 
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 import time
 
 import traceback
 import json
+import os
 
 
 
 @directive_enabled_class
 class Environment(Actor):
-    def mTree_logger(self):
-        return logging.getLogger("mTree")
-
-    def experiment_log(self, *log_message):
-        self.mTree_logger().log(25, log_message)
-
-
     def __str__(self):
         return "<Environment: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
 
@@ -83,7 +78,7 @@ class Environment(Actor):
 
     @directive_decorator("initialize_log_actor")
     def initialize_log_actor(self, message:Message):
-        self.log_actor = self.createActor(LogActor)
+        self.log_actor = self.createActor("log_actor.LogActor")
         log_basis = {}
         log_basis["message_type"] = "setup"
         log_basis["simulation_id"] = self.simulation_id
@@ -91,21 +86,33 @@ class Environment(Actor):
             log_basis["run_number"] = self.run_number
         self.send(self.log_actor, log_basis)        
 
+    @directive_decorator("logger_setup")
+    def logger_setup(self, message:Message):
+        self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
+        
+        log_basis = {}
+        log_basis["message_type"] = "setup"
 
-    def log_message(self, data):
-        d2 = datetime.now()
-        unixtime2 = time.time()
-        self.log_actor = self.createActor(LogActor, globalName="log_actor")
-        self.send(self.log_actor, str(unixtime2) + data)
+        log_basis["simulation_run_id"] = message.get_payload()["simulation_run_id"]
+        log_basis["simulation_id"] = message.get_payload()["simulation_id"]
+        log_basis["mes_directory"] = message.get_payload()["mes_directory"]
+        self.send(self.log_actor, log_basis)     
+        
+    def log_message(self, logline):
+        log_message = LogMessage(message_type="log", content=logline)
+        self.send(self.log_actor, log_message)
+
+    def log_data(self, logline):
+        log_message = LogMessage(message_type="data", content=logline)
+        self.send(self.log_actor, log_message)
 
 
     def record_data(self, data):
-        self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        #self.log_actor = self.createActor(LogActor, globalName="log_actor")
         self.send(self.log_actor, data)
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
-        print("LOADING SIMULATION PROPERTIES")
         #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         #self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
@@ -113,6 +120,7 @@ class Environment(Actor):
 
         self.mtree_properties = message.get_payload()["properties"]
         self.simulation_id = message.get_payload()["simulation_id"]
+        self.simulation_run_id = message.get_payload()["simulation_run_id"]
         if "run_number" in message.get_payload().keys():
             self.run_number = message.get_payload()["run_number"]
 
@@ -134,7 +142,6 @@ class Environment(Actor):
         # if "agent_memory" in message.get_payload().keys():
         #     memory = True
         #     agent_memory = message.get_payload()["agent_memory"]
-        self.log_message("Should be starting to get things ready for agents: " + str(message))
         for i in range(num_agents):
             self.log_message("CREATING A NEW AGENT: " + agent_class)
             new_agent = self.createActor(agent_class, sourceHash=source_hash)
@@ -145,7 +152,7 @@ class Environment(Actor):
             new_message.set_directive("simulation_properties")
             payload = {}
             #if "mtree_properties" not in dir(self):
-            #payload["log_actor"] = self.log_actor
+            payload["log_actor"] = self.log_actor
             #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
             #payload["properties"] = self.mtree_properties
             # if memory:
@@ -173,6 +180,8 @@ class Environment(Actor):
         payload["environment"] = self.myAddress
         payload["properties"] = self.mtree_properties
         payload["simulation_id"] = self.simulation_id
+        payload["simulation_run_id"] = self.simulation_run_id
+        payload["log_actor"] = self.log_actor
         if "run_number" in dir(self):
             payload["run_number"] = self.run_number
 

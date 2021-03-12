@@ -3,6 +3,7 @@ import pythonjsonlogger
 from thespian.actors import *
 from mTree.microeconomic_system import *
 from mTree.microeconomic_system.dispatcher import Dispatcher
+from mTree.microeconomic_system.log_actor import LogActor
 
 
 class actorLogFilter(logging.Filter):

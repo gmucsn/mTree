@@ -40,6 +40,9 @@ class Dispatcher(Actor):
         # message.set_payload(payload)
         
         #self.send(test_environment, message)
+        ####
+        # get the source hash for the newly loaded MES components
+        ####
         source_hash = configuration["source_hash"]
         
         
@@ -48,12 +51,33 @@ class Dispatcher(Actor):
         
         #return
 
+        ####
+        # Create the environment for the new MES
+        ####
         source_hash = configuration["source_hash"]
         environment_class = configuration["environment"]
         environment = self.createActor(environment_class,sourceHash=source_hash)
-        #self.send(environment, "ALKFJASLKJF LKAJSFL")
+        # environment created
         self.environment = environment
+
+        ####
+        # Setup logger for the MES
+        ####
+        message = Message()
+        message.set_directive("logger_setup")
+        payload = {}
+        payload["simulation_id"] = configuration["id"]
+        payload["simulation_run_id"] = configuration["simulation_run_id"]
+        payload["mes_directory"] = configuration["mes_directory"]
+        message.set_payload(payload)
+        self.send(environment, message)
         
+        
+        ####
+        # Setup Institution(s) for the MES    
+        # This preps configuration, but won't intitiate instantiation
+        ####
+
         if "institution" in configuration.keys():
             institution = configuration["institution"]
         elif "institutions" in configuration.keys():
@@ -62,7 +86,11 @@ class Dispatcher(Actor):
                 institution_class = institution_d["institution"]
                 institutions.append(institution_class)
         
-
+        ####
+        # Setup Agent(s) for the MES    
+        # This preps configuration, but won't intitiate instantiation
+        ####
+        
         agents = []
         for agent_d in configuration["agents"]:
             agent_type = agent_d["agent_name"]
@@ -71,14 +99,14 @@ class Dispatcher(Actor):
                 agents.append((agent_type, 1))
 
         
+
         
         if "properties" in configuration.keys():
-            
             message = Message()
             message.set_directive("simulation_properties")
             payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
             payload["simulation_id"] = configuration["id"]
-            
+            payload["simulation_run_id"] = configuration["simulation_run_id"]
             
             if run_number is not None:
                 payload["run_number"] = run_number
@@ -304,24 +332,25 @@ class Dispatcher(Actor):
     # #             self.run_simulation(simulation)
 
     def begin_simulations(self):
-        try:
-            self.log_actor = self.createActor(LogActor, globalName="log_actor")
-        except Exception as e:
-            self.log_actor = self.createActor("LogActor", globalName="log_actor")
+        # move log construction to attach to environment...
+        # try:
+        #     self.log_actor = self.createActor(LogActor, globalName="log_actor")
+        # except Exception as e:
+        #     self.log_actor = self.createActor("LogActor", globalName="log_actor")
         
-        log_basis = {}
-        log_basis["message_type"] = "setup"
-        print("CONFIGURATIONS PENDING")
-        print(self.configurations_pending)
+        # log_basis = {}
+        # log_basis["message_type"] = "setup"
+        # print("CONFIGURATIONS PENDING")
+        # print(self.configurations_pending)
         target_configuration = None
         try:
             target_configuration = self.configurations_pending[0]
         except Exception as e:
             target_configuration = self.configurations_pending
         
-        log_basis["simulation_id"] = target_configuration["id"]
-        log_basis["mes_directory"] = target_configuration["mes_directory"]
-        self.send(self.log_actor, log_basis)        
+        # log_basis["simulation_id"] = target_configuration["id"]
+        # log_basis["mes_directory"] = target_configuration["mes_directory"]
+        # self.send(self.log_actor, log_basis)        
 
 
 

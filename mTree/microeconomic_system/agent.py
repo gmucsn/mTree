@@ -4,6 +4,7 @@ import numpy as np
 from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 #from socketIO_client import SocketIO, LoggingNamespace
@@ -13,30 +14,19 @@ import json
 from datetime import datetime, timedelta
 import time
 
-EXPERIMENT = 25
-
 
 @directive_enabled_class
 class Agent(Actor):
     environment = None
 
-    #def mTree_logger(self):
-    #    return logging.getLogger("mTree")
+    def log_message(self, logline):
+        log_message = LogMessage(message_type="log", content=logline)
+        self.send(self.log_actor, log_message)
 
-    def experiment_log(self, log_message):
-        self.mTree_logger().log(25, log_message)
-
-    def log_message(self, data):
-        d2 = datetime.now()
-        unixtime2 = time.time()
-        self.log_actor = self.createActor(LogActor, globalName="log_actor")
-        self.send(self.log_actor, str(unixtime2) + data)
-
-
-    def record_data(self, data):
-        self.log_actor = self.createActor(LogActor, globalName="log_actor")
-        self.send(self.log_actor, data)
-
+    def log_data(self, logline):
+        log_message = LogMessage(message_type="data", content=logline)
+        self.send(self.log_actor, log_message)
+        
     def __str__(self):
         return "<Agent: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
 
@@ -78,13 +68,9 @@ class Agent(Actor):
         new_message.set_payload({"agent_memory": self.agent_memory})
         self.send(self.dispatcher, new_message)
 
-
-    def log_experiment_data(self, data):
-        self.log_actor = self.createActor(LogActor, globalName="log_actor")
-        self.send(self.log_actor, data)
-
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
+        self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
         # if "agent_memory" not in dir(self):
