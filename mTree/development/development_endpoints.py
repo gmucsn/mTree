@@ -122,6 +122,38 @@ def mes_component_view():
                            title=title)
 
 
+@development_area.route('/mes_results')
+def mes_results():
+    mes_directory = request.args.get('mes_directory')
+    title = mes_directory + " - Results"
+    log_dir = os.path.join(os.getcwd(), mes_directory, "logs")
+    results_files = []
+    for result_file in os.listdir(log_dir): 
+        if result_file.endswith(".log") or result_file.endswith(".data"): 
+            results_files.append(result_file)
+    return render_template('mes_results.html',  results_files=results_files, mes_directory=mes_directory, title=title) 
+
+@development_area.route('/mes_results_view')
+def mes_results_view():
+    mes_directory = request.args.get('mes_directory')
+    results_file = request.args.get('results_file')
+    title = mes_directory + " - " + results_file + " - Results"
+    data_file = os.path.join(mes_directory, "logs", results_file)
+    raw_file_content = ""
+    file_content = []
+    with open(data_file) as f:
+        raw_file_content = f.read()
+    for line in raw_file_content.split("\n"):
+        try:
+            file_content.append((line.split("\t")[0], line.split("\t")[1]))
+        except:
+            pass
+    return render_template('mes_results_viewer.html',  results_file=results_file, mes_directory=mes_directory, title=title, file_content=file_content) 
+
+
+mes_results_view
+
+
 # this endpoint should probably be switched to websockets...
 @development_area.route('/mes_run_simulation')
 def mes_run_simulation():

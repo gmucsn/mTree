@@ -20,12 +20,23 @@
 {% block content %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
             <div class="col-sm">
-                  <h1>Configurations</h1>
-                  <div class="list-group">
-                    {% for simulation in simulations %}
-                    <a href="/mes_configuration_view?mes_directory={{mes_directory}}&configuration={{simulation.source}}" class="list-group-item list-group-item-action">{{simulation.name}}({{simulation.source}})</a>
+                  <h1>Results</h1>
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th scope="col">Timestamp</th>
+                        <th scope="col">Message</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {% for timestamp, content in file_content %}
+                    <tr>
+                    <td>{{timestamp}}</td>
+                    <td>{{content}}</td>
+                    </tr>
                     {% endfor %}
-                    </div>
+                      </tbody>
+                    </table>
                 </div>
 
         </div>

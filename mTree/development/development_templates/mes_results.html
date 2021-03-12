@@ -20,10 +20,10 @@
 {% block content %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
             <div class="col-sm">
-                  <h1>Configurations</h1>
+                  <h1>Results</h1>
                   <div class="list-group">
-                    {% for simulation in simulations %}
-                    <a href="/mes_configuration_view?mes_directory={{mes_directory}}&configuration={{simulation.source}}" class="list-group-item list-group-item-action">{{simulation.name}}({{simulation.source}})</a>
+                    {% for result_file in results_files %}
+                    <a href="/mes_results_view?mes_directory={{mes_directory}}&results_file={{result_file}}" class="list-group-item list-group-item-action">{{result_file}}</a>
                     {% endfor %}
                     </div>
                 </div>
