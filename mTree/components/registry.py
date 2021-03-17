@@ -124,9 +124,11 @@ class Registry:
         directives = Registry.instance.class_list[mes_class]["class"]._enabled_directives.keys()
         for directive in directives:
             schema = None
+            docString = None
+            docString = Registry.instance.class_list[mes_class]["class"]._enabled_directives[directive].__doc__
             if directive in Registry.instance.class_list[mes_class]["class"]._enabled_directives_schemas.keys():
                 schema =  Registry.instance.class_list[mes_class]["class"]._enabled_directives_schemas[directive]
-            directives_schemas.append((directive, schema))
+            directives_schemas.append((directive, schema, docString))
         return directives_schemas
 
     def get_mes_component_properties(self, mes_class):
