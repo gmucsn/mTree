@@ -112,7 +112,7 @@ class ActorSystemStartup:
         
     def startup(self):
         capabilities = dict([('Admin Port', 19000)])
-
+        print("Startup of source authority...")
         self.sa = ActorSystem('multiprocTCPBase', capabilities).createActor(SimpleSourceAuthority)
         self.actor_system.tell(self.sa, True)
         #self.load_base_mes()

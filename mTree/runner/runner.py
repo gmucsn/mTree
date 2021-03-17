@@ -14,6 +14,8 @@ from mTree.microeconomic_system.container import Container
 from mTree.microeconomic_system.simulation_container import SimulationContainer
 from thespian.actors import *
 from mTree.components import registry
+from mTree.server.actor_system_connector import ActorSystemConnector
+from mTree.simulation.mes_simulation_library import MESSimulationLibrary
 
 from cmd import Cmd
 
@@ -71,16 +73,19 @@ class MTreePrompt(Cmd):
 
 class Runner():
     def __init__(self, config_file, multi_simulation=False):
-        self.component_registry = registry.Registry()
-        self.container = None
-        self.component_registry.register_server(self)
-        self.multi_simulation = multi_simulation
-        self.container = None
-        if self.multi_simulation is not True:
-            self.configuration = self.load_mtree_config(config_file)
-        else:
-            self.configuration = self.load_multiple_mtree_config(config_file)
+        # self.component_registry = registry.Registry()
+        # self.container = None
+        # self.component_registry.register_server(self)
+        # self.multi_simulation = multi_simulation
+        # self.container = None
+        self.configuration = config_file
+        # if self.multi_simulation is not True:
+        #     self.configuration = self.load_mtree_config(config_file)
+        # else:
+        #     self.configuration = self.load_multiple_mtree_config(config_file)
         print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
+        self.actor_system = ActorSystemConnector()
+
 
 
     def load_mtree_config(self, config_file):
@@ -208,11 +213,27 @@ class Runner():
         #spec.loader.exec_module(test)
 
     def run_simulation(self):
-        self.examine_directory()
-        if self.multi_simulation is False:
-            self.launch_multi_simulations()
-        else:
-            self.launch_multi_simulations()
+        working_dir = os.getcwd()
+        #actor_system.send_message()
+        print(self.configuration)
+        print("ABOUT TO TRY TO RUN")
+        print(working_dir)
+        simulation_library = MESSimulationLibrary()
+        simulation_library.list_simulation_files_directory(working_dir)
+        
+        simulation = simulation_library.get_simulation_by_filename(os.path.basename(self.configuration))
+        print(simulation)
+        actor_system = ActorSystemConnector()
+        working_dir = os.getcwd()
+        #actor_system.send_message()
+        print(working_dir)
+        actor_system.run_simulation(working_dir, simulation["description"].to_hash())
+
+        # self.examine_directory()
+        # if self.multi_simulation is False:
+        #     self.launch_multi_simulations()
+        # else:
+        #     self.launch_multi_simulations()
 
 
     def runner(self):
