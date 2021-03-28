@@ -16,29 +16,50 @@ import sys
 # For illustrative purposes.
 import tokenize
 
+import logging
+import pythonjsonlogger
+
+import sys
+from datetime import timedelta
+import os
+import glob
+import time
+import traceback
+from threading import Thread 
+from mTree.server.actor_system_startup import ActorSystemStartup
+
+import signal
+from mTree.components import *
 
 
-#import signal
-#from blessed import Terminal
-
-#term = Terminal()
-
-#def on_resize(sig, action):
-#    print(f'height={term.height}, width={term.width}')
+import atexit
+from thespian.actors import *
 
 
+@atexit.register
+def goodbye():
+    ActorSystem('multiprocQueueBase').shutdown()
+    time.sleep(2)
 
 
-#signal.signal(signal.SIGWINCH, on_resize)
+def exit_gracefully(signum, frame):
+    # restore the original signal handler as otherwise evil things will happen
+    # in raw_input when CTRL+C is pressed, and our signal handler is not re-entrant
+    signal.signal(signal.SIGINT, original_sigint)
+    ActorSystem('multiprocQueueBase').shutdown()
+    try:
+        if raw_input("\nReally quit? (y/n)> ").lower().startswith('y'):
+            sys.exit(1)
 
-# wait for keypress
-#term.inkey()
+    except KeyboardInterrupt:
+        print("Ok ok, quitting")
+        sys.exit(1)
 
+    # restore the exit gracefully handler here    
+    signal.signal(signal.SIGINT, exit_gracefully)
 
-
-
-
-
+original_sigint = signal.getsignal(signal.SIGINT)
+signal.signal(signal.SIGINT, exit_gracefully)
 
 ascii_banner = pyfiglet.figlet_format("mTree - Control")
 print(ascii_banner)
@@ -125,57 +146,24 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 #SCRIPT_DIR = "/repos/mTree_dev_folder"
 plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
-print("PLUGINS DIRECTORY")
-print(plugins_directory_path)
-print(os.getcwd())
 #plugins = import_plugins(plugins_directory_path, base_class=Agent)
 plugins = import_plugins(os.path.join(os.getcwd(), 'mes'), base_class=Agent)
 print("\t --> ", plugins)
 
-file_path = "/repos/mTree_dev_folder/components/basic_agent.py"
-module_name = "mTree.components"
-print("aslkfj")
-print(file_path)
-print(module_name)
-
-
-####
-#spec = importlib.util.spec_from_file_location(module_name, file_path)
-#module = importlib.util.module_from_spec(spec)
-#spec.loader.exec_module(module)
-# Optional; only necessary if you want to be able to import the module
-# by name later.
-#sys.modules[module_name] = module
-
-print("module list")
-#print(sys.modules)
-
-from mTree.components import *
-#t = BasicAgent()
-
-#importlib.import_module(".components.base_agent", package='packageser')
-
-#import_plugins("/repos/mTree_dev_folder/components")
-
-#SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-#plugins_directory_path = os.path.join(SCRIPT_DIR, 'plugins')
 plugins = import_plugins(plugins_directory_path, base_class=Agent)
 print("\t 2 - --> ", plugins)
 
-#for plugin in plugins:
-#    plugin.foo()
+
+#def start_thespian():
+#    actor_system = ActorSystemStartup()
+#    #actor_system = ActorSystem('multiprocQueueBase',logDefs=logcfg)
+
+#thread = Thread(target=start_thespian)
+#thread.start()
+
 
 
 print("mTree is launching")
 server = Server()
-#mtree_controller = MTreeController()
-#mtree_controller.run()
-
-
-
-#server.attach_experiment(InformationCascades)
 server.run_server()
 server.register_blueprint(admin_area)
-#server.list_rules()
-#server.run()
-print("thinking")

@@ -7,24 +7,85 @@ import glob
 
 import importlib.util
 import sys
+import time
 
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.container import Container
 from mTree.microeconomic_system.simulation_container import SimulationContainer
-
+from thespian.actors import *
 from mTree.components import registry
+from mTree.server.actor_system_connector import ActorSystemConnector
+from mTree.simulation.mes_simulation_library import MESSimulationLibrary
+
+from cmd import Cmd
+
+import atexit
+from thespian.actors import *
+
+@atexit.register
+def goodbye():
+    capabilities = dict([('Admin Port', 19000)])
+    actors = ActorSystem('multiprocTCPBase', capabilities)
+    actors.shutdown()
+    time.sleep(2)
+    print("You are now leaving mTree Runner.")
+
+class MTreePrompt(Cmd):
+    def __init__(self, runner):
+        self.runner = runner
+        Cmd.__init__(self)
+        
+    def emptyline(self): pass  # do nothing
+
+    def do_run_simulation(self, args):
+        """Runs the loaded simulation."""
+        self.runner.run_simulation()
+
+    def do_force_shutdown(self, args):
+        """Forces an exit on all MES components"""
+        print("Forcing system shutdown")
+        capabilities = dict([('Admin Port', 19000)])
+        actors = ActorSystem('multiprocTCPBase', capabilities)
+        actors.shutdown()
+
+
+
+    def do_hello(self, args):
+        """Says hello. If you provide a name, it will greet you with it."""
+        if len(args) == 0:
+            name = 'stranger'
+        else:
+            name = args
+        print( "Hello, %s" % name)
+
+    
+
+
+    def do_quit(self, args):
+        """Quits the program."""
+        self.runner.shutdown()
+        print("Quitting.")  
+        
+        raise SystemExit
+
+
 
 
 class Runner():
     def __init__(self, config_file, multi_simulation=False):
-        self.component_registry = registry.Registry()
-        self.component_registry.register_server(self)
-        self.multi_simulation = multi_simulation
-        if self.multi_simulation is not True:
-            self.configuration = self.load_mtree_config(config_file)
-        else:
-            self.configuration = self.load_multiple_mtree_config(config_file)
+        # self.component_registry = registry.Registry()
+        # self.container = None
+        # self.component_registry.register_server(self)
+        # self.multi_simulation = multi_simulation
+        # self.container = None
+        self.configuration = config_file
+        # if self.multi_simulation is not True:
+        #     self.configuration = self.load_mtree_config(config_file)
+        # else:
+        #     self.configuration = self.load_multiple_mtree_config(config_file)
         print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
+        self.actor_system = ActorSystemConnector()
+
 
 
     def load_mtree_config(self, config_file):
@@ -76,12 +137,8 @@ class Runner():
         modules_imported = []
         module_names = []
         for filename in glob.iglob('./mes/*.py', recursive=True):
-
-
             import_name = os.path.splitext(os.path.basename(filename))[0]
-
             module_name = "mes." + import_name.partition('.')[0]
-
             import importlib.util
 
 
@@ -155,20 +212,54 @@ class Runner():
         # print(test)
         #spec.loader.exec_module(test)
 
-    def runner(self):
-        self.examine_directory()
-        if self.multi_simulation is False:
-            self.launch_multi_simulations()
-        else:
-            self.launch_multi_simulations()
+    def run_simulation(self):
+        working_dir = os.getcwd()
+        #actor_system.send_message()
+        print(self.configuration)
+        print("ABOUT TO TRY TO RUN")
+        print(working_dir)
+        simulation_library = MESSimulationLibrary()
+        simulation_library.list_simulation_files_directory(working_dir)
+        
+        simulation = simulation_library.get_simulation_by_filename(os.path.basename(self.configuration))
+        print(simulation)
+        actor_system = ActorSystemConnector()
+        working_dir = os.getcwd()
+        #actor_system.send_message()
+        print(working_dir)
+        actor_system.run_simulation(working_dir, simulation["description"].to_hash())
 
+        # self.examine_directory()
+        # if self.multi_simulation is False:
+        #     self.launch_multi_simulations()
+        # else:
+        #     self.launch_multi_simulations()
+
+
+    def runner(self):
+        prompt = MTreePrompt(self)
+        prompt.prompt = 'mTree> '
+        prompt.cmdloop('Starting prompt...')
+
+        #self.examine_directory()
+        #if self.multi_simulation is False:
+        #    self.launch_multi_simulations()
+        #else:
+        #    self.launch_multi_simulations()
+
+    def shutdown(self):
+        if self.container is not None:
+            self.container.shutdown_thespian()
 
     def launch_multi_simulations(self):
-        container = SimulationContainer()
-        container.create_dispatcher()
-        container.send_dispatcher_simulation_configurations(self.configuration)
+        if self.container is None:
+            self.container = SimulationContainer()
+        self.container.create_dispatcher()
+        self.container.send_dispatcher_simulation_configurations(self.configuration)
 
     def launch_simulation(self):
+        """ DEPRECATED """
+        
         component_registry = registry.Registry()
 
         environment = component_registry.get_component_class(self.configuration["environment"])

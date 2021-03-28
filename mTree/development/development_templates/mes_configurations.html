@@ -1,0 +1,32 @@
+{% extends 'index.html' %}
+
+{% block mesnav %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ title }}</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group">
+                <a href="/mes_overview?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">MES Overview</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Component View</a>
+                <a href="/mes_configurations?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Configurations</a>
+                <a href="/mes_results?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Results Browser</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Simulation Runner</a>
+          </div>
+        </div>
+      </div>
+{% endblock %}
+
+
+
+{% block content %}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="col-sm">
+                  <h1>Configurations</h1>
+                  <div class="list-group">
+                    {% for simulation in simulations %}
+                    <a href="/mes_configuration_view?mes_directory={{mes_directory}}&configuration={{simulation.source}}" class="list-group-item list-group-item-action">{{simulation.name}}({{simulation.source}})</a>
+                    {% endfor %}
+                    </div>
+                </div>
+
+        </div>
+{% endblock %}

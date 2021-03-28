@@ -1,0 +1,98 @@
+{% extends 'index.html' %}
+
+{% block mesnav %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ title }}</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group">
+                <a href="/mes_overview?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">MES Overview</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Component View</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Configurations</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Results Browser</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Simulation Runner</a>
+          </div>
+        </div>
+      </div>
+{% endblock %}
+
+
+{% block content %}
+<style type="text/css" media="screen">
+
+#parent {
+    width: 900px;
+    height: 450px;
+    position: relative;
+    background-color: red;
+}
+#editor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+</style>
+
+  <div class="row placeholders">
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" id="basic-info-tab" data-toggle="tab" href="#basic-info" role="tab" aria-controls="basic-info" aria-selected="true">Basic Info</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="code-tab" data-toggle="tab" href="#code" role="tab" aria-controls="code" aria-selected="false">Code</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="contact-tab" data-toggle="tab" href="#test_component" role="tab" aria-controls="test_component" aria-selected="false">Test</a>
+  </li>
+</ul>
+  </div>
+<div class="row">
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="basic-info" role="tabpanel" aria-labelledby="basic-info-tab">
+      <div class="card" style="width: 18rem;">
+  <div class="card-header">
+    Directives
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for detail in component_details %}
+      <li class="list-group-item">{{ detail }}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="card-header">
+    Properties
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for property in property_list %}
+      <li class="list-group-item">{{ property }}</li>
+    {% endfor %}
+  </ul>
+</div>
+
+
+  </div>
+  <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
+      <div id="parent">
+          <div id="editor">{{ component_source }}</div>
+      </div>
+
+  </div>
+  <div class="tab-pane fade" id="test_component" role="tabpanel" aria-labelledby="test_component-tab">
+    
+
+  </div>
+</div>
+
+
+          </div>
+
+
+
+
+<script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/python");
+</script>
+{% endblock %}
