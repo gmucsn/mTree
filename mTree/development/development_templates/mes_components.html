@@ -1,0 +1,102 @@
+{% extends 'index.html' %}
+
+
+{% block mesnav %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ title }}</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group">
+                <a href="/mes_overview?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">MES Overview</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Component View</a>
+                <a href="/mes_configurations?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Configurations</a>
+                <a href="/mes_results?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Results Browser</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Simulation Runner</a>
+          </div>
+        </div>
+      </div>
+{% endblock %}
+
+
+{% block content %}
+
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+<div class="row placeholders">
+
+
+              {% if registry %}
+
+
+                <div class="col-sm">
+                  <h1>Agents</h1>
+                    {% for item in registry.agent_list() %}
+                  <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ item }}</h5>
+                      <p class="card-text">
+                        <ul>
+                        {% for detail in registry.get_mes_component_details(item) %}
+                          <li>{{ detail[0] }}</li>
+                          {% endfor %}
+                        </ul>
+                      </p>
+                    </div>
+                    <div class="card-body">
+                      <a href="mes_component_view?mes_directory={{mes_directory}}&component_type=agent&component_name={{ item }}" class="card-link" id="agent-{{ item }}">View Details</a>
+                    </div>
+                  </div>
+
+
+                    {% endfor %}
+                </div>
+                <div class="col-sm">
+                  <h1>Institutions</h1>
+                    {% for item in registry.institution_list() %}
+                  <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ item }}</h5>
+                      <p class="card-text">
+                        <ul>
+                        {% for detail in registry.get_mes_component_details(item) %}
+                          <li>{{ detail[0] }}</li>
+                          {% endfor %}
+                        </ul>
+                      </p>
+                    </div>
+                    <div class="card-body">
+                      <a href="mes_component_view?mes_directory={{mes_directory}}&component_type=institution&component_name={{ item }}" class="card-link" id="institution-{{ item }}">View Details</a>
+                    </div>
+                  </div>
+
+                {% endfor %}
+
+                </div>
+                <div class="col-sm">
+                  <h1>Environments</h1>
+                    {% for item in registry.environment_list() %}
+              <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ item }}</h5>
+                      <p class="card-text">
+                        <ul>
+                        {% for detail in registry.get_mes_component_details(item) %}
+                          <li>{{ detail[0] }}</li>
+                          {% endfor %}
+                        </ul>
+                      </p>
+                    </div>
+                    <div class="card-body">
+                      <a href="mes_component_view?mes_directory={{mes_directory}}&component_type=environment&component_name={{ item }}" class="card-link" id="environment-{{ item }}">View Details</a>
+                    </div>
+                  </div>
+
+
+                    {% endfor %}
+
+                </div>
+              {% endif %}
+
+            </div>
+
+          </div>
+    </div>
+{% endblock %}

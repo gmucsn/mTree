@@ -1,0 +1,75 @@
+{% extends 'index.html' %}
+
+{% block mesnav %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ title }}</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group">
+                <a href="/mes_overview?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">MES Overview</a>
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Component View</a>
+                <a href="/mes_configurations?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Configurations</a>
+                <a href="/mes_results?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Results Browser</a>                
+                <a href="/mes_components?mes_directory={{mes_directory}}" class="btn btn-outline-primary" role="button">Simulation Runner</a>
+          </div>
+        </div>
+      </div>
+{% endblock %}
+
+
+
+{% block content %}
+<style type="text/css" media="screen">
+
+#parent {
+    width: 900px;
+    height: 450px;
+    position: relative;
+    background-color: red;
+}
+#editor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+</style>
+
+
+<div class="row">
+    <dl class="row">
+  <dt class="col-sm-3">Simulation Name</dt>
+  <dd class="col-sm-9">{{ simulation.name }}</dd>
+
+        <dt class="col-sm-3">Simulation ID</dt>
+  <dd class="col-sm-9">{{ simulation.description.id }}</dd>
+
+        <dt class="col-sm-3">Simulation Description</dt>
+  <dd class="col-sm-9">{{ simulation.description.description }}</dd>
+
+        <dt class="col-sm-3">Environment</dt>
+  <dd class="col-sm-9">{{ simulation.description.environment }}</dd>
+
+        <dt class="col-sm-3">Institution</dt>
+  <dd class="col-sm-9">{{ simulation.description.institution }}</dd>
+
+      <dt class="col-sm-3">Agents</dt>
+  <dd class="col-sm-9">
+    {% for agent in simulation.description.agents %}
+    <dl class="row">
+      <dt class="col-sm-4">Agent Type</dt>
+      <dd class="col-sm-8">{{agent.agent_name }}</dd>
+    </dl>
+    <dl class="row">
+      <dt class="col-sm-4">Agent Number</dt>
+      <dd class="col-sm-8">{{agent.number }}</dd>
+    </dl>
+    {% endfor %}
+  </dd>
+</dl>
+</div>
+
+<div class="row">
+  <a href="/mes_run_simulation?mes_directory={{mes_directory}}&configuration={{configuration}}" class="btn btn-success" role="button">Run Simulation</a>
+</div>
+{% endblock %}

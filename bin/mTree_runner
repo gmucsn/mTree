@@ -15,6 +15,12 @@ ascii_banner = pyfiglet.figlet_format("mTree")
 print(ascii_banner)
 
 from mTree.runner.runner import Runner
+import time
+import sys
+from subprocess import Popen, PIPE
+import subprocess
+
+
 
 def main(argv):
    inputfile = ''
@@ -35,6 +41,19 @@ def main(argv):
          list_simulation = True
          inputfile = arg
 
+
+   os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
+   os.environ['THESPLOG_THRESHOLD'] =  "INFO"
+
+   print("mTree - Background starting up...")
+   background_actor_py = os.path.join(os.path.dirname(os.path.abspath(__file__)),  "..", "mTree", "server", "background_actor_system.py")
+   
+   #with open(os.devnull, 'w') as DEVNULL:
+   import subprocess
+   # creationflags=subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.HIGH_PRIORITY_CLASS
+   process = Popen([sys.executable, background_actor_py]) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
+   #process = subprocess.run([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
+   print("Background should have started....")
 
    print("mTree Runner")
 

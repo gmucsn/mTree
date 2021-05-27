@@ -1,13 +1,13 @@
 #! /usr/bin/python
 
-from mTree.development.development_server import DevelopmentServer, MTreeController
+from mTree.development.development_server import DevelopmentServer#, MTreeController
 from mTree.server.admin import admin_area
 from mTree.microeconomic_system.agent import Agent
 import pyfiglet
 
 
 import importlib
-import inspectf
+#import inspectf
 import os
 import glob
 
@@ -19,6 +19,18 @@ import tokenize
 
 ascii_banner = pyfiglet.figlet_format("mTree - Developer")
 print(ascii_banner)
+
+
+
+
+import atexit
+
+# @atexit.register
+# def goodbye():
+#     actor_system = ActorSystemStartup()
+#     actor_system.shutdown()
+#     print("mTree finished shutting down")
+    
 
 
 
@@ -72,6 +84,11 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
             yield value() if create_instance else value
     '''
 
+#os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
+#os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "THESPIAN_OUT.LOG")
+#os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
+
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 #SCRIPT_DIR = "/repos/mTree_dev_folder"
 plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
@@ -106,15 +123,49 @@ plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
 #    plugin.foo()
 
 
-print("mTree is launching")
-server = DevelopmentServer()
+
 #mtree_controller = MTreeController()
 #mtree_controller.run()
 
 
 
 #server.attach_experiment(InformationCascades)
-server.run_server()
+
 #server.register_blueprint(admin_area)
 #server.list_rules()
 #server.run()
+
+
+# load browser...
+import random, threading, webbrowser
+
+port = 5000
+url = "http://127.0.0.1:{0}".format(port)
+
+threading.Timer(2, lambda: webbrowser.open(url) ).start()
+from mTree.server.actor_system_startup import ActorSystemStartup
+
+# from threading import Thread 
+# def start_thespian():
+#     print("STARTING THESPIAN")
+#     #actor_system = ActorSystemStartup()
+#     actor_system = ActorSystem('multiprocQueueBase') #,logDefs=logcfg)
+# thread = Thread(target=start_thespian)
+# thread.start()
+
+
+#actor_system = ActorSystem('multiprocTCPBase')
+
+print("mTree - Background starting up...")
+import sys
+from subprocess import Popen, PIPE
+background_actor_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "mTree", "server", "background_actor_system.py")
+        
+process = Popen([sys.executable, background_actor_py]) #, stdout=PIPE, stderr=PIPE)
+#stdout, stderr = process.communicate()
+#print(stdout)
+
+
+print("mTree is launching")
+server = DevelopmentServer()
+server.run_server()
