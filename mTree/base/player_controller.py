@@ -5,7 +5,10 @@ class PlayerController:  # was originally the SubjectController()
         self.user = self.player.user
         self.user_id = self.user.user_id
         self.experiment = self.player.experiment
-        self.session = self.player.institution.environment.period.session  # TODO(@messiest) Do this in a less hacky way
+        try:
+            self.session = self.player.institution.environment.period.session  # TODO(@messiest) Do this in a less hacky way
+        except:
+            pass
         self.recorder = self.experiment.recorder
         self.outlets = {}
         self.action_list = {}
@@ -20,7 +23,10 @@ class PlayerController:  # was originally the SubjectController()
         # self.register_outlet("total_periods", "total_periods")  # this should be moved to be a "user" screen
 
         self.page_title = title
-        self.total_periods = self.session.total_periods
+        try:
+            self.total_periods = self.session.total_periods
+        except:
+            self.total_periods = 1
 
         if data:
             print("Data: {}".format(data))

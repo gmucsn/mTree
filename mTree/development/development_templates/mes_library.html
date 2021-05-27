@@ -1,0 +1,31 @@
+{% extends 'index.html' %}
+
+
+{% block mesnav %}
+ <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">MES Library</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+          </div>
+        </div>
+      </div>
+{% endblock %}
+
+
+{% block content %}
+
+
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="col-sm">
+                  <h1>MES Directories</h1>
+                  <div class="list-group">
+                    {% for folder in mes_folders %}
+                    <a href="/mes_overview?mes_directory={{folder.name}}" class="list-group-item list-group-item-action">{{folder.name}}</a>
+                  
+
+                    {% endfor %}
+                    </div>
+                </div>
+
+        </div>
+{% endblock %}

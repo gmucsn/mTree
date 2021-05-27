@@ -1,6 +1,8 @@
 import eventlet
 eventlet.monkey_patch()
 
+import atexit
+
 from flask import Flask, render_template, render_template_string, session, request, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
 import flask
@@ -31,7 +33,8 @@ class Server(object):
     app = None
 
     def __init__(self):
-        #  print("initializing " * 20)
+        atexit.register(self.server_cleanup)
+
         self.async_mode = 'eventlet' # None
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
@@ -53,6 +56,10 @@ class Server(object):
         self.scheduler.start()
         #self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
 
+
+
+    def server_cleanup(self):
+        print("EXPERIMENT SHUTTING DOWN")
 
 
     def my_listener(self, event):
@@ -144,6 +151,37 @@ class Server(object):
 
             join_room(message['room'])
 
+        @self.socketio.on('connect', namespace='/agent')
+        def agent_connect():
+            # need to send user id information
+            #subject_id = request.args.get('subject_id')
+
+            print("AGENT IS at " + request.sid)
+            print("\nCONNECTED\nAgent: {}\n\n".format("askjhlkjh"))
+
+#            self.experiment.user_objects[
+#                user_id].display_welcome_screen()  # display the welcome screen to the connected user
+
+#            self.experiment.check_experiment_state_to_run(user_id)  # Auto start when subjects connect
+            return "test"
+
+        @self.socketio.on('disconnect', namespace='/agent')
+        def agent_disconnect():
+            print('Agent disconnected')
+
+        @self.socketio.on('register_subject_id', namespace='/agent')
+        def register_subject_id(subject_id):
+            join_room(request.sid)
+            self.experiment.agent_map[request.sid] = subject_id
+
+
+        @self.socketio.on('message_to_player', namespace='/agent')
+        def message_to_player(message):
+            subject_id = self.experiment.agent_map[request.sid]
+            subject = self.experiment.user_objects[subject_id]
+            subject.controller.receive_agent_message(message)
+
+
         @self.socketio.on('connect', namespace='/subject')
         def subject_connect():
             # need to send user id information
@@ -166,6 +204,8 @@ class Server(object):
         def subject_disconnect():
             print("CLIENT DISCONNECTED")
             self.experiment.remove_user(request.sid)  # TODO(@messiest) Think of a better way to remove users
+
+
 
 if __name__ == '__main__':
     global c_experiment

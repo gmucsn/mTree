@@ -6,6 +6,15 @@ from mTree.microeconomic_system.message import Message
 import sys
 from datetime import timedelta
 
+
+class actorLogFilter(logging.Filter):
+    def filter(self, logrecord):
+        return 'actorAddress' in logrecord.__dict__
+class notActorLogFilter(logging.Filter):
+    def filter(self, logrecord):
+        return 'actorAddress' not in logrecord.__dict__
+
+
 class MultiContainer():
     def __init__(self):
         self.environments = {}
@@ -16,6 +25,25 @@ class MultiContainer():
 
 
     def create_actor_system(self):
+        logcfg = {'version': 1,
+                  'formatters': {
+                      'normal': {'format': '%(levelname)-8s %(message)s'},
+                      'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
+                  'filters': {'isActorLog': {'()': actorLogFilter},
+                              'notActorLog': {'()': notActorLogFilter}},
+                  'handlers': {'h1': {'class': 'logging.FileHandler',
+                                      'filename': 'mtree.log',
+                                      'formatter': 'normal',
+                                      'filters': ['notActorLog'],
+                                      'level': logging.INFO},
+                               'h2': {'class': 'logging.FileHandler',
+                                      'filename': 'mtree.log',
+                                      'formatter': 'actor',
+                                      'filters': ['isActorLog'],
+                                      'level': logging.INFO}, },
+                  'loggers': {'': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
+                  }
+
         self.actor_system = ActorSystem(None, logDefs=logcfg)
 
     def create_environment(self, environment_class, environment_name):

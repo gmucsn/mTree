@@ -1,0 +1,298 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v3.8.5">
+    <title>mTree - </title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.3/examples/dashboard/">
+
+    <!-- Bootstrap core CSS -->
+<link href="https://getbootstrap.com/docs/4.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    <script
+			  src="https://code.jquery.com/jquery-3.4.1.min.js"
+			  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+			  crossorigin="anonymous"></script>
+        <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.4/ace.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+      class MTreeConnection{
+        constructor(){
+          if(! MTreeConnection.instance){
+
+            this.connect();
+
+            this._data = [];
+            MTreeConnection.instance = this;
+          }
+
+          return MTreeConnection.instance;
+
+        }
+
+        connect(){
+          console.log("Setting up WebSocket connection");
+          this.namespace = '/developer';
+          this.user_id = '';
+          this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + this.namespace);
+          
+          // register
+          this.socket.on('connect', () => this.connected);
+          this.socket.on('log_message', (msg) => this.logMessage(msg));
+
+
+
+        }
+
+        logMessage(msg){
+          console.log("LOG MESSAGE RECEIVED");
+          console.log(msg);
+        }
+
+        connected(){
+          console.log("Admin connected...");
+          this.socket.emit('my_event', {data: 'I\'m connected!'});
+          
+        }
+
+        status(){
+          console.log("mTreeConnection object available");
+        }
+
+        send(action, data){
+          this.socket.emit(action, {data: data});
+        }
+
+      }
+
+        $(document).ready(() => {
+
+          const mTreeConnection = new MTreeConnection();
+          mTreeConnection.status();
+
+            // // Use a "/test" namespace.
+            // // An application can open a connection on multiple namespaces, and
+            // // Socket.IO will multiplex all those connections on a single
+            // // physical channel. If you don't care about multiple channels, you
+            // // can set the namespace to an empty string.
+            // namespace = '/developer';
+
+            // user_id = '';
+
+            // // Connect to the Socket.IO server.
+            // // The connection URL has the following format:
+            // //     http[s]://<domain>:<port>[/<namespace>]
+            // var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+            // //var socket = io.connect('https://' + document.domain + namespace);
+
+            // // Event handler for new connections.
+            // // The callback function is invoked when a connection with the
+            // // server is established.
+            // socket.on('connect', function() {
+            //     console.log("Admin connected...");
+            //     socket.emit('my_event', {data: 'I\'m connected!'});
+            // });
+
+            // socket.on('admin_action', function(msg) {
+            //     console.log(msg);
+            //     switch(msg["action"]){
+            //         case "add_user":
+            //           add_user_to_list(msg);
+            //           break;
+            //         case "update_admin_table":
+            //           update_user_list(msg);
+            //           break;
+            //         case "drop_user":
+            //           add_user_to_inactive_list(msg);
+            //           break;
+            //       };
+            // });
+
+            // socket.on('willow_action', function(msg) {
+            //   console.log("DOING SOMETIHG");
+            //   console.log(msg);
+            //   }
+            //   );
+
+
+            // function add_user_to_list(msg){
+            //     console.log("Appending another row");
+            //     new_user_record = $('<tr>').attr("id",msg["data"]["user_id"]).append(
+            //       $('<td>').attr("id","user_id").text(msg["data"]["user_id"]),
+            //       $('<td>').attr("id","current").text(msg["data"]["current"]),
+            //       $('<td>').attr("id","join_time").text(msg["data"]["join_time"]),
+            //       $('<td>').attr("id","last_contact").text("-"),
+            //       $('<td>').attr("id","total_earnings").text("-"));
+            //     console.log(new_user_record);
+
+            //     $("#active_users > tbody:last").append(new_user_record);
+
+            // }
+
+            // function update_user_list(msg){
+            //     $("#" + msg["data"]["user_id"]).find("#total_earnings").html(msg["data"]["total_earnings"]);
+            //     $("#" + msg["data"]["current"]).find("#last_contact").html(msg["data"]["current"]);
+            //     $("#" + msg["data"]["last_contact"]).find("#last_contact").html(msg["data"]["last_contact"]);
+
+            // }
+
+
+            // function add_user_to_inactive_list(msg){
+            //     console.log("Appending another row");
+            //     inactive_user_record = $('<tr>').attr("id",msg["data"]["user_id"]).append(
+            //       $('<td>').attr("id","user_id").text(msg["data"]["user_id"]),
+            //       $('<td>').attr("id","current").text(msg["data"]["current"]),
+            //       $('<td>').attr("id","join_time").text(msg["data"]["join_time"]),
+            //       $('<td>').attr("id","last_contact").text(msg["data"]["last_contact"]),
+            //       $('<td>').attr("id","total_earnings").text("-"));
+            //     console.log(inactive_user_record);
+            //     $("#active_users").find("#" + msg["data"]["user_id"]).remove();
+
+            //     $("#inactive_users > tbody:last").append(inactive_user_record);
+
+            // }
+
+            // function update_inactive_user_list(msg){
+            //     $("#" + msg["data"]["user_id"]).find("#total_earnings").html(msg["data"]["total_earnings"]);
+            //     $("#" + msg["data"]["user_id"]).find("#last_contact").html(msg["data"]["last_contact"]);
+
+            // }
+
+
+
+            // // Interval function that tests message latency by sending a "ping"
+            // // message. The server then responds with a "pong" message and the
+            // // round trip time is measured.
+            // var ping_pong_times = [];
+            // var start_time;
+
+            // // Handler for the "pong" message. When the pong is received, the
+            // // time from the ping is stored, and the average of the last 30
+            // // samples is average and displayed.
+
+
+            // // Handlers for the different forms in the page.
+            // // These accept data from the user and send it to the server in a
+            // // variety of ways
+            // $('form#emit').submit(function(event) {
+            //     socket.emit('my_event', {data: $('#emit_data').val()});
+            //     return false;
+            // });
+            // $('form#broadcast').submit(function(event) {
+            //     socket.emit('my_broadcast_event', {data: $('#broadcast_data').val()});
+            //     return false;
+            // });
+            // $('form#join').submit(function(event) {
+            //     socket.emit('join', {room: $('#join_room').val()});
+            //     return false;
+            // });
+            // $('form#leave').submit(function(event) {
+            //     socket.emit('leave', {room: $('#leave_room').val()});
+            //     return false;
+            // });
+            // $('form#send_room').submit(function(event) {
+            //     socket.emit('my_room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
+            //     return false;
+            // });
+            // $('#run-simulation').click((event) => {
+            //     console.log("STUFF HAPPENING");
+
+            //     socket.emit('run_simulation', {});
+            //     return false;
+            // });
+            // $('form#disconnect').submit(function(event) {
+            //     socket.emit('disconnect_request');
+            //     new_user_record = $('<tr>').attr("id",msg["data"]["user_id"]).append(
+            //       $('<td>').attr("id","user_id").text(msg["data"]["user_id"]),
+            //       $('<td>').attr("id","join_time").text(msg["data"]["join_time"]),
+            //       $('<td>').attr("id","last_contact").text("-"),
+            //       $('<td>').attr("id","total_earnings").text("-"));
+            //     console.log(new_user_record);
+
+            //     $("#active_users > tbody:last").append(new_user_record);
+            //     return false;
+            // });
+
+            // $('button').click(function(){
+            //         var button_pressed = this.id;
+            //         message = {};
+            //         switch(button_pressed){
+            //         case "start_experiment":
+            //             message['control'] = "START";
+            //             break;
+            //         case "pause_experiment":
+            //             message['control'] = "PAUSE";
+            //             break;
+            //         case "stop_experiment":
+            //             message['control'] = "STOP";
+            //             break;
+            //         }
+            //         socket.emit('admin_control', message);
+
+            //     }
+            // );
+
+        });
+    </script>
+    <!-- Custom styles for this template -->
+    <link href="https://getbootstrap.com/docs/4.3/examples/dashboard/dashboard.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">mTree Developer Server</a>
+
+</nav>
+
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+      <div class="sidebar-sticky">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="/">
+              <span data-feather="home"></span>
+              MES Library <span class="sr-only">(current)</span>
+            </a>
+          </li>
+          
+          
+
+        </ul>
+
+
+      </div>
+    </nav>
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+     {% block mesnav %}{% endblock %}
+     
+     {% block content %}
+        
+      {% endblock %}
+    </main>
+  </div>
+</div>
+

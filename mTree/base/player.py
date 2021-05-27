@@ -32,6 +32,9 @@ class Player:
     def add_pay(self, label, amount):  # adds pay to the subject object
         self.subject.add_pay(label, amount)
 
+    def receive_from_agent(self, message):
+        print("RECEIVED A MESSAGE FROM THE AGENT")
+
     def close(self):  # closing the player object
         self.controller.response.delete_content(self.id, self.institution.name)
         self.user.detach_controller()  # does this handle clean up?
