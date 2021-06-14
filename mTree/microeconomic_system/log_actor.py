@@ -43,6 +43,7 @@ class LogActor(Actor):
             return None
 
     def log_data(self, message):
+        
         with open(os.path.join(self.data_target), "a") as file_object:
            file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
 

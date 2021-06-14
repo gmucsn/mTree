@@ -8,6 +8,7 @@ from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.address_book import AddressBook
 import time
 
 import traceback
@@ -18,13 +19,8 @@ import os
 
 @directive_enabled_class
 class Environment(Actor):
-    def __str__(self):
-        return "<Environment: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
-
-    def __repr__(self):
-        return self.__str__()
-
     def __init__(self):
+        self.address_book = AddressBook(self)
         self.log_actor = None
         self.simulation_id = None
         self.run_number = None
@@ -32,6 +28,14 @@ class Environment(Actor):
         self.agents = []
         self.agent_addresses = []
         self.mtree_properties = {}
+
+    def __str__(self):
+        return "<Environment: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
+
+    def __repr__(self):
+        return self.__str__()
+
+    
 
     def close_environment(self):
         #asys.shutdown()
@@ -59,15 +63,13 @@ class Environment(Actor):
     def receiveMessage(self, message, sender):
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            #try:
+            try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            # except Exception as e:
-            #     print("ENV: ERROR")
-            #     traceback.print_exc()
-            #     print("%^" * 25)
-            #     #.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-            #     self.actorSystemShutdown()
+            except Exception as e:
+                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message(traceback.format_exc())
+                self.actorSystemShutdown()
 
     def get_property(self, property_name):
         try:
@@ -126,6 +128,9 @@ class Environment(Actor):
 
     @directive_decorator("setup_agents")
     def setup_agents(self, message:Message):
+        if "address_book" not in dir(self):
+            self.address_book = AddressBook(self)        
+
         if "agents" not in dir(self):
             self.agents = []
             self.agent_addresses = []
@@ -143,10 +148,18 @@ class Environment(Actor):
         #     memory = True
         #     agent_memory = message.get_payload()["agent_memory"]
         for i in range(num_agents):
-            self.log_message("CREATING A NEW AGENT: " + agent_class)
             new_agent = self.createActor(agent_class, sourceHash=source_hash)
             self.agent_addresses.append(new_agent)
             self.agents.append([new_agent, agent_class])
+            agent_info = {}
+            agent_info["address_type"] = "agent"
+            agent_info["address"] = new_agent
+            agent_info["component_class"] = agent_class
+            agent_info["component_number"] = i
+            agent_info["short_name"] = agent_class + " " + str(i)
+
+            self.address_book.add_address(new_agent, agent_info)
+
             new_message = Message()
             #new_message.set_sender(self.myAddress)
             new_message.set_directive("simulation_properties")
@@ -160,15 +173,30 @@ class Environment(Actor):
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
 
+        
+
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
         if "institutions" not in dir(self):
             self.institutions = []
 
+        if "address_book" not in dir(self):
+            self.address_book = AddressBook(self)
+        
+
         institution_class = message.get_payload()["institution_class"]
         source_hash = message.get_payload()["source_hash"]
         
         new_institution = self.createActor(institution_class, sourceHash=source_hash)
+        institution_info = {}
+        institution_info["address_type"] = "institution"
+        institution_info["address"] = new_institution
+        institution_info["component_class"] = institution_class
+        institution_info["component_number"] = 1
+        institution_info["short_name"] = institution_class
+        self.address_book.add_address(new_institution, institution_info)
+
+
         new_message = Message()
         #new_message.set_sender(self.myAddress)
         new_message.set_directive("simulation_properties")

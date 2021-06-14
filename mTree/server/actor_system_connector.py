@@ -160,9 +160,11 @@ class ActorSystemConnector():
         #     }]
         run_configuration["source_hash"] = source_hash
 
-
+        # simulation_run_id is set here
+        # we use a human readable date format
         nowtime = datetime.datetime.now().timestamp()
-        simulation_run_id = str(nowtime).split(".")[0]
+        nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+        simulation_run_id = nowtime_filename #str(nowtime).split(".")[0]
 
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir

@@ -7,6 +7,7 @@ from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.address_book import AddressBook
 #from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 import logging
@@ -17,6 +18,14 @@ import time
 
 @directive_enabled_class
 class Agent(Actor):
+    def __init__(self):
+        self.address_book = AddressBook(self)
+        #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
+        self.log_actor = None
+        self.mtree_properties = {}
+        self.agent_memory = {}
+        self.outlets = {}
+
     environment = None
 
     def log_message(self, logline):
@@ -33,12 +42,7 @@ class Agent(Actor):
     def __repr__(self):
         return self.__str__()
 
-    def __init__(self):
-        #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
-        self.log_actor = None
-        self.mtree_properties = {}
-        self.agent_memory = {}
-        self.outlets = {}
+
         
     def __setattr__(self, key, value):
         """
@@ -70,6 +74,8 @@ class Agent(Actor):
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
+        self.address_book = AddressBook(self)
+        
         self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
@@ -103,15 +109,12 @@ class Agent(Actor):
         #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            #try:
+            try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            # except Exception as e:
-            #     print("AGENT: ERROR")
-            #     traceback.print_exc()
-            #     print("&^" * 25)
-            #     self.log_experiment_data(e)
-            #     #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-            #     self.actorSystemShutdown()
+            except Exception as e:
+                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message(traceback.format_exc())
+                self.actorSystemShutdown()
                 
             

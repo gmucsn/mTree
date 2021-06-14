@@ -2,6 +2,7 @@ from thespian.actors import *
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.log_message import LogMessage
+from mTree.microeconomic_system.address_book import AddressBook
 
 import uuid
 from mTree.microeconomic_system.message_space import MessageSpace
@@ -15,7 +16,17 @@ from datetime import datetime, timedelta
 import time
 
 class Institution(Actor):
-    
+    def __init__(self):
+        self.address_book = AddressBook(self)
+        self.log_actor = None
+        self.dispatcher = None
+        self.run_number = None
+        self.agents = []
+        self.agent_ids = []
+        self.mtree_properties = {}
+
+
+
     def log_message(self, logline):
         log_message = LogMessage(message_type="log", content=logline)
         self.send(self.log_actor, log_message)
@@ -30,26 +41,17 @@ class Institution(Actor):
     def __repr__(self):
         return self.__str__()
 
-    def __init__(self):
-        self.log_actor = None
-        self.dispatcher = None
-        self.run_number = None
-        self.agents = []
-        self.agent_ids = []
-        self.mtree_properties = {}
-
+    
     def receiveMessage(self, message, sender):
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            #try:
+            try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
-            # except Exception as e:
-            #     print("INSTITUTION: ERROR")
-            #     traceback.print_exc()
-            #     print("&^" * 25)
-            #     #logging.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-            #     self.actorSystemShutdown()
+            except Exception as e:
+                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message(traceback.format_exc())
+                self.actorSystemShutdown()
         
     def get_property(self, property_name):
         try:
@@ -61,8 +63,19 @@ class Institution(Actor):
         #self.log_actor = self.createActor(LogActor, globalName="log_actor")
         self.send(self.log_actor, data)
 
+    @directive_decorator("address_book_update")
+    def address_book_update(self, message: Message):
+        self.log_message("start UPDA " + str(self.address_book.addresses))
+        addresses = message.get_payload()
+        self.address_book.merge_addresses(addresses)
+        self.log_message("UPDA " + str(self.address_book.addresses))
+    
+
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
+        if "address_book" not in dir(self):
+            self.address_book = AddressBook(self)
+        
         self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
