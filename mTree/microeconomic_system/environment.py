@@ -41,7 +41,11 @@ class Environment(Actor):
         #asys.shutdown()
         pass
 
-    
+    def get_simulation_property(self, name):
+        if name not in self.mtree_properties.keys():
+            raise Exception("Simulation property: " + str(name) + " not available")
+        return self.mtree_properties[name]
+
     
     def end_round(self):
         new_message = Message()
@@ -66,6 +70,15 @@ class Environment(Actor):
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
+            except Exception as e:
+                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message(traceback.format_exc())
+                self.actorSystemShutdown()
+        elif isinstance(message, WakeupMessage):
+            try:
+                wakeup_message = message.payload
+                directive_handler = self._enabled_directives.get(wakeup_message.get_directive())
+                directive_handler(self, wakeup_message)
             except Exception as e:
                 self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
                 self.log_message(traceback.format_exc())
@@ -98,7 +111,8 @@ class Environment(Actor):
         log_basis["simulation_run_id"] = message.get_payload()["simulation_run_id"]
         log_basis["simulation_id"] = message.get_payload()["simulation_id"]
         log_basis["mes_directory"] = message.get_payload()["mes_directory"]
-        self.send(self.log_actor, log_basis)     
+        log_basis["data_logging"] = message.get_payload()["data_logging"]
+        self.send(self.log_actor, log_basis) 
         
     def log_message(self, logline):
         log_message = LogMessage(message_type="log", content=logline)
@@ -167,7 +181,7 @@ class Environment(Actor):
             #if "mtree_properties" not in dir(self):
             payload["log_actor"] = self.log_actor
             #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
-            #payload["properties"] = self.mtree_properties
+            payload["properties"] = self.mtree_properties
             # if memory:
             #     payload["agent_memory"] = agent_memory
             new_message.set_payload(payload)

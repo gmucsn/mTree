@@ -35,6 +35,12 @@ class Institution(Actor):
         log_message = LogMessage(message_type="data", content=logline)
         self.send(self.log_actor, log_message)
 
+    def get_simulation_property(self, name):
+        if name not in self.mtree_properties.keys():
+            raise Exception("Simulation property: " + str(name) + " not available")
+        return self.mtree_properties[name]
+
+
     def __str__(self):
         return "<Institution: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
 
@@ -48,6 +54,15 @@ class Institution(Actor):
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
+            except Exception as e:
+                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message(traceback.format_exc())
+                self.actorSystemShutdown()
+        elif isinstance(message, WakeupMessage):
+            try:
+                wakeup_message = message.payload
+                directive_handler = self._enabled_directives.get(wakeup_message.get_directive())
+                directive_handler(self, wakeup_message)
             except Exception as e:
                 self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
                 self.log_message(traceback.format_exc())

@@ -92,7 +92,6 @@ class ActorSystemConnector():
         plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
         base_components = []
         for plugin_file_path in plugin_file_paths:
-            print(plugin_file_path)
             plugin_file_name = os.path.basename(plugin_file_path)
             module_name = os.path.splitext(plugin_file_name)[0]
             if module_name.startswith("__"):
@@ -104,7 +103,6 @@ class ActorSystemConnector():
         plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
         
         for plugin_file_path in plugin_file_paths:
-            print("Pluging.. .", plugin_file_path)
             plugin_file_name = os.path.basename(plugin_file_path)
             module_name = os.path.splitext(plugin_file_name)[0]
             if module_name.startswith("__"):
@@ -120,8 +118,6 @@ class ActorSystemConnector():
 
         asys = ActorSystem('multiprocTCPBase', capabilities)
         source_hash = asys.loadActorSource('temp_components.zip')
-        print("SOURCE HASH VERIFIED")
-        print(source_hash)
         #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
         os.remove("temp_components.zip")
         return source_hash

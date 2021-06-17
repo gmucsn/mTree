@@ -9,6 +9,8 @@ from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.outconnect import OutConnect
 
 #from socketIO_client import SocketIO, LoggingNamespace
+import traceback
+
 import os
 import logging
 import json
@@ -35,6 +37,7 @@ class LogActor(Actor):
         self.simulation_id = None
         self.run_number = None
         self.message_buffer = ""
+        self.output_type = "string"
     
     def get_property(self, property_name):
         try:
@@ -43,9 +46,21 @@ class LogActor(Actor):
             return None
 
     def log_data(self, message):
-        
         with open(os.path.join(self.data_target), "a") as file_object:
-           file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
+            file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
+
+    def log_json_data(self, message):
+        with open(os.path.join(self.data_target), "a") as file_object:
+            output_message = message.get_content()
+            #if not isinstance(output_message, dict):
+            #    raise Exception("JSON Logging requires dictionary objects")
+            if isinstance(output_message, str):
+                temp = output_message
+                output_message = {}
+                output_message["content"] = temp
+            output_message["timestamp"] = message.get_timestamp()
+            file_object.write(json.dumps(output_message) + "\n")
+
 
     def log_message(self, message):
         with open(os.path.join(self.log_target), "a") as file_object:
@@ -64,11 +79,12 @@ class LogActor(Actor):
         # self.send(outconnect, message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            #try:
+            try:
                 if type(message) is dict:
                     self.simulation_id = message["simulation_id"]
                     self.simulation_run_id = message["simulation_run_id"]
                     self.mes_directory = message["mes_directory"]
+                    self.output_type = message["data_logging"]
                     self.output_log_folder = os.path.join(self.mes_directory, "logs")
                     if not os.path.isdir(self.output_log_folder):
                         os.mkdir(self.output_log_folder)
@@ -77,12 +93,14 @@ class LogActor(Actor):
                     self.tmp_log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.log.tmp")
                     self.tmp_data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.data.tmp")
                     
-
                     if "run_number" in message.keys():
                         self.run_number = message["run_number"]
                 elif type(message) is LogMessage:
                     if message.get_message_type() == "data":
-                        self.log_data(message)
+                        if self.output_type == "json":
+                            self.log_json_data(message)
+                        else:
+                            self.log_data(message)
                     elif message.get_message_type() == "log":
                         self.log_message(message)
 
@@ -93,5 +111,11 @@ class LogActor(Actor):
                 #         self.run_number = message["run_number"]
                 # else:
                 #     self.log_message(message)
-            #except:
-            #    pass            
+            except Exception as e:
+                logline = "MES CRASHING - EXCEPTION FOLLOWS - LOG ISSUE"
+                log_message = LogMessage(message_type="log", content=logline)
+                self.log_message(log_message)
+                log_message = LogMessage(message_type="log", content=traceback.format_exc())
+                self.log_message(log_message)
+                self.actorSystemShutdown()
+            

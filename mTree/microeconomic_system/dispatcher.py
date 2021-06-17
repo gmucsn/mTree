@@ -69,6 +69,9 @@ class Dispatcher(Actor):
         payload["simulation_id"] = configuration["id"]
         payload["simulation_run_id"] = configuration["simulation_run_id"]
         payload["mes_directory"] = configuration["mes_directory"]
+        payload["message"] = configuration
+        if "data_logging" in configuration.keys():
+            payload["data_logging"] = configuration["data_logging"]
         message.set_payload(payload)
         self.send(environment, message)
         
