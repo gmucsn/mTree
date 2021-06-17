@@ -84,6 +84,7 @@ class MESSimulationDescription():
         self.description = None
         self.environment = None
         self.institution = None
+        self.data_logging = None
         self.agents = []
         self.properties = {}
 
@@ -126,6 +127,9 @@ class MESSimulationDescription():
             self.agents = input_json["agents"]
         if "properties" in input_json.keys():
             self.properties= input_json["properties"]
+        if "data_logging" in input_json.keys():
+            self.data_logging= input_json["data_logging"]
+
 
     def set_name(self, name):
         self.name = name
@@ -167,6 +171,8 @@ class MESSimulationDescription():
         temp_dict["institution"] = self.institution
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
+        temp_dict["data_logging"] = self.data_logging
+        
         json_output = json.dumps(temp_dict)
         print(json_output)
     
@@ -180,6 +186,8 @@ class MESSimulationDescription():
         temp_dict["institution"] = self.institution
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
+        temp_dict["data_logging"] = self.data_logging
+        
         return temp_dict
         
 

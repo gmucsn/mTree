@@ -28,6 +28,11 @@ class Agent(Actor):
 
     environment = None
 
+    def get_simulation_property(self, name):
+        if name not in self.mtree_properties.keys():
+            raise Exception("Simulation property: " + str(name) + " not available")
+        return self.mtree_properties[name]
+
     def log_message(self, logline):
         log_message = LogMessage(message_type="log", content=logline)
         self.send(self.log_actor, log_message)
@@ -115,6 +120,14 @@ class Agent(Actor):
             except Exception as e:
                 self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
                 self.log_message(traceback.format_exc())
-                #self.actorSystemShutdown()
-                
+                self.actorSystemShutdown()
+        elif isinstance(message, WakeupMessage):
+            try:
+                wakeup_message = message.payload
+                directive_handler = self._enabled_directives.get(wakeup_message.get_directive())
+                directive_handler(self, wakeup_message)
+            except Exception as e:
+                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message(traceback.format_exc())
+                self.actorSystemShutdown()
             
