@@ -26,7 +26,7 @@ development_area = Blueprint('development_area', __name__, template_folder='temp
 development_area.jinja_loader = jinja2.ChoiceLoader([
     development_area.jinja_loader,
     jinja2.PackageLoader('mTree', 'development/development_templates'),
-    jinja2.PackageLoader(__name__) # in the same folder will search the 'templates' folder
+    #jinja2.PackageLoader(__name__) # in the same folder will search the 'templates' folder
 ])
 
 @development_area.route('/', defaults={'page': 'index'})

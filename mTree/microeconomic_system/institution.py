@@ -49,9 +49,9 @@ class Institution(Actor):
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
             except Exception as e:
-                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message("MES INSTITUTION CRASHING - EXCEPTION FOLLOWS")
                 self.log_message(traceback.format_exc())
-                self.actorSystemShutdown()
+                #self.actorSystemShutdown()
         
     def get_property(self, property_name):
         try:
@@ -65,11 +65,9 @@ class Institution(Actor):
 
     @directive_decorator("address_book_update")
     def address_book_update(self, message: Message):
-        self.log_message("start UPDA " + str(self.address_book.addresses))
         addresses = message.get_payload()
         self.address_book.merge_addresses(addresses)
-        self.log_message("UPDA " + str(self.address_book.addresses))
-    
+        
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):

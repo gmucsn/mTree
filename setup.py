@@ -21,7 +21,7 @@ setup(
                       'jsonschema==3.2.0',
                       'requests==2.25.1',
                       'markdown==3.3.4'],
-    scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner', 'bin/mTree_generate', 'bin/mTree_server','bin/mTree_server_backend'],
+    #scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner', 'bin/mTree_generate', 'bin/mTree_server','bin/mTree_server_backend'],
     entry_points={
         'console_scripts':['mTree_runner=mTree.scripts.mTree_runner:main',
             'mTree_developer_server=mTree.scripts.mTree_developer_server:main']

@@ -21,7 +21,7 @@ EXPOSE 5000/tcp
 
 SHELL ["/bin/bash"]
 WORKDIR /auctions
-ENTRYPOINT ["mTree_developer"]
+ENTRYPOINT ["mTree_developer_server"]
 
 # basic build:
 # docker build -t mtree/mtree:0.9 .

@@ -4,8 +4,9 @@ class AddressBook:
     def __init__(self, base_component):
         self.base_component = base_component
         self.addresses = {}
-        
-        
+    
+    def get_addresses(self):
+        return self.addresses
 
     def add_address(self, address, additional_information=None):
         address_str = str(address)

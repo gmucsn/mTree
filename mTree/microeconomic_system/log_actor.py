@@ -64,7 +64,7 @@ class LogActor(Actor):
         # self.send(outconnect, message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            #try:
+            try:
                 if type(message) is dict:
                     self.simulation_id = message["simulation_id"]
                     self.simulation_run_id = message["simulation_run_id"]
@@ -93,5 +93,7 @@ class LogActor(Actor):
                 #         self.run_number = message["run_number"]
                 # else:
                 #     self.log_message(message)
-            #except:
-            #    pass            
+            except Exception as e:
+                self.log_message("MES LOG ACTOR CRASHING - EXCEPTION FOLLOWS")
+                self.log_message(traceback.format_exc())
+                self.actorSystemShutdown()       

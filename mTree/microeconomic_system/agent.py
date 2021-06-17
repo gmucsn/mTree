@@ -113,8 +113,8 @@ class Agent(Actor):
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
             except Exception as e:
-                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
                 self.log_message(traceback.format_exc())
-                self.actorSystemShutdown()
+                #self.actorSystemShutdown()
                 
             

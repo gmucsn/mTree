@@ -95,8 +95,9 @@ class Dispatcher(Actor):
         for agent_d in configuration["agents"]:
             agent_type = agent_d["agent_name"]
             agent_count = agent_d["number"]
-            for i in range(0, agent_count):
-                agents.append((agent_type, 1))
+            agents.append((agent_type, agent_count))
+            # for i in range(0, agent_count):
+            #     agents.append((agent_type, 1))
 
         
 

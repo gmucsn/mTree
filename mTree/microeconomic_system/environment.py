@@ -67,9 +67,9 @@ class Environment(Actor):
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
             except Exception as e:
-                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message("MES ENVIRONMENT CRASHING - EXCEPTION FOLLOWS")
                 self.log_message(traceback.format_exc())
-                self.actorSystemShutdown()
+                #self.actorSystemShutdown()
 
     def get_property(self, property_name):
         try:
@@ -148,17 +148,20 @@ class Environment(Actor):
         #     memory = True
         #     agent_memory = message.get_payload()["agent_memory"]
         for i in range(num_agents):
+        
             new_agent = self.createActor(agent_class, sourceHash=source_hash)
+            
             self.agent_addresses.append(new_agent)
             self.agents.append([new_agent, agent_class])
+            agent_number = i + 1
             agent_info = {}
             agent_info["address_type"] = "agent"
             agent_info["address"] = new_agent
             agent_info["component_class"] = agent_class
-            agent_info["component_number"] = i
-            agent_info["short_name"] = agent_class + " " + str(i)
+            agent_info["component_number"] = agent_number
+            agent_info["short_name"] = agent_class + " " + str(agent_number)
 
-            self.address_book.add_address(new_agent, agent_info)
+            self.address_book.add_address(agent_info["short_name"], agent_info)
 
             new_message = Message()
             #new_message.set_sender(self.myAddress)
@@ -194,7 +197,7 @@ class Environment(Actor):
         institution_info["component_class"] = institution_class
         institution_info["component_number"] = 1
         institution_info["short_name"] = institution_class
-        self.address_book.add_address(new_institution, institution_info)
+        self.address_book.add_address(institution_info["short_name"], institution_info)
 
 
         new_message = Message()
