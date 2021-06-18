@@ -76,6 +76,8 @@ class ActorSystemConnector():
             self.container = None
             self.configuration = None
             ActorSystemConnector.__instance = self
+            self.dispatchers = []
+            self.source_hashes = []
 
     # def __new__(self):
     #     if not ActorSystemConnector.instance:
@@ -116,12 +118,15 @@ class ActorSystemConnector():
 
         capabilities = dict([('Admin Port', 19000)])
 
-        asys = ActorSystem('multiprocTCPBase', capabilities)
-        source_hash = asys.loadActorSource('temp_components.zip')
-        #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
-        os.remove("temp_components.zip")
+        source_hash = None
+        try:
+            asys = ActorSystem('multiprocTCPBase', capabilities)
+            source_hash = asys.loadActorSource('temp_components.zip')
+            #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
+            os.remove("temp_components.zip")
+        except:
+            pass
         return source_hash
-
 
     def run_simulation(self, mes_base_dir, run_configuration):
         #sa = ActorSystem("multiprocTCPBase", capabilities).createActor(SimpleSourceAuthority)
@@ -137,8 +142,13 @@ class ActorSystemConnector():
         # actor_system = ActorSystem()
         capabilities = dict([('Admin Port', 19000)])
 
-        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        # Kill old dispatchers....
 
+        for dispatcher in self.__instance.dispatchers:
+            ActorSystem().tell(dispatcher, ActorExitRequest())
+
+        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        self.__instance.dispatchers.append(dispatcher)
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
 
         configuration_message = Message()

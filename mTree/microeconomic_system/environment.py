@@ -14,6 +14,7 @@ import time
 import traceback
 import json
 import os
+import sys
 
 
 
@@ -72,15 +73,25 @@ class Environment(Actor):
                 directive_handler(self, message)
             except Exception as e:
                 self.log_message("MES ENVIRONMENT CRASHING - EXCEPTION FOLLOWS")
-                self.log_message(traceback.format_exc())
-                self.actorSystemShutdown()
+                self.log_message("\tSource Message: " + str(message))
+                error_type, error, tb = sys.exc_info()
+                filename, lineno, func_name, line = traceback.extract_tb(tb)[-1]
+                self.log_message("\tError Type: " + str(error_type))
+                self.log_message("\tError: " + str(error))
+                self.log_message("\tFilename: " + str(filename))
+                self.log_message("\tLine Number: " + str(lineno))
+                self.log_message("\tFunction Name: " + str(func_name))
+                self.log_message("\tLine: " + str(line))
+                #self.actorSystemShutdown()
         elif isinstance(message, WakeupMessage):
             try:
                 wakeup_message = message.payload
                 directive_handler = self._enabled_directives.get(wakeup_message.get_directive())
                 directive_handler(self, wakeup_message)
             except Exception as e:
-                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+                self.log_message("MES ENVIRONMENT CRASHING - EXCEPTION FOLLOWS")
+                self.log_message("\tSource Message: " + str(message))
+                
                 self.log_message(traceback.format_exc())
                 self.actorSystemShutdown()
 

@@ -28,7 +28,7 @@ class AddressBook:
         if groupname not in self.address_groups.keys():
             raise Exception("Groupname must be created before adding addresses")
         self.address_groups[groupname].append(address)
-        self.addresses_to_groups[address["address"]] = groupname
+        #self.addresses_to_groups[address["address"]] = groupname
     
     def remove_address_from_group(self, groupname, address):
         if groupname not in self.address_groups.keys():
@@ -37,7 +37,7 @@ class AddressBook:
             raise Exception("Address must be in group before removing it")
         address_index = self.address_groups[groupname].index(address)
         self.address_groups[groupname].pop(address_index)
-        self.addresses_to_groups.pop(address["address"])
+        #self.addresses_to_groups.pop(address["address"])
     
 
     def get_all_groups(self):
