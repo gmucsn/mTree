@@ -95,6 +95,13 @@ class LogActor(Actor):
                     
                     if "run_number" in message.keys():
                         self.run_number = message["run_number"]
+
+                    self.simulation_configuration = message["simulation_configuration"]
+
+                    with open(os.path.join(self.log_target), "a") as file_object:
+                       file_object.write("Simulation Configuration: " + "\t" + json.dumps(self.simulation_configuration, indent=1) + "\n")
+
+
                 elif type(message) is LogMessage:
                     if message.get_message_type() == "data":
                         if self.output_type == "json":

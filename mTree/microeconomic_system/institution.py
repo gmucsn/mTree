@@ -109,6 +109,11 @@ class Institution(Actor):
         self.simulation_id = message.get_payload()["simulation_id"]
         if "run_number" in message.get_payload().keys():
             self.run_number = message.get_payload()["run_number"]
+
+        if "institution_info" in message.get_payload().keys():
+            self.institution_info = message.get_payload()["institution_info"]
+            self.short_name = message.get_payload()["institution_info"]["short_name"]
+            
         #self.log_actor = message.get_payload()["log_actor"]
         #self.dispatcher = message.get_payload()["dispatcher"]
         #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")

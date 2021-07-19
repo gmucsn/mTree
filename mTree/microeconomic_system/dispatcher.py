@@ -69,7 +69,7 @@ class Dispatcher(Actor):
         payload["simulation_id"] = configuration["id"]
         payload["simulation_run_id"] = configuration["simulation_run_id"]
         payload["mes_directory"] = configuration["mes_directory"]
-        payload["message"] = configuration
+        payload["simulation_configuration"] = configuration
         if "data_logging" in configuration.keys():
             payload["data_logging"] = configuration["data_logging"]
         message.set_payload(payload)
@@ -81,14 +81,19 @@ class Dispatcher(Actor):
         # This preps configuration, but won't intitiate instantiation
         ####
 
+        institutions = []
         if "institution" in configuration.keys():
-            institution = configuration["institution"]
+            institutions = [configuration["institution"]]
         elif "institutions" in configuration.keys():
-            institutions = []
-            for institution_d in configuration["institutions"]:
-                institution_class = institution_d["institution"]
-                institutions.append(institution_class)
-        
+            institutions = configuration["institutions"]
+            # if len(configuration["institutions"]) == 1:
+            #     institutions = [configuration["institutions"]]
+            # else:
+            #     pass
+            #     # for institution_d in configuration["institutions"]:
+                    # institution_class = institution_d
+                    # institutions.append(institution_class)
+            
         ####
         # Setup Agent(s) for the MES    
         # This preps configuration, but won't intitiate instantiation
@@ -120,17 +125,22 @@ class Dispatcher(Actor):
 
         
 
-        if 'institutions' not in locals():
+        # if 'institutions' not in locals():
+        #     message = Message()
+        #     message.set_directive("setup_institution")
+        #     message.set_payload({"order": 2, "institution_class": institution, "source_hash": source_hash})
+        #     self.send(environment, message)
+        # else:
+        
+        for index, setup_inst in enumerate(institutions):
+            order = index + 1
             message = Message()
             message.set_directive("setup_institution")
-            message.set_payload({"institution_class": institution, "source_hash": source_hash})
+            if isinstance(setup_inst, dict):
+                message.set_payload({"order": order, "institution_class": setup_inst["institution"], "source_hash": source_hash})    
+            else:
+                message.set_payload({"order": order, "institution_class": institutions, "source_hash": source_hash})
             self.send(environment, message)
-        else:
-            for institution in institutions:
-                message = Message()
-                message.set_directive("setup_institution")
-                message.set_payload({"institution_class": institution, "source_hash": source_hash})
-                self.send(environment, message)
 
         # if hasattr(self, 'agent_memory_prepared'):
         #     for agent in zip(agents, self.agent_memory):

@@ -80,6 +80,9 @@ class AddressBook:
 
     def broadcast_message(self, selector, message):
         addresses = self.select_addresses(selector)
+        if not isinstance(addresses, list):
+            temp_addressess = [addresses]
+            addresses = temp_addressess
         for address in addresses:
             self.base_component.send(address["address"], message)  
 

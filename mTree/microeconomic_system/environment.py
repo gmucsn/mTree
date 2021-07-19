@@ -123,6 +123,7 @@ class Environment(Actor):
         log_basis["simulation_id"] = message.get_payload()["simulation_id"]
         log_basis["mes_directory"] = message.get_payload()["mes_directory"]
         log_basis["data_logging"] = message.get_payload()["data_logging"]
+        log_basis["simulation_configuration"] = message.get_payload()["simulation_configuration"]
         self.send(self.log_actor, log_basis) 
         
     def log_message(self, logline):
@@ -196,6 +197,8 @@ class Environment(Actor):
             payload["log_actor"] = self.log_actor
             #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
             payload["properties"] = self.mtree_properties
+            payload["agent_information"] = agent_info
+            
             # if memory:
             #     payload["agent_memory"] = agent_memory
             new_message.set_payload(payload)
@@ -214,14 +217,15 @@ class Environment(Actor):
 
         institution_class = message.get_payload()["institution_class"]
         source_hash = message.get_payload()["source_hash"]
-        
+        institution_order = message.get_payload()["order"]
+
         new_institution = self.createActor(institution_class, sourceHash=source_hash)
         institution_info = {}
         institution_info["address_type"] = "institution"
         institution_info["address"] = new_institution
         institution_info["component_class"] = institution_class
         institution_info["component_number"] = 1
-        institution_info["short_name"] = institution_class
+        institution_info["short_name"] = institution_class + " " + str(institution_order)
         self.address_book.add_address(institution_info["short_name"], institution_info)
 
 
@@ -240,6 +244,8 @@ class Environment(Actor):
         payload["log_actor"] = self.log_actor
         if "run_number" in dir(self):
             payload["run_number"] = self.run_number
+
+        payload["institution_info"] = institution_info
 
         new_message.set_payload(payload)
         self.send(new_institution, new_message)

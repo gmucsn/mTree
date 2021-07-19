@@ -122,7 +122,12 @@ class MESSimulationDescription():
             print(input_json["environment"])
             self.environment  = input_json["environment"]
         if "institution" in input_json.keys():
-            self.institution = input_json["institution"]
+            self.institutions = [{"institution": input_json["institution"]}]
+        if "institutions" in input_json.keys():
+          if isinstance(input_json["institutions"], str):
+            self.institutions = [{"institution": input_json["institutions"]}]
+          else:
+            self.institutions = input_json["institutions"]
         if "agents" in input_json.keys():
             self.agents = input_json["agents"]
         if "properties" in input_json.keys():
@@ -168,7 +173,8 @@ class MESSimulationDescription():
         temp_dict["description"] = self.description
 
         temp_dict["environment"] = self.environment
-        temp_dict["institution"] = self.institution
+        #temp_dict["institution"] = self.institution
+        temp_dict["institutions"] = self.institutions
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
         temp_dict["data_logging"] = self.data_logging
@@ -183,7 +189,8 @@ class MESSimulationDescription():
         temp_dict["id"] = self.id
         temp_dict["description"] = self.description
         temp_dict["environment"] = self.environment
-        temp_dict["institution"] = self.institution
+        #temp_dict["institution"] = self.institution
+        temp_dict["institutions"] = self.institutions
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
         temp_dict["data_logging"] = self.data_logging

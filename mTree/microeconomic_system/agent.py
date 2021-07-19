@@ -91,6 +91,11 @@ class Agent(Actor):
 
         if "properties" in message.get_payload().keys():
             self.mtree_properties = message.get_payload()["properties"]
+
+        if "agent_information" in message.get_payload().keys():
+            self.short_name = message.get_payload()["agent_information"]["short_name"]
+            self.agent_information = message.get_payload()["agent_information"]
+
         #self.log_actor = message.get_payload()["log_actor"]
         #self.dispatcher = message.get_payload()["dispatcher"]
         #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")

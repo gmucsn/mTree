@@ -136,6 +136,10 @@ class Runner():
 
         modules_imported = []
         module_names = []
+        
+        ### updare for MES/mes naming
+        ### create errors here
+        
         for filename in glob.iglob('./mes/*.py', recursive=True):
             import_name = os.path.splitext(os.path.basename(filename))[0]
             module_name = "mes." + import_name.partition('.')[0]
