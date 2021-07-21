@@ -7,6 +7,11 @@ class AddressBook:
         self.addresses = {}
         self.address_groups = {}
         self.addresses_to_groups = {}
+        
+        self.agents = {}
+        self.institutions = {}
+        
+
 
 
     def get_addresses(self):
@@ -43,20 +48,44 @@ class AddressBook:
     def get_all_groups(self):
         return self.address_groups.items()
 
+    def get_agents(self):
+        return self.agents
+
+    def get_institutions(self):
+        return self.institutions
+
 
     def add_address(self, address, additional_information=None):
         address_str = str(address)
         self.addresses[address_str] = additional_information
+        if additional_information["address_type"] == "agent":
+            self.agents[address_str] = additional_information
+        else:
+            self.institutions[address_str] = additional_information
+
+    def num_agents(self):
+        return len(self.agents.keys())
+
+    def num_institutions(self):
+        return len(self.institutions.keys())
 
     def select_addresses(self, selector):
+        """Select addresses from the address book based on provided selector.
+
+            Keyword arguments:
+            
+
+            Returns:
+                List of Thespian actor addresses
+        """
         address = []
         if "short_name" in selector.keys():
-            address = [entry for entry in self.addresses.values() if entry["short_name"] == selector["short_name"]]
+            address = [entry["address"] for entry in self.addresses.values() if entry["short_name"] == selector["short_name"]]
         elif "address_type" in selector.keys():
-            address = [entry for entry in self.addresses.values() if entry["address_type"] == selector["address_type"]]
+            address = [entry["address"] for entry in self.addresses.values() if entry["address_type"] == selector["address_type"]]
         
         if len(address) == 1:
-            return address[0]["address"]
+            return address[0]
         return address
 
     def update_addresses(self, addresses):
@@ -84,7 +113,7 @@ class AddressBook:
             temp_addressess = [addresses]
             addresses = temp_addressess
         for address in addresses:
-            self.base_component.send(address["address"], message)  
+            self.base_component.send(address, message)  
 
 
     def add_address_group(self, group_name, addresses):

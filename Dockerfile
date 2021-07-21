@@ -1,4 +1,4 @@
-FROM  continuumio/miniconda3
+FROM  continuumio/miniconda3:4.9.2
 LABEL Author, S. Kunath
 LABEL version="0.9"
 
