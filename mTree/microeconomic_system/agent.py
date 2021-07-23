@@ -124,9 +124,21 @@ class Agent(Actor):
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 directive_handler(self, message)
             except Exception as e:
-                self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
-                self.log_message("\tSource Message: " + str(message))
                 error_type, error, tb = sys.exc_info()
+                error_message = "MES AGENT CRASHING - EXCEPTION FOLLOWS \n"
+                error_message += "\tSource Message: " + str(message) + "\n"
+                error_message += "\tError Type: " + str(error_type) + "\n"
+                error_message += "\tError: " + str(error) + "\n"
+                traces = traceback.extract_tb(tb)
+                trace_output = "\tTrace Output: \n"
+                for trace_line in traceback.format_list(traces):
+                    trace_output += "\t" + trace_line + "\n"
+                error_message += "\n"
+                error_message += trace_output
+                self.log_message(error_message)
+                
+                # self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
+                # self.log_message("\tSource Message: " + str(message))
                 # filename, lineno, func_name, line = traceback.extract_tb(tb)[-1]
                 # self.log_message("\tError Type: " + str(error_type))
                 # self.log_message("\tError: " + str(error))
@@ -134,11 +146,7 @@ class Agent(Actor):
                 # self.log_message("\tLine Number: " + str(lineno))
                 # self.log_message("\tFunction Name: " + str(func_name))
                 # self.log_message("\tLine: " + str(line))
-                traces = traceback.extract_tb(tb)
-                trace_output = "\tTrace Output: \n"
-                for trace_line in traceback.format_list(traces):
-                    trace_output += "\t" + trace_line + "\n"
-                self.log_message(trace_output)
+                
                 
 
                 #self.actorSystemShutdown()
@@ -148,19 +156,27 @@ class Agent(Actor):
                 directive_handler = self._enabled_directives.get(wakeup_message.get_directive())
                 directive_handler(self, wakeup_message)
             except Exception as e:
-                self.log_message("MES AGENT CRASHING WAKING UP - EXCEPTION FOLLOWS")
-                self.log_message("\tSource Message: " + str(message))
                 error_type, error, tb = sys.exc_info()
-                #filename, lineno, func_name, line = traceback.extract_tb(tb)
+                error_message = "MES AGENT CRASHING WAKING UP- EXCEPTION FOLLOWS \n"
+                error_message += "\tSource Message: " + str(message) + "\n"
+                error_message += "\tError Type: " + str(error_type) + "\n"
+                error_message += "\tError: " + str(error) + "\n"
+                traces = traceback.extract_tb(tb)
+                trace_output = "\tTrace Output: \n"
+                for trace_line in traceback.format_list(traces):
+                    trace_output += "\t" + trace_line + "\n"
+                error_message += "\n"
+                error_message += trace_output
+                self.log_message(error_message)
+                
+                # self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
+                # self.log_message("\tSource Message: " + str(message))
+                # filename, lineno, func_name, line = traceback.extract_tb(tb)[-1]
                 # self.log_message("\tError Type: " + str(error_type))
                 # self.log_message("\tError: " + str(error))
                 # self.log_message("\tFilename: " + str(filename))
                 # self.log_message("\tLine Number: " + str(lineno))
                 # self.log_message("\tFunction Name: " + str(func_name))
                 # self.log_message("\tLine: " + str(line))
-                traces = traceback.extract_tb(tb)
-                trace_output = "\tTrace Output: \n"
-                for trace_line in traceback.format_list(traces):
-                    trace_output += "\t" + trace_line + "\n"
-                self.log_message(trace_output)
+                
                 

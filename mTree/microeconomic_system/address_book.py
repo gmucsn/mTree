@@ -29,6 +29,8 @@ class AddressBook:
         
         return name
 
+    
+
     def add_address_to_group(self, groupname, address, role=None):
         if groupname not in self.address_groups.keys():
             raise Exception("Groupname must be created before adding addresses")
@@ -115,6 +117,13 @@ class AddressBook:
         for address in addresses:
             self.base_component.send(address, message)  
 
+    def broadcast_message_to_group(self, group, message):
+        addresses = [address["address"] for address in self.address_groups[group]]
+        if not isinstance(addresses, list):
+            temp_addressess = [addresses]
+            addresses = temp_addressess
+        for address in addresses:
+            self.base_component.send(address, message)
 
     def add_address_group(self, group_name, addresses):
         pass
