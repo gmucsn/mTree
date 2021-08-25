@@ -242,16 +242,20 @@ class DevelopmentServer(object):
             #try:
             #    return sys.modules[fullname]
             #except KeyError:
-            spec = importlib.util.spec_from_file_location(module_name, filename)
-            #spec = importlib.util.find_spec(fullname)
-            #sys.modules[module_name] = ModuleType(module_name)
-            module = importlib.util.module_from_spec(spec)
-            loader = importlib.util.LazyLoader(spec.loader)
-            # Make module with proper locking and get it inserted into sys.modules.
-            a = loader.exec_module(module)
-            sys.modules[module_name] = module
-            #return module
-            print(sys.modules[module_name])
+            try:
+                spec = importlib.util.spec_from_file_location(module_name, filename)
+                #spec = importlib.util.find_spec(fullname)
+                #sys.modules[module_name] = ModuleType(module_name)
+                module = importlib.util.module_from_spec(spec)
+                loader = importlib.util.LazyLoader(spec.loader)
+                # Make module with proper locking and get it inserted into sys.modules.
+                a = loader.exec_module(module)
+                sys.modules[module_name] = module
+                #return module
+            
+                print(sys.modules[module_name])
+            except Exception as e:
+                pass
             #foo = importlib.util.module_from_spec(spec)
             #loader = importlib.util.LazyLoader(spec.loader)
 

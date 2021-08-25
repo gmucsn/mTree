@@ -110,6 +110,8 @@ class ActorSystemConnector():
             if module_name.startswith("__"):
                 continue
             base_components.append([plugin_file_path, plugin_file_name])
+            # Here is where we collect all files to include in the thespian submitted artifact
+            #print("--> ", plugin_file_path)
 
 
         with ZipFile('temp_components.zip', 'w') as zipObj2:
@@ -128,12 +130,13 @@ class ActorSystemConnector():
             pass
         return source_hash
 
-    def run_simulation(self, mes_base_dir, run_configuration):
+    def run_simulation(self, mes_base_dir, configuration_filename, run_configuration):
         #sa = ActorSystem("multiprocTCPBase", capabilities).createActor(SimpleSourceAuthority)
         #ActorSystem("multiprocTCPBase").tell(sa, True)
         
         
         source_hash = self.load_base_mes(mes_base_dir)
+        print(source_hash)
         # if self.instance.container is None:
         #     self.instance.container = SimulationContainer()
         # self.instance.container.create_dispatcher()
@@ -144,8 +147,8 @@ class ActorSystemConnector():
 
         # Kill old dispatchers....
 
-        for dispatcher in self.__instance.dispatchers:
-            ActorSystem().tell(dispatcher, ActorExitRequest())
+        # for dispatcher in self.__instance.dispatchers:
+        #     ActorSystem().tell(dispatcher, ActorExitRequest())
 
         dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
         self.__instance.dispatchers.append(dispatcher)
@@ -168,13 +171,19 @@ class ActorSystemConnector():
 
         # simulation_run_id is set here
         # we use a human readable date format
+        
+        config_base_name = os.path.basename(configuration_filename).split('.')[0]
         nowtime = datetime.datetime.now().timestamp()
         nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
-        simulation_run_id = nowtime_filename #str(nowtime).split(".")[0]
+        simulation_run_id = config_base_name + "-" + nowtime_filename #str(nowtime).split(".")[0]
+        
+
 
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
         configuration_message.set_payload(run_configuration)
+        print(configuration_message)
+        print("!!@$!%%#%@!$!@$!")
         ActorSystem().tell(dispatcher, configuration_message)
 
 

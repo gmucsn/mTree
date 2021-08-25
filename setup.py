@@ -20,7 +20,8 @@ setup(
                       'jsonschema==3.2.0',
                       'requests==2.22.0',
                       'markdown==3.3.3',
-                      'python-json-logger==2.0.1'],
+                      'python-json-logger==2.0.1',
+                      'simple-term-menu==1.3.0'],
     #scripts=['bin/mTree_control', 'bin/mTree_developer', 'bin/mTree_runner', 'bin/mTree_generate', 'bin/mTree_server','bin/mTree_server_backend'],
     entry_points={
         'console_scripts':['mTree_runner=mTree.scripts.mTree_runner:main',

@@ -49,6 +49,27 @@ class Institution(Actor):
         return self.__str__()
 
     
+    def reminder(self, seconds_to_reminder, message, addresses=None):
+        if addresses is None:
+            self.wakeupAfter( datetime.timedelta(seconds=seconds_to_reminder), payload=message)
+        else:
+            new_message = Message()
+            new_message.set_directive("external_reminder")
+            new_message.set_sender(self.myAddress)
+            payload = {}
+            payload["reminder_message"] = message
+            payload["seconds_to_reminder"] = seconds_to_reminder
+            new_message.set_payload(payload)
+
+            for agent in addresses:
+                self.send(agent, new_message)                
+
+    @directive_decorator("external_reminder")
+    def external_reminder(self, message:Message):
+        reminder_message = message.get_payload()["reminder_message"]
+        seconds_to_reminder = message.get_payload()["seconds_to_reminder"]
+        self.reminder(seconds_to_reminder, reminder_message)
+
     def receiveMessage(self, message, sender):
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):

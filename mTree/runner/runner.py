@@ -17,6 +17,8 @@ from mTree.components import registry
 from mTree.server.actor_system_connector import ActorSystemConnector
 from mTree.simulation.mes_simulation_library import MESSimulationLibrary
 
+from simple_term_menu import TerminalMenu
+
 from cmd import Cmd
 
 import atexit
@@ -28,7 +30,7 @@ def goodbye():
     actors = ActorSystem('multiprocTCPBase', capabilities)
     actors.shutdown()
     time.sleep(2)
-    print("You are now leaving mTree Runner.")
+    #print("You are now leaving mTree Runner.")
 
 class MTreePrompt(Cmd):
     def __init__(self, runner):
@@ -39,7 +41,8 @@ class MTreePrompt(Cmd):
 
     def do_run_simulation(self, args):
         """Runs the loaded simulation."""
-        self.runner.run_simulation()
+        #self.runner.run_simulation()
+        self.runner.show_configuration_menu()
 
     def do_force_shutdown(self, args):
         """Forces an exit on all MES components"""
@@ -72,21 +75,67 @@ class MTreePrompt(Cmd):
 
 
 class Runner():
-    def __init__(self, config_file, multi_simulation=False):
+    def __init__(self, running_directory): #, multi_simulation=False):
+        self.container = None
+        self.running_directory = running_directory
+        self.config_directory = os.path.join(running_directory, "config")
+        if not os.path.isdir(self.config_directory):
+            print("!!! Config directory doesn't exist !!!")
+            print("!!! Make sure you are running inside an MES !!!")
+            exit()
+            
         # self.component_registry = registry.Registry()
-        # self.container = None
+        
         # self.component_registry.register_server(self)
         # self.multi_simulation = multi_simulation
         # self.container = None
-        self.configuration = config_file
+        #self.configuration = config_file
         # if self.multi_simulation is not True:
         #     self.configuration = self.load_mtree_config(config_file)
         # else:
         #     self.configuration = self.load_multiple_mtree_config(config_file)
-        print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
+        #print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
         self.actor_system = ActorSystemConnector()
 
 
+
+    def show_configuration_menu(self):
+        config_files = [file for file in os.listdir(self.config_directory) if file.endswith('.json')]
+
+        terminal_menu = TerminalMenu(
+            config_files,
+            multi_select=True,
+            show_multi_select_hint=True,
+        )
+        menu_entry_indices = terminal_menu.show()
+
+        if len(menu_entry_indices) == 0:
+            print("Make sure to select a configuration")
+
+        selected_configs = [config_files[selected] for selected in menu_entry_indices]
+
+        self.run_simulation_from_configurations(selected_configs)
+
+
+    def run_simulation_from_configurations(self, configurations):
+        for configuration in configurations:
+            working_dir = os.getcwd()
+            #actor_system.send_message()
+            print("Running: ", configuration)
+            simulation_library = MESSimulationLibrary()
+            simulation_library.list_simulation_files_directory(working_dir)
+            
+            simulation = simulation_library.get_simulation_by_filename(os.path.basename(configuration))
+            actor_system = ActorSystemConnector()
+            working_dir = os.getcwd()
+            #actor_system.send_message()
+            actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
+
+            # self.examine_directory()
+            # if self.multi_simulation is False:
+            #     self.launch_multi_simulations()
+            # else:
+            #     self.launch_multi_simulations()
 
     def load_mtree_config(self, config_file):
         configuration = None

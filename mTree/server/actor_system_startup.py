@@ -105,14 +105,14 @@ class SimpleSourceAuthority(Actor):
 class ActorSystemStartup:
     def __init__(self):
         self.actor_system = None
-        print("ACTOR SYSTEM STARTING")
+        #print("ACTOR SYSTEM STARTING")
         capabilities = dict([('Admin Port', 19000)])
         self.actor_system = ActorSystem('multiprocTCPBase', capabilities)
-        print("ACTOR SYSTEM STARTED")
+        #print("ACTOR SYSTEM STARTED")
         
     def startup(self):
         capabilities = dict([('Admin Port', 19000)])
-        print("Startup of source authority...")
+        #print("Startup of source authority...")
         self.sa = ActorSystem('multiprocTCPBase', capabilities).createActor(SimpleSourceAuthority)
         self.actor_system.tell(self.sa, True)
         #self.load_base_mes()
@@ -151,7 +151,7 @@ class ActorSystemStartup:
         #plugins_directory_path = os.path.join(os.getcwd(), 'mes')
         #print("\t plugin path: ", plugins_directory_path)
         plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
-        print(plugin_file_paths)
+        #print(plugin_file_paths)
         base_components = []
         for plugin_file_path in plugin_file_paths:
             print("\t\t !--> ", plugin_file_path)

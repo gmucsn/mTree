@@ -5,4 +5,4 @@ eventlet
 flask-apscheduler
 numpy
 thespian
-
+simple-term-menu
