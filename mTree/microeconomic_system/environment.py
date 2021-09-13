@@ -122,7 +122,11 @@ class Environment(Actor):
 
     def reminder(self, seconds_to_reminder, message, addresses=None):
         if addresses is None:
-            self.wakeupAfter( datetime.timedelta(seconds=seconds_to_reminder), payload=message)
+            if type(seconds_to_reminder) is timedelta:
+                self.wakeupAfter( seconds_to_reminder, payload=message)    
+            else:
+                # TODO if not seconds then reject
+                self.wakeupAfter( timedelta(seconds=seconds_to_reminder), payload=message)
         else:
             new_message = Message()
             new_message.set_directive("external_reminder")

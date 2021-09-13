@@ -1,6 +1,17 @@
 # Release Notes
 
 
+
+## Reminder
+
+To get a new Docker Image: docker pull mtree/mtree:1.0.10
+
+## mTree - 1.0.10 - Docker Image
+
+Fixes:
+    -Check reminder for type. Can support either a timedelta or an int representing seconds
+
+
 ## Reminder
 
 To get a new Docker Image: docker pull mtree/mtree:1.0.9
