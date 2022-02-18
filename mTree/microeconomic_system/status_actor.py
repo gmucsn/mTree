@@ -14,47 +14,18 @@ import logging
 import json
 
 
-class SimulationRun:
-    def __init__(self, configuration, run_number=None) -> None:
-        self.configuration = configuration
-        self.name = configuration["name"]
-        self.id = configuration["id"]
-        self.run_number = run_number
-        self.status = "Registered"
-
-    def mark_running(self):
-        self.status = "Running"
-    
-    def mark_finished(self):
-        self.status = "Finished"
-        
-    def mark_excepted(self):
-        self.status = "Exception!"
-
-    def to_data_row(self):
-        return [self.name, self.run_number, self.status]
-
-
-class Dispatcher(Actor):
+class StatusActor(Actor):
     def __str__(self):
-        return "<Dispatcher: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
+        return "<StatusActor: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
 
     def __repr__(self):
         return self.__str__()
 
     def __init__(self):
         #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
-        self.simulation_runs = []
         self.configurations_pending = []
         self.configurations_finished = []
         self.agent_memory = {}
-        
-
-    def get_status(self, sender):
-        output = []
-        for run in self.simulation_runs:
-            output.append(run.to_data_row())
-        self.send(sender, output)
         
 
     def run_simulation(self, configuration, run_number=None):
@@ -97,7 +68,6 @@ class Dispatcher(Actor):
         payload = {}
         payload["simulation_id"] = configuration["id"]
         payload["simulation_run_id"] = configuration["simulation_run_id"]
-        payload["simulation_run_number"] = run_number
         payload["mes_directory"] = configuration["mes_directory"]
         payload["simulation_configuration"] = configuration
         if "data_logging" in configuration.keys():
@@ -375,16 +345,6 @@ class Dispatcher(Actor):
     # #         else:
     # #             self.run_simulation(simulation)
 
-    def prepare_simulation_run(self, configuration):
-        if "number_of_runs" in configuration.keys():
-            total_runs = configuration["number_of_runs"]
-            for run_number in range(1, total_runs+1):
-                new_simulation_run = SimulationRun(configuration, run_number)
-                self.simulation_runs.append(new_simulation_run)
-        else:
-            new_simulation_run = SimulationRun(configuration, 1)
-            self.simulation_runs.append(new_simulation_run)
-
     def begin_simulations(self):
         # move log construction to attach to environment...
         # try:
@@ -396,29 +356,25 @@ class Dispatcher(Actor):
         # log_basis["message_type"] = "setup"
         # print("CONFIGURATIONS PENDING")
         # print(self.configurations_pending)
-        
-        # 2022 - edit out
-        # target_configuration = None
-        # try:
-        #     target_configuration = self.configurations_pending[0]
-        # except Exception as e:
-        #     target_configuration = self.configurations_pending
+        target_configuration = None
+        try:
+            target_configuration = self.configurations_pending[0]
+        except Exception as e:
+            target_configuration = self.configurations_pending
         
         # log_basis["simulation_id"] = target_configuration["id"]
         # log_basis["mes_directory"] = target_configuration["mes_directory"]
         # self.send(self.log_actor, log_basis)        
 
 
-        # 2022 - edit out
-        # if "number_of_runs" in target_configuration.keys():
-        #     self.runs_remaining = target_configuration["number_of_runs"]
-        #     self.current_run = 0
-        #     self.run_simulation(target_configuration, self.current_run)
-        # else:
-        #     self.run_simulation(target_configuration)
-        for simulation_configuration in self.simulation_runs:
-            simulation_configuration.mark_running()
-            self.run_simulation(simulation_configuration.configuration, simulation_configuration.run_number)
+
+        if "number_of_runs" in target_configuration.keys():
+            self.runs_remaining = target_configuration["number_of_runs"]
+            self.current_run = 0
+            self.run_simulation(target_configuration, self.current_run)
+        else:
+            self.run_simulation(target_configuration)
+        
 
     def end_round(self):
         self.send(self.environment, ActorExitRequest())
@@ -459,11 +415,7 @@ class Dispatcher(Actor):
         if not isinstance(message, ActorSystemMessage):
             if message.get_directive() == "simulation_configurations":
                 self.configurations_pending = message.get_payload()
-                self.prepare_simulation_run(message.get_payload())
                 self.begin_simulations()
-            elif message.get_directive() == "check_status":
-                self.get_status(sender)
-                
             elif message.get_directive() == "end_round":
                 self.agent_memory = []
                 self.agents_to_wait = len(message.get_payload()["agents"])

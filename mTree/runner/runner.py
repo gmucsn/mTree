@@ -18,6 +18,7 @@ from mTree.server.actor_system_connector import ActorSystemConnector
 from mTree.simulation.mes_simulation_library import MESSimulationLibrary
 
 from simple_term_menu import TerminalMenu
+from terminaltables import AsciiTable
 
 from cmd import Cmd
 
@@ -43,6 +44,10 @@ class MTreePrompt(Cmd):
         """Runs the loaded simulation."""
         #self.runner.run_simulation()
         self.runner.show_configuration_menu()
+
+    def do_check_status(self, args):
+        """Check the status object in mTree to see what is running."""
+        self.runner.check_status()
 
     def do_force_shutdown(self, args):
         """Forces an exit on all MES components"""
@@ -287,6 +292,20 @@ class Runner():
         #     self.launch_multi_simulations()
         # else:
         #     self.launch_multi_simulations()
+
+    def check_status(self):
+        table_data = [
+            ['Configuration', 'Run Number', 'Status'],
+        ]
+        actor_system = ActorSystemConnector()
+        statuses = actor_system.get_status()
+        print(statuses)
+        if statuses is None:
+            table_data.append(["No Simulations Runnings"])
+        else:
+            table_data.extend(statuses)
+        table = AsciiTable(table_data)
+        print(table.table)
 
 
     def runner(self):

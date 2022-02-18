@@ -70,7 +70,15 @@ class Environment(Actor):
         if not isinstance(message, ActorSystemMessage):
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
+                try:
+                    self.log_message("Environment: About to enter directive: " + message.get_directive())
+                except:
+                    pass
                 directive_handler(self, message)
+                try:
+                    self.log_message("Environment: Exited directive: " + message.get_directive())
+                except:
+                    pass
             except Exception as e:
                 error_type, error, tb = sys.exc_info()
                 error_message = "MES ENVIRONMENT CRASHING - EXCEPTION FOLLOWS \n"
@@ -164,6 +172,8 @@ class Environment(Actor):
 
         log_basis["simulation_run_id"] = message.get_payload()["simulation_run_id"]
         log_basis["simulation_id"] = message.get_payload()["simulation_id"]
+        log_basis["run_number"] = message.get_payload()["simulation_run_number"]
+        
         log_basis["mes_directory"] = message.get_payload()["mes_directory"]
         log_basis["data_logging"] = message.get_payload()["data_logging"]
         log_basis["simulation_configuration"] = message.get_payload()["simulation_configuration"]

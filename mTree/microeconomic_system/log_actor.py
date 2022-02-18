@@ -83,15 +83,16 @@ class LogActor(Actor):
                 if type(message) is dict:
                     self.simulation_id = message["simulation_id"]
                     self.simulation_run_id = message["simulation_run_id"]
+                    self.run_number = message["run_number"]
                     self.mes_directory = message["mes_directory"]
                     self.output_type = message["data_logging"]
                     self.output_log_folder = os.path.join(self.mes_directory, "logs")
                     if not os.path.isdir(self.output_log_folder):
                         os.mkdir(self.output_log_folder)
-                    self.log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.log")
-                    self.data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.data")
-                    self.tmp_log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.log.tmp")
-                    self.tmp_data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-experiment.data.tmp")
+                    self.log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.log")
+                    self.data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.data")
+                    self.tmp_log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.log.tmp")
+                    self.tmp_data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.data.tmp")
                     
                     if "run_number" in message.keys():
                         self.run_number = message["run_number"]

@@ -134,7 +134,9 @@ class ActorSystemConnector():
         #sa = ActorSystem("multiprocTCPBase", capabilities).createActor(SimpleSourceAuthority)
         #ActorSystem("multiprocTCPBase").tell(sa, True)
         
-        
+        print("!&@#*" * 25)
+        print(json.dumps(run_configuration))
+
         source_hash = self.load_base_mes(mes_base_dir)
         print(source_hash)
         # if self.instance.container is None:
@@ -182,38 +184,46 @@ class ActorSystemConnector():
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
         configuration_message.set_payload(run_configuration)
-        print(configuration_message)
-        print("!!@$!%%#%@!$!@$!")
         ActorSystem().tell(dispatcher, configuration_message)
 
+    def get_status(self):
+        if len(self.__instance.dispatchers) == 0:
+            return "None"
+        else:
+            dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+            configuration_message = Message()
+            configuration_message.set_directive("check_status")
+            response = ActorSystem().ask(dispatcher, configuration_message)
+            return response
 
-    def send_message(self):
-        # if self.instance.container is None:
-        #     self.instance.container = SimulationContainer()
-        # self.instance.container.create_dispatcher()
-        capabilities = dict([('Admin Port', 19000)])
+    # 2022 purge
+    # def send_message(self):
+    #     # if self.instance.container is None:
+    #     #     self.instance.container = SimulationContainer()
+    #     # self.instance.container.create_dispatcher()
+    #     capabilities = dict([('Admin Port', 19000)])
 
-        actor_system = ActorSystem("multiprocTCPBase", capabilities)
+    #     actor_system = ActorSystem("multiprocTCPBase", capabilities)
 
-        sa = actor_system.createActor(SimpleSourceAuthority)
-        actor_system.tell(sa, True)
-        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+    #     sa = actor_system.createActor(SimpleSourceAuthority)
+    #     actor_system.tell(sa, True)
+    #     dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
 
-        outconnect = ActorSystem("multiprocTCPBase", capabilities).createActor(OutConnect, globalName = "OutConnect")
+    #     outconnect = ActorSystem("multiprocTCPBase", capabilities).createActor(OutConnect, globalName = "OutConnect")
 
-        configuration_message = Message()
-        configuration_message.set_directive("simulation_configurations")
-        configuration = [{"mtree_type": "mes_simulation_description",
-            "name":"Basic CVA Run",
-            "id": "1",
-            "environment": "CVAEnvironment",
-            "institution": "CVAInstitution",
-            "number_of_runs": 1,
-            "agents": [{"agent_name": "CVASimpleAgent", "number": 5}],
-            "properties": {
-                "agent_endowment": 10
-                }
-            }]
-        configuration_message.set_payload(configuration)
-        ActorSystem().tell(dispatcher, configuration_message)
+    #     configuration_message = Message()
+    #     configuration_message.set_directive("simulation_configurations")
+    #     configuration = [{"mtree_type": "mes_simulation_description",
+    #         "name":"Basic CVA Run",
+    #         "id": "1",
+    #         "environment": "CVAEnvironment",
+    #         "institution": "CVAInstitution",
+    #         "number_of_runs": 1,
+    #         "agents": [{"agent_name": "CVASimpleAgent", "number": 5}],
+    #         "properties": {
+    #             "agent_endowment": 10
+    #             }
+    #         }]
+    #     configuration_message.set_payload(configuration)
+    #     ActorSystem().tell(dispatcher, configuration_message)
        

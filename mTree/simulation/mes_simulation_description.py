@@ -21,6 +21,9 @@ simulation_description_schema = {
     "description": {
       "type": "string"
     },
+    "number_of_runs": {
+      "type": "integer"
+    },
     "environment": {
       "type": "string"
     },
@@ -82,6 +85,7 @@ class MESSimulationDescription():
         self.name = None
         self.id = str(uuid.uuid1())
         self.description = None
+        self.number_of_runs = None
         self.environment = None
         self.institution = None
         self.data_logging = None
@@ -100,7 +104,6 @@ class MESSimulationDescription():
         self.import_json(configuration)
 
     def import_json(self, input_json):
-        print("importing json")
         try:
             # TODO Fix configuration schema validation
             # currently there is an issue on the properties setup...
@@ -114,6 +117,8 @@ class MESSimulationDescription():
             self.mtree_type = input_json["mtree_type"]
         if "name" in input_json.keys():
             self.name = input_json["name"]
+        if "number_of_runs" in input_json.keys():
+            self.number_of_runs = input_json["number_of_runs"]
         if "id" in input_json.keys():
             self.id = input_json["id"]
         if "description" in input_json.keys():
@@ -171,6 +176,7 @@ class MESSimulationDescription():
         temp_dict["name"] = self.name
         temp_dict["id"] = self.id
         temp_dict["description"] = self.description
+        temp_dict["number_of_runs"] = self.number_of_runs
 
         temp_dict["environment"] = self.environment
         #temp_dict["institution"] = self.institution
@@ -191,6 +197,7 @@ class MESSimulationDescription():
         temp_dict["environment"] = self.environment
         #temp_dict["institution"] = self.institution
         temp_dict["institutions"] = self.institutions
+        temp_dict["number_of_runs"] = self.number_of_runs
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
         temp_dict["data_logging"] = self.data_logging

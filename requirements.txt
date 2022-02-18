@@ -6,3 +6,6 @@ flask-apscheduler
 numpy
 thespian
 simple-term-menu
+socketio
+sympy
+terminaltables

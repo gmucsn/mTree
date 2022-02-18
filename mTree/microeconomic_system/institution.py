@@ -80,7 +80,15 @@ class Institution(Actor):
         if not isinstance(message, ActorSystemMessage):
             try:
                 directive_handler = self._enabled_directives.get(message.get_directive())
+                try:
+                    self.log_message("Institution (" + str(self.myAddress) + ": About to enter directive: " + message.get_directive())
+                except:
+                    pass
                 directive_handler(self, message)
+                try:
+                    self.log_message("Institution (" + str(self.myAddress) + ": Exited directive: " + message.get_directive())
+                except:
+                    pass
             except Exception as e:
                 error_type, error, tb = sys.exc_info()
                 error_message = "MES INSITUTION CRASHING - EXCEPTION FOLLOWS \n"
