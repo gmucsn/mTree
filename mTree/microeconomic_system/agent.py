@@ -5,9 +5,11 @@ from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.log_message import LogMessage
+from mTree.microeconomic_system.sequence_event import SequenceEvent
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.mes_exceptions import *
 #from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 import logging
@@ -15,6 +17,7 @@ import json
 from datetime import datetime, timedelta
 import time
 import sys
+import inspect
 
 
 @directive_enabled_class
@@ -41,6 +44,10 @@ class Agent(Actor):
     def log_data(self, logline):
         log_message = LogMessage(message_type="data", content=logline)
         self.send(self.log_actor, log_message)
+
+    def log_sequence_event(self, message):
+        sequence_event = SequenceEvent(message.timestamp, message.get_payload_property("short_name"), self.short_name, message.get_directive())
+        self.send(self.log_actor, sequence_event)
         
     def __str__(self):
         return "<Agent: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
@@ -81,10 +88,31 @@ class Agent(Actor):
         :param value:
         :return:
         """
+
+        setter_name = inspect.stack()[1][3]
+        directive_source = None
+        state_change_start_value = None
+        # it's possible that a function is causing a state change and not a directive
+        if setter_name in self._enabled_directives_state_monitors.keys():
+            if setter_name in self._enabled_functions_to_directives.keys():
+                directive_source = self._enabled_functions_to_directives[setter_name]
+            
+            if key in self._enabled_directives_state_monitors[setter_name] or self._enabled_directives_state_monitors[setter_name] is None:
+                try:
+                    state_change_start_value = getattr(self, key)
+                except:
+                    # check for if the property does not previously exist
+                    state_change_start_value = "Undeclared"
         super().__setattr__(key, value)
+        if state_change_start_value is not None:
+            if directive_source is not None:
+                self.log_message("Agent (" + self.short_name + ") : Directive < " + directive_source + " > changing state of < " + key + " > from " + str(state_change_start_value) + " to " + str(value))
+            else:
+                self.log_message("Agent (" + self.short_name + ") : Function < " + setter_name + " > changing state of < " + key + " > from " + str(state_change_start_value) + " to " + str(value))
+            
         if hasattr(self, 'outlets'):
             if key in self.outlets:
-                print("LETTING: " + str(self.user) + " -- " + str(self.outlets[key]) + " -- " + str(value))
+                # print("LETTING: " + str(self.user) + " -- " + str(self.outlets[key]) + " -- " + str(value))
 
                 self.response.let_user(self.user_id, self.outlets[key], value)
                 
@@ -106,6 +134,7 @@ class Agent(Actor):
     def simulation_properties(self, message: Message):
         self.address_book = AddressBook(self)
         
+        self.environment = message.get_sender()
         self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
@@ -140,19 +169,48 @@ class Agent(Actor):
         self.outlets[_property] = target
 
 
+    def excepted_mes(self):
+        new_message = Message()
+        new_message.set_directive("excepted_mes")
+        new_message.set_sender(self.myAddress)
+        payload = {}
+        new_message.set_payload(payload)
+        self.send(self.environment, new_message)
+
+
+    def send(self, targetAddress, message):
+        if hasattr(self, 'short_name') and type(message) is Message:
+            try:
+                message.set_payload_property("short_name", self.short_name)
+            except:
+                message.set_payload_property("short_name", self.__class__.__name__)
+        
+        if isinstance(message, Message):
+            self.log_message("Agent (" + self.short_name + ") : sending to " +  " directive: " + message.get_directive())
+        
+        super().send(targetAddress, message)
+
     def receiveMessage(self, message, sender):
         #print("AGENT GOT MESSAGE: ", message) # + message)
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
             try:
+                if message.get_directive() not in self._enabled_directives.keys():
+                    raise UndefinedDirectiveException(message.get_directive())
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 try:
-                    self.log_message("Agent (" + str(self.myAddress) + ": About to enter directive: " + message.get_directive())
+                    self.log_message("Agent (" + self.short_name + ") : About to enter directive: " + message.get_directive())
                 except:
                     pass
+
+                try:
+                    self.log_sequence_event(message)
+                except:
+                   pass
+                
                 directive_handler(self, message)
                 try:
-                    self.log_message("Agent (" + str(self.myAddress) + ": Exited directive: " + message.get_directive())
+                    self.log_message("Agent (" + self.short_name + ": Exited directive: " + message.get_directive())
                 except:
                     pass
             except Exception as e:
@@ -169,6 +227,7 @@ class Agent(Actor):
                 error_message += trace_output
                 self.log_message(error_message)
                 
+                self.excepted_mes()
                 # self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
                 # self.log_message("\tSource Message: " + str(message))
                 # filename, lineno, func_name, line = traceback.extract_tb(tb)[-1]

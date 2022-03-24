@@ -9,6 +9,8 @@ from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.mes_exceptions import *
+from mTree.microeconomic_system.sequence_event import SequenceEvent
 import time
 
 import traceback
@@ -37,6 +39,25 @@ class Environment(Actor):
         return self.__str__()
 
     
+    @directive_decorator("shutdown_mes")
+    def shutdown_mes(self, message:Message=None):
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("shutdown_mes")
+        payload = {}
+        new_message.set_payload(payload)
+        self.send(self.dispatcher, new_message)
+
+    @directive_decorator("excepted_mes")
+    def excepted_mes(self, message:Message):
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("excepted_mes")
+        payload = {}
+        new_message.set_payload(payload)
+        self.send(self.dispatcher, new_message)
+
+
 
     def close_environment(self):
         #asys.shutdown()
@@ -69,11 +90,20 @@ class Environment(Actor):
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
             try:
+                if message.get_directive() not in self._enabled_directives.keys():
+                    raise UndefinedDirectiveException(message.get_directive())
+
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 try:
                     self.log_message("Environment: About to enter directive: " + message.get_directive())
                 except:
                     pass
+
+                try:
+                    self.log_sequence_event(message)
+                except:
+                   pass
+
                 directive_handler(self, message)
                 try:
                     self.log_message("Environment: Exited directive: " + message.get_directive())
@@ -179,6 +209,13 @@ class Environment(Actor):
         log_basis["simulation_configuration"] = message.get_payload()["simulation_configuration"]
         self.send(self.log_actor, log_basis) 
         
+
+    def log_sequence_event(self, message):
+        sequence_event = SequenceEvent(message.timestamp, message.get_payload_property("short_name"), self.short_name, message.get_directive())
+        self.send(self.log_actor, sequence_event)
+
+        
+
     def log_message(self, logline):
         log_message = LogMessage(message_type="log", content=logline)
         self.send(self.log_actor, log_message)
@@ -194,7 +231,7 @@ class Environment(Actor):
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
-        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        self.dispatcher = message.get_sender()
         #self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
@@ -245,6 +282,7 @@ class Environment(Actor):
             new_message = Message()
             #new_message.set_sender(self.myAddress)
             new_message.set_directive("simulation_properties")
+            new_message.set_sender(self.myAddress)
             payload = {}
             #if "mtree_properties" not in dir(self):
             payload["log_actor"] = self.log_actor
@@ -304,6 +342,18 @@ class Environment(Actor):
         self.send(new_institution, new_message)
 
         self.institutions.append(new_institution)
+
+    def send(self, targetAddress, message):
+        if hasattr(self, 'short_name') and type(message) is Message:
+            try:
+                message.set_payload_property("short_name", self.short_name)
+            except:
+                message.set_payload_property("short_name", self.__class__.__name__)
+
+        if isinstance(message, Message):
+            self.log_message("Environment: sending to "  + " directive: " + message.get_directive() )
+        super().send(targetAddress, message)
+
 
     def list_agents(self):
         message = MessageSpace.list_agents()

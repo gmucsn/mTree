@@ -56,6 +56,11 @@ class MTreePrompt(Cmd):
         actors = ActorSystem('multiprocTCPBase', capabilities)
         actors.shutdown()
 
+    def do_kill_run(self, run_id):
+        """Force a running MES to shutdown"""
+        self.runner.kill_run_by_id(run_id)
+
+
 
 
     def do_hello(self, args):
@@ -295,17 +300,21 @@ class Runner():
 
     def check_status(self):
         table_data = [
-            ['Configuration', 'Run Number', 'Status'],
+            ['Run Code', 'Configuration', 'Run Number', 'Status', 'Total Time'],
         ]
         actor_system = ActorSystemConnector()
         statuses = actor_system.get_status()
-        print(statuses)
         if statuses is None:
             table_data.append(["No Simulations Runnings"])
         else:
             table_data.extend(statuses)
         table = AsciiTable(table_data)
         print(table.table)
+
+    def kill_run_by_id(self, run_id):
+        actor_system = ActorSystemConnector()
+        actor_system.kill_run_by_id(run_id)
+        print("Kill command sent")
 
 
     def runner(self):

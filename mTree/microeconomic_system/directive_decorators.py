@@ -1,6 +1,19 @@
+from sre_parse import State
 from types import FunctionType
 from jsonschema import validate
 from mTree.components import registry
+
+
+
+def directive_state_monitor(state_properties=None):
+    def real_decorator(func):
+        if state_properties is None:
+            func.state_properties = None
+        else:
+            func.state_properties = state_properties
+        return func
+    return real_decorator
+
 
 def directive_decorator(directive_name, message_schema=None, message_callback=None, ui_callback=None):
     def real_decorator(func):
@@ -38,14 +51,19 @@ def directive_enabled_class(cls):
     component_registry = registry.Registry()
 
     cls._enabled_directives = {}
+    cls._enabled_functions_to_directives = {}
     cls._enabled_directives_schemas = {}
     cls._mtree_properties = {}
     cls._message_sources = {}
+    cls._enabled_directives_state_monitors = {}
     for func in functions:
         if getattr(func, "message_directive", False):
             cls._enabled_directives[getattr(func, "message_directive")] = func
+            cls._enabled_functions_to_directives[func.__name__] = getattr(func, "message_directive")
+        if getattr(func, "state_properties", False):
+            cls._enabled_directives_state_monitors[func.__name__] = getattr(func, "state_properties")
         if getattr(func, "message_source", False):
-            cls._message_sources[getattr(func, "message_source")] = func
+            cls._message_sources[getattr(func, "message_source")] = getattr(func, "mtree_properties")
         if getattr(func, "mtree_properties", False):
             for property_name in getattr(func, "mtree_properties").keys():
                 cls._mtree_properties[property_name] = getattr(func, "mtree_properties")[property_name]

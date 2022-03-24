@@ -13,6 +13,7 @@ from mTree.microeconomic_system.dispatcher import Dispatcher
 from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
 from mTree.microeconomic_system.outconnect import OutConnect
 from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.container import Container
 from mTree.microeconomic_system.simulation_container import SimulationContainer
 from thespian.actors import *
@@ -195,6 +196,19 @@ class ActorSystemConnector():
             configuration_message.set_directive("check_status")
             response = ActorSystem().ask(dispatcher, configuration_message)
             return response
+
+    def kill_run_by_id(self, run_id):
+        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        configuration_message = Message()
+        configuration_message.set_directive("kill_run_by_id")
+        payload = {}
+        payload["run_id"] = run_id
+        configuration_message.set_payload(payload)
+        ActorSystem().tell(dispatcher, configuration_message)
+
+    def send_message(self, message):
+        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        ActorSystem().tell(dispatcher, message)
 
     # 2022 purge
     # def send_message(self):

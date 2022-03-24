@@ -51,6 +51,10 @@ def main():
     process = Popen([sys.executable, background_actor_py]) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
     #process = subprocess.run([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
 
+    # background_message_router = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "server", "background_message_router.py")
+    # message_router_process = Popen([sys.executable, background_message_router]) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
+
+
 
     ascii_banner = pyfiglet.figlet_format("mTree - Developer Server")
     print(ascii_banner)

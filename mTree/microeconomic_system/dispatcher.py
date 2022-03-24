@@ -1,38 +1,70 @@
+from email.mime import base
 from thespian.actors import *
 import numpy as np
 
 from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.outconnect import OutConnect
+# from mTree.microeconomic_system.web_socket_router_actor import WebSocketRouterActor
 
 #from socketIO_client import SocketIO, LoggingNamespace
 
 import logging
 import json
+import hashlib
+import random
+from datetime import datetime
 
 
 class SimulationRun:
     def __init__(self, configuration, run_number=None) -> None:
         self.configuration = configuration
+
         self.name = configuration["name"]
         self.id = configuration["id"]
         self.run_number = run_number
+        
+        hash_basis = str(self.name) + "-" + str(self.id) + "-" + str(self.run_number) + str(random.uniform(0,100))
+        hash_object = hashlib.sha1(hash_basis.encode("utf-8"))
+        self.run_code = hash_object.hexdigest()[0:6]
+
         self.status = "Registered"
+        self.mes_base_address = None
+        self.start_time = None
+        self.end_time = None
+
+    def set_mes_base_address(self, base_address):
+        self.mes_base_address = base_address
 
     def mark_running(self):
         self.status = "Running"
+        self.start_time = datetime.now()
     
     def mark_finished(self):
         self.status = "Finished"
+        self.end_time = datetime.now()
+
+    def mark_killed(self):
+        self.status = "Killed"
+        self.end_time = datetime.now()
+
         
     def mark_excepted(self):
         self.status = "Exception!"
+        self.end_time = datetime.now()
 
     def to_data_row(self):
-        return [self.name, self.run_number, self.status]
+        total_time = "Not running"
+        if self.start_time is not None:
+            if self.end_time is not None:
+                total_time = self.end_time - self.start_time
+            else:
+                total_time = datetime.now() - self.start_time
+        return [self.run_code, self.name, self.run_number, self.status, total_time]
 
 
 class Dispatcher(Actor):
@@ -55,9 +87,41 @@ class Dispatcher(Actor):
         for run in self.simulation_runs:
             output.append(run.to_data_row())
         self.send(sender, output)
-        
 
-    def run_simulation(self, configuration, run_number=None):
+    def return_admin_status(self):
+        web_socket_router_actor = self.createActor(Actor, globalName = "WebSocketRouterActor")
+
+        output = []
+        for run in self.simulation_runs:
+            output.append(run.to_data_row())
+        payload = {"status": output}
+        message = AdminMessage(response="system_status", payload=payload)
+        
+        # message.set_directive("system_status")
+        # message.set_sender(self.myAddress)
+        # 
+        # message.set_payload(payload)
+        logging.info('SENT TO WWEBSOCKET FOR FURTHER PROCESSING')
+        logging.info(message)
+                
+        self.send(web_socket_router_actor, message)
+
+
+    def request_system_status(self):
+        web_socket_router_actor = self.createActor(Actor, globalName = "WebSocketRouterActor")
+
+        output = []
+        for run in self.simulation_runs:
+            output.append(run.to_data_row())
+        message = Message()
+        message.set_directive("system_status")
+        message.set_sender(self.myAddress)
+        payload = {"status": output}
+        message.set_payload(payload)
+            
+        self.send(web_socket_router_actor, message)
+
+    def run_simulation(self, configuration, run_number=None, configuration_obect=None):
         #self.component_registrar.instance.components[""]
         
         # test_environment = self.createActor("mTree.microeconomic_system.environment.Environment")
@@ -88,6 +152,9 @@ class Dispatcher(Actor):
         environment = self.createActor(environment_class,sourceHash=source_hash)
         # environment created
         self.environment = environment
+
+        if configuration_obect is not None:
+            configuration_obect.set_mes_base_address(environment)
 
         ####
         # Setup logger for the MES
@@ -143,6 +210,7 @@ class Dispatcher(Actor):
         if "properties" in configuration.keys():
             message = Message()
             message.set_directive("simulation_properties")
+            message.set_sender(self.myAddress)
             payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
             payload["simulation_id"] = configuration["id"]
             payload["simulation_run_id"] = configuration["simulation_run_id"]
@@ -417,8 +485,9 @@ class Dispatcher(Actor):
         # else:
         #     self.run_simulation(target_configuration)
         for simulation_configuration in self.simulation_runs:
-            simulation_configuration.mark_running()
-            self.run_simulation(simulation_configuration.configuration, simulation_configuration.run_number)
+            if simulation_configuration.status == "Registered":    
+                simulation_configuration.mark_running()
+                self.run_simulation(simulation_configuration.configuration, simulation_configuration.run_number, configuration_obect=simulation_configuration)
 
     def end_round(self):
         self.send(self.environment, ActorExitRequest())
@@ -448,6 +517,24 @@ class Dispatcher(Actor):
             self.send(self.myAddress, ActorExitRequest())
             
 
+    def shutdown_mes(self, environment_address):
+        self.send(environment_address, ActorExitRequest())
+        for run in self.simulation_runs:
+            if run.mes_base_address == environment_address:
+                run.mark_finished()
+        
+    def kill_run_by_id(self, message):
+        for run in self.simulation_runs:
+            if run.run_code == message.get_payload()["run_id"]:
+                self.send(run.mes_base_address, ActorExitRequest())
+                run.mark_killed()
+                
+    def excepted_mes_shutdown(self, environment_address):
+        for run in self.simulation_runs:
+            if run.mes_base_address == environment_address:
+                run.mark_excepted()
+                self.send(environment_address, ActorExitRequest())
+
 
     def receiveMessage(self, message, sender):
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
@@ -457,29 +544,52 @@ class Dispatcher(Actor):
         #     file_object.write("SHOULD BE RUNNING SIMULATION" + str(message) +  "\n")
     
         if not isinstance(message, ActorSystemMessage):
-            if message.get_directive() == "simulation_configurations":
-                self.configurations_pending = message.get_payload()
-                self.prepare_simulation_run(message.get_payload())
-                self.begin_simulations()
-            elif message.get_directive() == "check_status":
-                self.get_status(sender)
-                
-            elif message.get_directive() == "end_round":
-                self.agent_memory = []
-                self.agents_to_wait = len(message.get_payload()["agents"])
-            elif message.get_directive() == "store_agent_memory":
-                if self.agents_to_wait > 1:
-                    self.agents_to_wait -= 1
-                    self.agent_memory.append(message.get_payload()["agent_memory"])
-                    self.send(sender, ActorExitRequest())
+            if isinstance(message, AdminMessage):
+                logging.info('DISPATCHER RECEIVED ADMIN MESSAGE')
+                logging.info(message)
+                if message.get_request() == "system_status":
+                    logging.info('System status message received')
+                    self.return_admin_status()
+                elif message.get_request() == "kill_run_by_id":
+                    self.kill_run_by_id(message.payload)
+            else:        
+                if message.get_directive() == "simulation_configurations":
+                    self.configurations_pending = message.get_payload()
+                    self.prepare_simulation_run(message.get_payload())
+                    self.begin_simulations()
+                elif message.get_directive() == "check_status":
+                    self.get_status(sender)
+                elif message.get_directive  () == "kill_run_by_id":
+                    self.kill_run_by_id(message)
+                    
+                elif message.get_directive() == "end_round":
+                    self.agent_memory = []
+                    self.agents_to_wait = len(message.get_payload()["agents"])
+                elif message.get_directive() == "shutdown_mes":
+                    self.shutdown_mes(sender)
+                elif message.get_directive() == "excepted_mes":
+                    self.excepted_mes_shutdown(sender)
+
+                elif message.get_directive() == "request_system_status":
+                    self.request_system_status()
+                elif message.get_directive() == "register_websocket_router":
+                    self.websocket_router = sender
+                    self.send(self.websocket_router, "SLAMBACK")
+                elif message.get_directive() == "store_agent_memory":
+                    if self.agents_to_wait > 1:
+                        self.agents_to_wait -= 1
+                        self.agent_memory.append(message.get_payload()["agent_memory"])
+                        self.send(sender, ActorExitRequest())
+            
+                    else:
+                        self.agent_memory.append(message.get_payload()["agent_memory"])
+                        self.agents_to_wait -= 1
+                        self.agent_memory_prepared = True
+            
+                        self.send(sender, ActorExitRequest())
+            
+                        self.end_round()
+                        self.next_run()
+
         
-                else:
-                    self.agent_memory.append(message.get_payload()["agent_memory"])
-                    self.agents_to_wait -= 1
-                    self.agent_memory_prepared = True
-        
-                    self.send(sender, ActorExitRequest())
-        
-                    self.end_round()
-                    self.next_run()
 

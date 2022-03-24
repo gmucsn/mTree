@@ -3,10 +3,10 @@ from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.address_book import AddressBook
-
+from mTree.microeconomic_system.mes_exceptions import *
 import uuid
 from mTree.microeconomic_system.message_space import MessageSpace
-
+from mTree.microeconomic_system.sequence_event import SequenceEvent
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 import logging
@@ -27,6 +27,9 @@ class Institution(Actor):
         self.mtree_properties = {}
 
 
+    def log_sequence_event(self, message):
+        sequence_event = SequenceEvent(message.timestamp, message.get_payload_property("short_name"), self.short_name, message.get_directive())
+        self.send(self.log_actor, sequence_event)
 
     def log_message(self, logline):
         log_message = LogMessage(message_type="log", content=logline)
@@ -43,7 +46,7 @@ class Institution(Actor):
 
 
     def __str__(self):
-        return "<Institution: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
+        return "<Institution: " + self.__class__.__name__ + ' @ ' + str(self.myAddress) + ">"
 
     def __repr__(self):
         return self.__str__()
@@ -67,7 +70,25 @@ class Institution(Actor):
             new_message.set_payload(payload)
 
             for agent in addresses:
-                self.send(agent, new_message)                
+                self.send(agent, new_message)      
+
+    def shutdown_mes(self):
+        new_message = Message()
+        new_message.set_directive("shutdown_mes")
+        new_message.set_sender(self.myAddress)
+        payload = {}
+        new_message.set_payload(payload)
+        self.send(self.environment, new_message)
+        
+
+    def excepted_mes(self):
+        new_message = Message()
+        new_message.set_directive("excepted_mes")
+        new_message.set_sender(self.myAddress)
+        payload = {}
+        new_message.set_payload(payload)
+        self.send(self.environment, new_message)
+
 
     @directive_decorator("external_reminder")
     def external_reminder(self, message:Message):
@@ -79,14 +100,22 @@ class Institution(Actor):
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
             try:
+                if message.get_directive() not in self._enabled_directives.keys():
+                    raise UndefinedDirectiveException(message.get_directive())
                 directive_handler = self._enabled_directives.get(message.get_directive())
                 try:
-                    self.log_message("Institution (" + str(self.myAddress) + ": About to enter directive: " + message.get_directive())
+                    self.log_message("Institution (" + self.short_name + ") : About to enter directive: " + message.get_directive())
                 except:
                     pass
+                
+                try:
+                    self.log_sequence_event(message)
+                except:
+                   pass
+
                 directive_handler(self, message)
                 try:
-                    self.log_message("Institution (" + str(self.myAddress) + ": Exited directive: " + message.get_directive())
+                    self.log_message("Institution (" + self.short_name + ") : Exited directive: " + message.get_directive())
                 except:
                     pass
             except Exception as e:
@@ -103,7 +132,7 @@ class Institution(Actor):
                 error_message += "\n"
                 error_message += trace_output
                 self.log_message(error_message)
-                
+                self.excepted_mes()
                 # self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
                 # self.log_message("\tSource Message: " + str(message))
                 # filename, lineno, func_name, line = traceback.extract_tb(tb)[-1]
@@ -168,6 +197,18 @@ class Institution(Actor):
         #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
         
         self.environment = message.get_payload()["environment"]
+
+    def send(self, targetAddress, message):
+        if hasattr(self, 'short_name') and type(message) is Message:
+            try:
+                message.set_payload_property("short_name", self.short_name)
+            except:
+                message.set_payload_property("short_name", self.__class__.__name__)
+
+        if isinstance(message, Message):
+            self.log_message("Institution (" + self.short_name + ") : sending to "  + " directive: " + message.get_directive())
+        super().send(targetAddress, message)
+
 
     def add_agent(self, agent_class):
         if "agents" not in dir(self):

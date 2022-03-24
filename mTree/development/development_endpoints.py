@@ -87,6 +87,14 @@ def mes_configuration_view():
     return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title) 
 
 
+@development_area.route('/status')
+def status():
+    #try:
+        title = "Status"
+        return render_template('status.html',  title=title)
+        #except TemplateNotFound:
+        #    abort(404)
+
 #@development_area.route('/', defaults={'page': 'index'})
 @development_area.route('/mes_components')
 def mes_components():

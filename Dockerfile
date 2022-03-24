@@ -1,4 +1,4 @@
-FROM  continuumio/miniconda3:4.9.2
+FROM  continuumio/miniconda3:4.10.3
 LABEL Author, S. Kunath
 LABEL version="0.9"
 
@@ -24,7 +24,7 @@ WORKDIR /auctions
 ENTRYPOINT ["mTree_developer_server"]
 
 # basic build:
-# docker build -t mtree/mtree:1.0.10 .
+# docker build -t mtree/mtree:1.0.11c .
 
 # Pulling:
 # docker pull mtree/mtree

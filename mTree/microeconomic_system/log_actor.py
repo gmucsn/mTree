@@ -7,7 +7,7 @@ from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.outconnect import OutConnect
-
+from mTree.microeconomic_system.sequence_event import SequenceEvent
 #from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 
@@ -46,11 +46,11 @@ class LogActor(Actor):
             return None
 
     def log_data(self, message):
-        with open(os.path.join(self.data_target), "a") as file_object:
+        with open(os.path.join(self.tmp_data_target), "a") as file_object:
             file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
 
     def log_json_data(self, message):
-        with open(os.path.join(self.data_target), "a") as file_object:
+        with open(os.path.join(self.tmp_data_target), "a") as file_object:
             output_message = message.get_content()
             #if not isinstance(output_message, dict):
             #    raise Exception("JSON Logging requires dictionary objects")
@@ -62,8 +62,15 @@ class LogActor(Actor):
             file_object.write(json.dumps(output_message) + "\n")
 
 
+    def log_sequence_event(self, message):
+        sequence_line = str(message.timestamp)  + "\t" + message.sender + "->" + message.receiver + ": " + message.directive    
+            
+        with open(os.path.join(self.sequence_target_tmp), "a") as file_object:
+            file_object.write(sequence_line + "\n")
+
+
     def log_message(self, message):
-        with open(os.path.join(self.log_target), "a") as file_object:
+        with open(os.path.join(self.tmp_log_target), "a") as file_object:
            file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
 
         # print("SHOULD BE WRITING OUT LOG LINE")
@@ -94,13 +101,16 @@ class LogActor(Actor):
                     self.tmp_log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.log.tmp")
                     self.tmp_data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.data.tmp")
                     
+                    self.sequence_target_tmp = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.logtmp")
+                    self.sequence_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.log")
+                    
                     if "run_number" in message.keys():
                         self.run_number = message["run_number"]
 
                     self.simulation_configuration = message["simulation_configuration"]
 
                     with open(os.path.join(self.log_target), "a") as file_object:
-                       file_object.write("Simulation Configuration: " + "\t" + json.dumps(self.simulation_configuration, indent=1) + "\n")
+                       file_object.write("Simulation Configuration: " + "\t" + json.dumps(self.simulation_configuration) + "\n")
 
 
                 elif type(message) is LogMessage:
@@ -111,6 +121,9 @@ class LogActor(Actor):
                             self.log_data(message)
                     elif message.get_message_type() == "log":
                         self.log_message(message)
+
+                elif type(message) is SequenceEvent:
+                    self.log_sequence_event(message)
 
                 # if "message_type" in message.keys():
                 #     self.simulation_id = message["simulation_id"]
@@ -126,4 +139,47 @@ class LogActor(Actor):
                 log_message = LogMessage(message_type="log", content=traceback.format_exc())
                 self.log_message(log_message)
                 self.actorSystemShutdown()
-            
+
+        elif isinstance(message, ActorExitRequest):
+            # clean up logs for final use...
+            sequence_events = []
+            with open(os.path.join(self.sequence_target_tmp), "r") as file_object:
+                for line in file_object:
+                    sequence_events.append(line.strip())
+            sorted_events = sorted(sequence_events)
+
+# 
+            with open(os.path.join(self.sequence_target), "a") as file_object:
+                for event in sorted_events:
+                    output = event.split("\t")[1]
+                    file_object.write(output + "\n")
+
+            os.remove(self.sequence_target_tmp)
+
+            #####
+            sequence_events = []
+            with open(os.path.join(self.tmp_log_target), "r") as file_object:
+                for line in file_object:
+                    sequence_events.append(line.strip())
+            sorted_events = sorted(sequence_events)
+
+# 
+            with open(os.path.join(self.log_target), "a") as file_object:
+                for event in sorted_events:
+                    file_object.write(event + "\n")
+
+            os.remove(self.tmp_log_target)
+
+            #####
+            sequence_events = []
+            with open(os.path.join(self.tmp_data_target), "r") as file_object:
+                for line in file_object:
+                    sequence_events.append(line.strip())
+            sorted_events = sorted(sequence_events)
+
+            #####
+            with open(os.path.join(self.data_target), "a") as file_object:
+                for event in sorted_events:
+                    file_object.write(event + "\n")
+
+            os.remove(self.tmp_data_target)

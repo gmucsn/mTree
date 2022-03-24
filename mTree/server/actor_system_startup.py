@@ -4,6 +4,8 @@ from thespian.actors import *
 from mTree.microeconomic_system import *
 from mTree.microeconomic_system.dispatcher import Dispatcher
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.web_socket_router_actor import WebSocketRouterActor
+from mTree.microeconomic_system.message import Message
 
 
 class actorLogFilter(logging.Filter):
@@ -61,24 +63,50 @@ logging.addLevelName(logger.MESSAGE, 'MESSAGE')
 #                                           msg.sourceData,
 #                                           msg.sourceInfo))
 
+import logging
 
+class actorLogFilter(logging.Filter):
+    def filter(self, logrecord):
+        return 'actorAddress' in logrecord.__dict__
+class notActorLogFilter(logging.Filter):
+    def filter(self, logrecord):
+        return 'actorAddress' not in logrecord.__dict__
 
 logcfg = { 'version': 1,
-    'formatters': {
-        'normal': {'format': '%(levelname)-8s %(message)s'},
-        'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
-    'filters': { 'isActorLog': { '()': actorLogFilter},
-                'notActorLog': { '()': notActorLogFilter}},
-    'handlers': { 'h1': {'class': 'logging.StreamHandler',
-                        'formatter': 'normal',
-                        'filters': ['notActorLog'],
-                        'level': logging.INFO},
-                    'h2': {'class': 'logging.StreamHandler',
-                        'formatter': 'actor',
-                        'filters': ['isActorLog'],
-                        'level': logging.INFO},},
-    'loggers' : { '': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
-    }
+           'formatters': {
+               'normal': {'format': '%(levelname)-8s %(message)s'},
+               'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
+           'filters': { 'isActorLog': { '()': actorLogFilter},
+                        'notActorLog': { '()': notActorLogFilter}},
+           'handlers': { 'h1': {'class': 'logging.FileHandler',
+                                'filename': 'example.log',
+                                'formatter': 'normal',
+                                'filters': ['notActorLog'],
+                                'level': logging.INFO},
+                         'h2': {'class': 'logging.FileHandler',
+                                'filename': 'example.log',
+                                'formatter': 'actor',
+                                'filters': ['isActorLog'],
+                                'level': logging.INFO},},
+           'loggers' : { '': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
+         }
+
+# logcfg = { 'version': 1,
+#     'formatters': {
+#         'normal': {'format': '%(levelname)-8s %(message)s'},
+#         'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
+#     'filters': { 'isActorLog': { '()': actorLogFilter},
+#                 'notActorLog': { '()': notActorLogFilter}},
+#     'handlers': { 'h1': {'class': 'logging.StreamHandler',
+#                         'formatter': 'normal',
+#                         'filters': ['notActorLog'],
+#                         'level': logging.INFO},
+#                     'h2': {'class': 'logging.StreamHandler',
+#                         'formatter': 'actor',
+#                         'filters': ['isActorLog'],
+#                         'level': logging.INFO},},
+#     'loggers' : { '': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
+#     }
 
 capabilities = dict([('Admin Port', 19000)])
 
@@ -87,6 +115,7 @@ import glob
 from zipfile import ZipFile
 from thespian.actors import *
 from mTree.microeconomic_system import *
+from mTree.server.websocket_router import WebsocketRouter
 
 
 class SimpleSourceAuthority(Actor):
@@ -107,14 +136,38 @@ class ActorSystemStartup:
         self.actor_system = None
         #print("ACTOR SYSTEM STARTING")
         capabilities = dict([('Admin Port', 19000)])
-        self.actor_system = ActorSystem('multiprocTCPBase', capabilities)
+        self.actor_system = ActorSystem('multiprocTCPBase', capabilities=capabilities, logDefs=logcfg)
         #print("ACTOR SYSTEM STARTED")
         
     def startup(self):
         capabilities = dict([('Admin Port', 19000)])
         #print("Startup of source authority...")
-        self.sa = ActorSystem('multiprocTCPBase', capabilities).createActor(SimpleSourceAuthority)
+        self.sa = ActorSystem('multiprocTCPBase', capabilities=capabilities).createActor(SimpleSourceAuthority)
         self.actor_system.tell(self.sa, True)
+        
+        # create the dispatcher early to make the status object available
+        dispatcher = ActorSystem("multiprocTCPBase", capabilities=capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+
+        # try the websocket actor
+        web_socket_router_actor = ActorSystem("multiprocTCPBase", capabilities=capabilities).createActor(WebSocketRouterActor, globalName = "WebSocketRouterActor")
+        
+        #self.websocket_router = WebsocketRouter()
+
+        start_message = Message()
+        start_message.set_sender("websocketrouter")
+        start_message.set_directive("register_websocket_router")
+        
+        self.actor_system.tell(dispatcher, start_message)
+        self.actor_system.tell(web_socket_router_actor, start_message)
+        self.actor_system.tell(web_socket_router_actor, start_message)
+
+        self.actor_system.tell(web_socket_router_actor, start_message)
+
+        self.actor_system.tell(web_socket_router_actor, start_message)
+
+        self.actor_system.tell(web_socket_router_actor, start_message)
+
+        
         #self.load_base_mes()
 
     # def load_base_mes(self):
