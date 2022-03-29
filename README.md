@@ -67,3 +67,4 @@ Checking for python processes in powershell:
 kill all python processes in powershell:
 Stop-Process -Name "python" -Force
 
+Docker dom

@@ -16,7 +16,9 @@ import sys
 
 from mTree.microeconomic_system.subject_container import SubjectContainer
 
-from mTree.components.admin_message import AdminMessage
+from mTree.microeconomic_system.admin_message import AdminMessage
+
+# from mTree.components.admin_message import AdminMessage
 import mTree
 
 import logging
@@ -175,7 +177,7 @@ class DevelopmentServer(object):
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
         thread = None
-        self.socketio = SocketIO(self.app, async_mode=self.async_mode)
+        self.socketio = SocketIO(self.app, async_mode=self.async_mode, logger=True, engineio_logger=True)
         template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
                                                jinja2.PackageLoader('mTree', 'development/development_templates'),
                                                ])
@@ -242,16 +244,20 @@ class DevelopmentServer(object):
             #try:
             #    return sys.modules[fullname]
             #except KeyError:
-            spec = importlib.util.spec_from_file_location(module_name, filename)
-            #spec = importlib.util.find_spec(fullname)
-            #sys.modules[module_name] = ModuleType(module_name)
-            module = importlib.util.module_from_spec(spec)
-            loader = importlib.util.LazyLoader(spec.loader)
-            # Make module with proper locking and get it inserted into sys.modules.
-            a = loader.exec_module(module)
-            sys.modules[module_name] = module
-            #return module
-            print(sys.modules[module_name])
+            try:
+                spec = importlib.util.spec_from_file_location(module_name, filename)
+                #spec = importlib.util.find_spec(fullname)
+                #sys.modules[module_name] = ModuleType(module_name)
+                module = importlib.util.module_from_spec(spec)
+                loader = importlib.util.LazyLoader(spec.loader)
+                # Make module with proper locking and get it inserted into sys.modules.
+                a = loader.exec_module(module)
+                sys.modules[module_name] = module
+                #return module
+            
+                print(sys.modules[module_name])
+            except Exception as e:
+                pass
             #foo = importlib.util.module_from_spec(spec)
             #loader = importlib.util.LazyLoader(spec.loader)
 
@@ -316,11 +322,67 @@ class DevelopmentServer(object):
         print("APSCHEDULER EVENT " + str(event))
 
     def add_routes(self):
+
+        @self.socketio.on('connect')
+        def test_connect(auth):
+            self.socketio.emit('my response', {'data': 'Connected'})
+
+        @self.socketio.on('disconnect')
+        def test_disconnect():
+            print('Client disconnected!!!!')
+
         @self.socketio.on('run_test_configuration', namespace='/developer')
         def run_test_configuration(message):
             print("Shoud start to run a sim")
             print(message)
             self.actor_system.send_message()
+            #return self.component_registry.message(message)
+
+
+        @self.socketio.on('message', namespace='/developer')
+        def message_handler(message):
+            print("RECEIVED GENERIC MESSAGE")
+            print(message)
+            self.socketio.send(message, namespace='/developer', broadcast=True)
+
+
+        # @self.socketio.on('admin_mes_message', namespace='/developer')
+        # def admin_mes_message(message):
+        #     self.actor_system.send_message()
+        #     self.socketio.send(message, namespace='/developer', broadcast=True)
+
+        @self.socketio.on('admin_mes_message', namespace='/developer')
+        def admin_mes_message(message):
+            admin_message = AdminMessage(request=message["request"])
+
+            self.actor_system.send_message(admin_message)
+
+        @self.socketio.on('admin_mes_response', namespace='/developer')
+        def admin_mes_response(message):
+            print("RECEIVED GENERIC MESSAGE")
+            print(message)
+            self.socketio.emit('mes_response', message, namespace='/developer', broadcast=True)
+
+
+
+        @self.socketio.on('system_status', namespace='/developer')
+        def system_status(message):
+            print("Retrieved system status")
+            print(message)
+            self.socketio.send(message, namespace='/developer', broadcast=True)
+
+            #return self.component_registry.message(message)
+
+
+        @self.socketio.on('get_system_status', namespace='/developer')
+        def get_system_status(message):
+            print("Shoud start to run a sim")
+            print(message)
+            self.actor_system.send_message(message)
+            self.socketio.emit({'data': 'echo back'}, namespace='/developer', broadcast=True)
+
+            # self.socketio.emit('message', {'data': 'foo'}, namespace='/admin', broadcast=True)
+
             #return self.component_registry.message(message)
 
         @self.socketio.on('log_message_display', namespace='/log_messages')

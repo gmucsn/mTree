@@ -26,7 +26,7 @@ development_area = Blueprint('development_area', __name__, template_folder='temp
 development_area.jinja_loader = jinja2.ChoiceLoader([
     development_area.jinja_loader,
     jinja2.PackageLoader('mTree', 'development/development_templates'),
-    jinja2.PackageLoader(__name__) # in the same folder will search the 'templates' folder
+    #jinja2.PackageLoader(__name__) # in the same folder will search the 'templates' folder
 ])
 
 @development_area.route('/', defaults={'page': 'index'})
@@ -86,6 +86,14 @@ def mes_configuration_view():
 
     return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title) 
 
+
+@development_area.route('/status')
+def status():
+    #try:
+        title = "Status"
+        return render_template('status.html',  title=title)
+        #except TemplateNotFound:
+        #    abort(404)
 
 #@development_area.route('/', defaults={'page': 'index'})
 @development_area.route('/mes_components')

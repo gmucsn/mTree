@@ -1,0 +1,34 @@
+{% extends 'index.html' %}
+
+
+{% block mesnav %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ title }}</h1>
+  </div>
+{% endblock %}
+
+
+{% block content %}
+
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row placeholders">
+<button id="send_status_request">Check Status</button>             
+
+          </div>
+
+        </div>
+    </div>
+
+    <script>
+      $('#send_status_request').click(() => {
+
+        const mTreeConnection = new MTreeConnection();
+        console.log(mTreeConnection);
+        mTreeConnection.send_admin_message({"request": "system_status"});
+                    
+
+                }
+            );
+
+    </script>
+{% endblock %}

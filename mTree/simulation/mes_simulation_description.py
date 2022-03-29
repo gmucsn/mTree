@@ -21,6 +21,9 @@ simulation_description_schema = {
     "description": {
       "type": "string"
     },
+    "number_of_runs": {
+      "type": "integer"
+    },
     "environment": {
       "type": "string"
     },
@@ -82,8 +85,10 @@ class MESSimulationDescription():
         self.name = None
         self.id = str(uuid.uuid1())
         self.description = None
+        self.number_of_runs = None
         self.environment = None
         self.institution = None
+        self.data_logging = None
         self.agents = []
         self.properties = {}
 
@@ -99,7 +104,6 @@ class MESSimulationDescription():
         self.import_json(configuration)
 
     def import_json(self, input_json):
-        print("importing json")
         try:
             # TODO Fix configuration schema validation
             # currently there is an issue on the properties setup...
@@ -113,6 +117,8 @@ class MESSimulationDescription():
             self.mtree_type = input_json["mtree_type"]
         if "name" in input_json.keys():
             self.name = input_json["name"]
+        if "number_of_runs" in input_json.keys():
+            self.number_of_runs = input_json["number_of_runs"]
         if "id" in input_json.keys():
             self.id = input_json["id"]
         if "description" in input_json.keys():
@@ -121,11 +127,19 @@ class MESSimulationDescription():
             print(input_json["environment"])
             self.environment  = input_json["environment"]
         if "institution" in input_json.keys():
-            self.institution = input_json["institution"]
+            self.institutions = [{"institution": input_json["institution"]}]
+        if "institutions" in input_json.keys():
+          if isinstance(input_json["institutions"], str):
+            self.institutions = [{"institution": input_json["institutions"]}]
+          else:
+            self.institutions = input_json["institutions"]
         if "agents" in input_json.keys():
             self.agents = input_json["agents"]
         if "properties" in input_json.keys():
             self.properties= input_json["properties"]
+        if "data_logging" in input_json.keys():
+            self.data_logging= input_json["data_logging"]
+
 
     def set_name(self, name):
         self.name = name
@@ -162,11 +176,15 @@ class MESSimulationDescription():
         temp_dict["name"] = self.name
         temp_dict["id"] = self.id
         temp_dict["description"] = self.description
+        temp_dict["number_of_runs"] = self.number_of_runs
 
         temp_dict["environment"] = self.environment
-        temp_dict["institution"] = self.institution
+        #temp_dict["institution"] = self.institution
+        temp_dict["institutions"] = self.institutions
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
+        temp_dict["data_logging"] = self.data_logging
+        
         json_output = json.dumps(temp_dict)
         print(json_output)
     
@@ -177,9 +195,13 @@ class MESSimulationDescription():
         temp_dict["id"] = self.id
         temp_dict["description"] = self.description
         temp_dict["environment"] = self.environment
-        temp_dict["institution"] = self.institution
+        #temp_dict["institution"] = self.institution
+        temp_dict["institutions"] = self.institutions
+        temp_dict["number_of_runs"] = self.number_of_runs
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
+        temp_dict["data_logging"] = self.data_logging
+        
         return temp_dict
         
 

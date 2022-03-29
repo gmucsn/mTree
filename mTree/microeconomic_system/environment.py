@@ -8,23 +8,22 @@ from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.mes_exceptions import *
+from mTree.microeconomic_system.sequence_event import SequenceEvent
 import time
 
 import traceback
 import json
 import os
+import sys
 
 
 
 @directive_enabled_class
 class Environment(Actor):
-    def __str__(self):
-        return "<Environment: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
-
-    def __repr__(self):
-        return self.__str__()
-
     def __init__(self):
+        self.address_book = AddressBook(self)
         self.log_actor = None
         self.simulation_id = None
         self.run_number = None
@@ -33,11 +32,42 @@ class Environment(Actor):
         self.agent_addresses = []
         self.mtree_properties = {}
 
+    def __str__(self):
+        return "<Environment: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
+
+    def __repr__(self):
+        return self.__str__()
+
+    
+    @directive_decorator("shutdown_mes")
+    def shutdown_mes(self, message:Message=None):
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("shutdown_mes")
+        payload = {}
+        new_message.set_payload(payload)
+        self.send(self.dispatcher, new_message)
+
+    @directive_decorator("excepted_mes")
+    def excepted_mes(self, message:Message):
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("excepted_mes")
+        payload = {}
+        new_message.set_payload(payload)
+        self.send(self.dispatcher, new_message)
+
+
+
     def close_environment(self):
         #asys.shutdown()
         pass
 
-    
+    def get_simulation_property(self, name):
+        if name not in self.mtree_properties.keys():
+            raise Exception("Simulation property: " + str(name) + " not available")
+        return self.mtree_properties[name]
+
     
     def end_round(self):
         new_message = Message()
@@ -59,22 +89,99 @@ class Environment(Actor):
     def receiveMessage(self, message, sender):
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
-            #try:
-                directive_handler = self._enabled_directives.get(message.get_directive())
-                directive_handler(self, message)
-            # except Exception as e:
-            #     print("ENV: ERROR")
-            #     traceback.print_exc()
-            #     print("%^" * 25)
-            #     #.exception("EXCEPTION HAPPENED: %s -- %s -- %s", self, message, e)
-            #     self.actorSystemShutdown()
+            try:
+                if message.get_directive() not in self._enabled_directives.keys():
+                    raise UndefinedDirectiveException(message.get_directive())
 
+                directive_handler = self._enabled_directives.get(message.get_directive())
+                try:
+                    self.log_message("Environment: About to enter directive: " + message.get_directive())
+                except:
+                    pass
+
+                try:
+                    self.log_sequence_event(message)
+                except:
+                   pass
+
+                directive_handler(self, message)
+                try:
+                    self.log_message("Environment: Exited directive: " + message.get_directive())
+                except:
+                    pass
+            except Exception as e:
+                error_type, error, tb = sys.exc_info()
+                error_message = "MES ENVIRONMENT CRASHING - EXCEPTION FOLLOWS \n"
+                error_message += "\tSource Message: " + str(message) + "\n"
+                error_message += "\tError Type: " + str(error_type) + "\n"
+                error_message += "\tError: " + str(error) + "\n"
+                traces = traceback.extract_tb(tb)
+                trace_output = "\tTrace Output: \n"
+                for trace_line in traceback.format_list(traces):
+                    trace_output += "\t" + trace_line + "\n"
+                error_message += "\n"
+                error_message += trace_output
+                self.log_message(error_message)
+                
+                # self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
+                # self.log_message("\tSource Message: " + str(message))
+                # filename, lineno, func_name, line = traceback.extract_tb(tb)[-1]
+                # self.log_message("\tError Type: " + str(error_type))
+                # self.log_message("\tError: " + str(error))
+                # self.log_message("\tFilename: " + str(filename))
+                # self.log_message("\tLine Number: " + str(lineno))
+                # self.log_message("\tFunction Name: " + str(func_name))
+                # self.log_message("\tLine: " + str(line))
+                
+                
+        elif isinstance(message, WakeupMessage):
+            try:
+                wakeup_message = message.payload
+                directive_handler = self._enabled_directives.get(wakeup_message.get_directive())
+                directive_handler(self, wakeup_message)
+            except Exception as e:
+                self.log_message("MES ENVIRONMENT CRASHING - EXCEPTION FOLLOWS")
+                self.log_message("\tSource Message: " + str(message))
+                error_type, error, tb = sys.exc_info()
+                self.log_message("\tError Type: " + str(error_type))
+                self.log_message("\tError: " + str(error))
+                traces = traceback.extract_tb(tb)
+                trace_output = "\tTrace Output: \n"
+                for trace_line in traceback.format_list(traces):
+                    trace_output += "\t" + trace_line + "\n"
+                self.log_message(trace_output)
+                
     def get_property(self, property_name):
         try:
             return self.mtree_properties[property_name]
         except:
             return None
 
+
+    def reminder(self, seconds_to_reminder, message, addresses=None):
+        if addresses is None:
+            if type(seconds_to_reminder) is timedelta:
+                self.wakeupAfter( seconds_to_reminder, payload=message)    
+            else:
+                # TODO if not seconds then reject
+                self.wakeupAfter( timedelta(seconds=seconds_to_reminder), payload=message)
+        else:
+            new_message = Message()
+            new_message.set_directive("external_reminder")
+            new_message.set_sender(self.myAddress)
+            payload = {}
+            payload["reminder_message"] = message
+            payload["seconds_to_reminder"] = seconds_to_reminder
+            new_message.set_payload(payload)
+
+            for agent in addresses:
+                self.send(agent, new_message)                
+
+    @directive_decorator("external_reminder")
+    def external_reminder(self, message:Message):
+        reminder_message = message.get_payload()["reminder_message"]
+        seconds_to_reminder = message.get_payload()["seconds_to_reminder"]
+        self.reminder(seconds_to_reminder, reminder_message)
 
     @directive_decorator("initialize_log_actor")
     def initialize_log_actor(self, message:Message):
@@ -95,9 +202,20 @@ class Environment(Actor):
 
         log_basis["simulation_run_id"] = message.get_payload()["simulation_run_id"]
         log_basis["simulation_id"] = message.get_payload()["simulation_id"]
-        log_basis["mes_directory"] = message.get_payload()["mes_directory"]
-        self.send(self.log_actor, log_basis)     
+        log_basis["run_number"] = message.get_payload()["simulation_run_number"]
         
+        log_basis["mes_directory"] = message.get_payload()["mes_directory"]
+        log_basis["data_logging"] = message.get_payload()["data_logging"]
+        log_basis["simulation_configuration"] = message.get_payload()["simulation_configuration"]
+        self.send(self.log_actor, log_basis) 
+        
+
+    def log_sequence_event(self, message):
+        sequence_event = SequenceEvent(message.timestamp, message.get_payload_property("short_name"), self.short_name, message.get_directive())
+        self.send(self.log_actor, sequence_event)
+
+        
+
     def log_message(self, logline):
         log_message = LogMessage(message_type="log", content=logline)
         self.send(self.log_actor, log_message)
@@ -113,7 +231,7 @@ class Environment(Actor):
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
-        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        self.dispatcher = message.get_sender()
         #self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
@@ -126,6 +244,9 @@ class Environment(Actor):
 
     @directive_decorator("setup_agents")
     def setup_agents(self, message:Message):
+        if "address_book" not in dir(self):
+            self.address_book = AddressBook(self)        
+
         if "agents" not in dir(self):
             self.agents = []
             self.agent_addresses = []
@@ -143,32 +264,62 @@ class Environment(Actor):
         #     memory = True
         #     agent_memory = message.get_payload()["agent_memory"]
         for i in range(num_agents):
-            self.log_message("CREATING A NEW AGENT: " + agent_class)
+        
             new_agent = self.createActor(agent_class, sourceHash=source_hash)
+            
             self.agent_addresses.append(new_agent)
             self.agents.append([new_agent, agent_class])
+            agent_number = i + 1
+            agent_info = {}
+            agent_info["address_type"] = "agent"
+            agent_info["address"] = new_agent
+            agent_info["component_class"] = agent_class
+            agent_info["component_number"] = agent_number
+            agent_info["short_name"] = agent_class + " " + str(agent_number)
+
+            self.address_book.add_address(agent_info["short_name"], agent_info)
+
             new_message = Message()
             #new_message.set_sender(self.myAddress)
             new_message.set_directive("simulation_properties")
+            new_message.set_sender(self.myAddress)
             payload = {}
             #if "mtree_properties" not in dir(self):
             payload["log_actor"] = self.log_actor
             #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
-            #payload["properties"] = self.mtree_properties
+            payload["properties"] = self.mtree_properties
+            payload["agent_information"] = agent_info
+            
             # if memory:
             #     payload["agent_memory"] = agent_memory
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
+
+        
 
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
         if "institutions" not in dir(self):
             self.institutions = []
 
+        if "address_book" not in dir(self):
+            self.address_book = AddressBook(self)
+        
+
         institution_class = message.get_payload()["institution_class"]
         source_hash = message.get_payload()["source_hash"]
-        
+        institution_order = message.get_payload()["order"]
+
         new_institution = self.createActor(institution_class, sourceHash=source_hash)
+        institution_info = {}
+        institution_info["address_type"] = "institution"
+        institution_info["address"] = new_institution
+        institution_info["component_class"] = institution_class
+        institution_info["component_number"] = 1
+        institution_info["short_name"] = institution_class + " " + str(institution_order)
+        self.address_book.add_address(institution_info["short_name"], institution_info)
+
+
         new_message = Message()
         #new_message.set_sender(self.myAddress)
         new_message.set_directive("simulation_properties")
@@ -185,10 +336,24 @@ class Environment(Actor):
         if "run_number" in dir(self):
             payload["run_number"] = self.run_number
 
+        payload["institution_info"] = institution_info
+
         new_message.set_payload(payload)
         self.send(new_institution, new_message)
 
         self.institutions.append(new_institution)
+
+    def send(self, targetAddress, message):
+        if hasattr(self, 'short_name') and type(message) is Message:
+            try:
+                message.set_payload_property("short_name", self.short_name)
+            except:
+                message.set_payload_property("short_name", self.__class__.__name__)
+
+        if isinstance(message, Message):
+            self.log_message("Environment: sending to "  + " directive: " + message.get_directive() )
+        super().send(targetAddress, message)
+
 
     def list_agents(self):
         message = MessageSpace.list_agents()

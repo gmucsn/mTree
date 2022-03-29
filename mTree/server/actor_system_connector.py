@@ -13,6 +13,7 @@ from mTree.microeconomic_system.dispatcher import Dispatcher
 from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
 from mTree.microeconomic_system.outconnect import OutConnect
 from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.container import Container
 from mTree.microeconomic_system.simulation_container import SimulationContainer
 from thespian.actors import *
@@ -76,6 +77,8 @@ class ActorSystemConnector():
             self.container = None
             self.configuration = None
             ActorSystemConnector.__instance = self
+            self.dispatchers = []
+            self.source_hashes = []
 
     # def __new__(self):
     #     if not ActorSystemConnector.instance:
@@ -92,7 +95,6 @@ class ActorSystemConnector():
         plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
         base_components = []
         for plugin_file_path in plugin_file_paths:
-            print(plugin_file_path)
             plugin_file_name = os.path.basename(plugin_file_path)
             module_name = os.path.splitext(plugin_file_name)[0]
             if module_name.startswith("__"):
@@ -104,12 +106,13 @@ class ActorSystemConnector():
         plugin_file_paths = glob.glob(os.path.join(script_dir, "*.py"))
         
         for plugin_file_path in plugin_file_paths:
-            print("Pluging.. .", plugin_file_path)
             plugin_file_name = os.path.basename(plugin_file_path)
             module_name = os.path.splitext(plugin_file_name)[0]
             if module_name.startswith("__"):
                 continue
             base_components.append([plugin_file_path, plugin_file_name])
+            # Here is where we collect all files to include in the thespian submitted artifact
+            #print("--> ", plugin_file_path)
 
 
         with ZipFile('temp_components.zip', 'w') as zipObj2:
@@ -118,21 +121,25 @@ class ActorSystemConnector():
 
         capabilities = dict([('Admin Port', 19000)])
 
-        asys = ActorSystem('multiprocTCPBase', capabilities)
-        source_hash = asys.loadActorSource('temp_components.zip')
-        print("SOURCE HASH VERIFIED")
-        print(source_hash)
-        #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
-        os.remove("temp_components.zip")
+        source_hash = None
+        try:
+            asys = ActorSystem('multiprocTCPBase', capabilities)
+            source_hash = asys.loadActorSource('temp_components.zip')
+            #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
+            os.remove("temp_components.zip")
+        except:
+            pass
         return source_hash
 
-
-    def run_simulation(self, mes_base_dir, run_configuration):
+    def run_simulation(self, mes_base_dir, configuration_filename, run_configuration):
         #sa = ActorSystem("multiprocTCPBase", capabilities).createActor(SimpleSourceAuthority)
         #ActorSystem("multiprocTCPBase").tell(sa, True)
         
-        
+        print("!&@#*" * 25)
+        print(json.dumps(run_configuration))
+
         source_hash = self.load_base_mes(mes_base_dir)
+        print(source_hash)
         # if self.instance.container is None:
         #     self.instance.container = SimulationContainer()
         # self.instance.container.create_dispatcher()
@@ -141,8 +148,13 @@ class ActorSystemConnector():
         # actor_system = ActorSystem()
         capabilities = dict([('Admin Port', 19000)])
 
-        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        # Kill old dispatchers....
 
+        # for dispatcher in self.__instance.dispatchers:
+        #     ActorSystem().tell(dispatcher, ActorExitRequest())
+
+        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        self.__instance.dispatchers.append(dispatcher)
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
 
         configuration_message = Message()
@@ -160,43 +172,72 @@ class ActorSystemConnector():
         #     }]
         run_configuration["source_hash"] = source_hash
 
-
+        # simulation_run_id is set here
+        # we use a human readable date format
+        
+        config_base_name = os.path.basename(configuration_filename).split('.')[0]
         nowtime = datetime.datetime.now().timestamp()
-        simulation_run_id = str(nowtime).split(".")[0]
+        nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+        simulation_run_id = config_base_name + "-" + nowtime_filename #str(nowtime).split(".")[0]
+        
+
 
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
         configuration_message.set_payload(run_configuration)
         ActorSystem().tell(dispatcher, configuration_message)
 
+    def get_status(self):
+        if len(self.__instance.dispatchers) == 0:
+            return "None"
+        else:
+            dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+            configuration_message = Message()
+            configuration_message.set_directive("check_status")
+            response = ActorSystem().ask(dispatcher, configuration_message)
+            return response
 
-    def send_message(self):
-        # if self.instance.container is None:
-        #     self.instance.container = SimulationContainer()
-        # self.instance.container.create_dispatcher()
-        capabilities = dict([('Admin Port', 19000)])
-
-        actor_system = ActorSystem("multiprocTCPBase", capabilities)
-
-        sa = actor_system.createActor(SimpleSourceAuthority)
-        actor_system.tell(sa, True)
+    def kill_run_by_id(self, run_id):
         dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
-
-        outconnect = ActorSystem("multiprocTCPBase", capabilities).createActor(OutConnect, globalName = "OutConnect")
-
         configuration_message = Message()
-        configuration_message.set_directive("simulation_configurations")
-        configuration = [{"mtree_type": "mes_simulation_description",
-            "name":"Basic CVA Run",
-            "id": "1",
-            "environment": "CVAEnvironment",
-            "institution": "CVAInstitution",
-            "number_of_runs": 1,
-            "agents": [{"agent_name": "CVASimpleAgent", "number": 5}],
-            "properties": {
-                "agent_endowment": 10
-                }
-            }]
-        configuration_message.set_payload(configuration)
+        configuration_message.set_directive("kill_run_by_id")
+        payload = {}
+        payload["run_id"] = run_id
+        configuration_message.set_payload(payload)
         ActorSystem().tell(dispatcher, configuration_message)
+
+    def send_message(self, message):
+        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        ActorSystem().tell(dispatcher, message)
+
+    # 2022 purge
+    # def send_message(self):
+    #     # if self.instance.container is None:
+    #     #     self.instance.container = SimulationContainer()
+    #     # self.instance.container.create_dispatcher()
+    #     capabilities = dict([('Admin Port', 19000)])
+
+    #     actor_system = ActorSystem("multiprocTCPBase", capabilities)
+
+    #     sa = actor_system.createActor(SimpleSourceAuthority)
+    #     actor_system.tell(sa, True)
+    #     dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+
+    #     outconnect = ActorSystem("multiprocTCPBase", capabilities).createActor(OutConnect, globalName = "OutConnect")
+
+    #     configuration_message = Message()
+    #     configuration_message.set_directive("simulation_configurations")
+    #     configuration = [{"mtree_type": "mes_simulation_description",
+    #         "name":"Basic CVA Run",
+    #         "id": "1",
+    #         "environment": "CVAEnvironment",
+    #         "institution": "CVAInstitution",
+    #         "number_of_runs": 1,
+    #         "agents": [{"agent_name": "CVASimpleAgent", "number": 5}],
+    #         "properties": {
+    #             "agent_endowment": 10
+    #             }
+    #         }]
+    #     configuration_message.set_payload(configuration)
+    #     ActorSystem().tell(dispatcher, configuration_message)
        
