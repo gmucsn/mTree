@@ -11,24 +11,39 @@
 {% block content %}
 
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <div class="row placeholders">
-<button id="send_status_request">Check Status</button>             
+          <div class="row">
+            <h3>MES Status</h3>
+            <table class="table table-striped table-hover" id="status-table">
+              <thead>
+                <tr>
+                  <th scope="col">Run Code</th>
+                  <th scope="col">Configuration</th>
+                  <th scope="col">Run Number</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Total Time</th>
+                </tr>
+              </thead>
+              <tbody id="status-body">
+                <tr>
+                  <td colspan="5">No runs available</td>
+                </tr>
+              </tbody>
 
+            </table>
           </div>
 
         </div>
     </div>
 
     <script>
-      $('#send_status_request').click(() => {
 
+      function check_status(){
         const mTreeConnection = new MTreeConnection();
         console.log(mTreeConnection);
         mTreeConnection.send_admin_message({"request": "system_status"});
-                    
-
-                }
-            );
+        setTimeout(check_status,2000);
+      }
+      setTimeout(check_status,2000);
 
     </script>
 {% endblock %}

@@ -13,7 +13,7 @@ def main():
     print("BACKGROUND ACTOR STARTING UP THE ACTOR ENVIRONMENT")
     time.sleep(2)
     actor_system = ActorSystemStartup()
-    actor_system.startup()
+    #actor_system.startup()
     print("BACKGROUND ACTOR STARTUP COMPLETED")
 
 

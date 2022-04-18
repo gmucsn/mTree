@@ -137,10 +137,11 @@ class ActorSystemStartup:
         #print("ACTOR SYSTEM STARTING")
         capabilities = dict([('Admin Port', 19000)])
         self.actor_system = ActorSystem('multiprocTCPBase', capabilities=capabilities, logDefs=logcfg)
+
+        # checking to see if the system is already running
         #print("ACTOR SYSTEM STARTED")
         
     def startup(self):
-        capabilities = dict([('Admin Port', 19000)])
         #print("Startup of source authority...")
         self.sa = ActorSystem('multiprocTCPBase', capabilities=capabilities).createActor(SimpleSourceAuthority)
         self.actor_system.tell(self.sa, True)
@@ -158,13 +159,6 @@ class ActorSystemStartup:
         start_message.set_directive("register_websocket_router")
         
         self.actor_system.tell(dispatcher, start_message)
-        self.actor_system.tell(web_socket_router_actor, start_message)
-        self.actor_system.tell(web_socket_router_actor, start_message)
-
-        self.actor_system.tell(web_socket_router_actor, start_message)
-
-        self.actor_system.tell(web_socket_router_actor, start_message)
-
         self.actor_system.tell(web_socket_router_actor, start_message)
 
         

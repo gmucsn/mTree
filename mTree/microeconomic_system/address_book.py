@@ -10,6 +10,7 @@ class AddressBook:
         
         self.agents = {}
         self.institutions = {}
+        self.environment = None
         
 
 
@@ -55,6 +56,9 @@ class AddressBook:
 
     def get_institutions(self):
         return self.institutions
+
+    def get_environment(self):
+        return self.environment
 
 
     def add_address(self, address, additional_information=None):

@@ -65,6 +65,10 @@
           this.socket.on('mes_response', (msg) => {
               console.log("MES RESPONDING>>>>");
               console.log(msg);
+              if (msg.response == "system_status"){
+                this.update_status_table(msg);
+              }
+
             });
 
 
@@ -72,6 +76,33 @@
             console.log(message);
           });
 
+
+        }
+
+        update_status_table(message){
+          $("#status-body").empty()
+
+          var status = message.payload.status;
+          
+          if (status.length == 0){
+            var row = $('<tr>');
+            row.append($('<td>').text("No runs available"));
+            $("#status-body").append(row);
+            
+
+          } else {
+            for(var i=0; i< status.length; i++){
+                var row = $('<tr>');
+                row.append($('<td>').text(status[i][0]));
+                row.append($('<td>').text(status[i][1]));
+                row.append($('<td>').text(status[i][2]));
+                row.append($('<td>').text(status[i][3]));
+                row.append($('<td>').text(status[i][4]));
+                $("#status-body").append(row);
+            }
+
+          }
+          
 
         }
 

@@ -24,6 +24,7 @@ import sys
 class Environment(Actor):
     def __init__(self):
         self.address_book = AddressBook(self)
+        self.short_name = None
         self.log_actor = None
         self.simulation_id = None
         self.run_number = None
