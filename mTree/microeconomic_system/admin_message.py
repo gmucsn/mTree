@@ -22,6 +22,8 @@ class AdminMessage(object):
     def get_payload(self):
         return self.payload
 
+    def set_payload(self, payload):
+        self.payload = payload
 
     def __str__(self):
         return "<AdminMessage Request: {}, Response: {}, Payload: {}>".format(self.request, self.response, self.payload)

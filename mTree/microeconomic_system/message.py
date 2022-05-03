@@ -12,12 +12,27 @@ class Message(object):
         self.recipients = recipients
         self.directive = directive
         self.content = content
+        self.short_name = None
 
     def __str__(self):
-        return "<Message Sender: {}, Recipients: {}, Directive: {}, Content: {}>".format(self.sender,
+        sender = ""
+        try:
+            if "short_name" in self.content.keys():
+                sender = self.content["short_name"]
+        except:
+            pass
+
+        return "<Message Sender: {}, Recipients: {}, Directive: {}, Content: {}>".format(sender,
                                                                                          self.recipients,
                                                                                          self.directive,
                                                                                          self.content)
+
+    def set_short_name(self, short_name):
+        self.short_name = short_name
+
+    def get_short_name(self):
+        return self.short_name
+
 
     def set_sender(self, sender):
         self.sender = sender

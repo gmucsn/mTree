@@ -22,16 +22,16 @@ import sys
 
 @directive_enabled_class
 class Environment(Actor):
-    def __init__(self):
-        self.address_book = AddressBook(self)
-        self.short_name = None
-        self.log_actor = None
-        self.simulation_id = None
-        self.run_number = None
-        self.institutions = []
-        self.agents = []
-        self.agent_addresses = []
-        self.mtree_properties = {}
+    # def __init__(self):
+    #     self.address_book = AddressBook(self)
+    #     self.short_name = None
+    #     self.log_actor = None
+    #     self.simulation_id = None
+    #     self.run_number = None
+    #     self.institutions = []
+    #     self.agents = []
+    #     self.agent_addresses = []
+    #     self.mtree_properties = {}
 
     def __str__(self):
         return "<Environment: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
@@ -40,6 +40,16 @@ class Environment(Actor):
         return self.__str__()
 
     
+    @directive_decorator("update_mes_status")
+    def update_mes_status(self, message:Message=None):
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive("update_mes_status")
+        payload = message.get_payload()
+        new_message.set_payload(payload)
+        self.send(self.log_actor, new_message)
+                
+
     @directive_decorator("shutdown_mes")
     def shutdown_mes(self, message:Message=None):
         new_message = Message()
@@ -54,8 +64,7 @@ class Environment(Actor):
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("excepted_mes")
-        payload = {}
-        new_message.set_payload(payload)
+        new_message.set_payload(message.get_payload())
         self.send(self.dispatcher, new_message)
 
 
@@ -122,8 +131,25 @@ class Environment(Actor):
                     trace_output += "\t" + trace_line + "\n"
                 error_message += "\n"
                 error_message += trace_output
-                self.log_message(error_message)
+                #self.log_message(error_message)
+                self.log_message("Environment: EXCEPTION! Check exception log. ")
+                exception_payload = {}
+                exception_payload["error_message"] = error_message
+                exception_payload["source_message"]= str(message)
+                exception_payload["error_type"]= str(error_type)
+                exception_payload["error"]= str(error)
+
+                excepting_trace = traces[0] 
+                exception_payload["filename"] = excepting_trace.filename
+                exception_payload["lineno"] = excepting_trace.lineno
+                exception_payload["name"] = excepting_trace.name
+                exception_payload["line"] = excepting_trace.line
                 
+                self.excepted_mes(exception_payload)
+                #### 
+                # EXCEPTION HANDLING>..
+                ####
+
                 # self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
                 # self.log_message("\tSource Message: " + str(message))
                 # filename, lineno, func_name, line = traceback.extract_tb(tb)[-1]
@@ -151,6 +177,8 @@ class Environment(Actor):
                 for trace_line in traceback.format_list(traces):
                     trace_output += "\t" + trace_line + "\n"
                 self.log_message(trace_output)
+        
+
                 
     def get_property(self, property_name):
         try:
@@ -201,10 +229,23 @@ class Environment(Actor):
         log_basis = {}
         log_basis["message_type"] = "setup"
 
+        # setting short name for environment
+        #self.short_name = message.get_payload()["short_name"]
+        logging.info("ENVIRONMENT should have : " + str(message.get_payload()))
+        
+        short_name = message.get_payload()["short_name"]
+        # self.short_name = "environment"
+
+        # if "address_book" not in dir(self):
+        #     self.address_book = AddressBook(self)        
+
+        # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
+        
         log_basis["simulation_run_id"] = message.get_payload()["simulation_run_id"]
         log_basis["simulation_id"] = message.get_payload()["simulation_id"]
         log_basis["run_number"] = message.get_payload()["simulation_run_number"]
-        
+        log_basis["run_code"] = message.get_payload()["run_code"]
+        log_basis["status"] = message.get_payload()["status"]
         log_basis["mes_directory"] = message.get_payload()["mes_directory"]
         log_basis["data_logging"] = message.get_payload()["data_logging"]
         log_basis["simulation_configuration"] = message.get_payload()["simulation_configuration"]
@@ -212,7 +253,7 @@ class Environment(Actor):
         
 
     def log_sequence_event(self, message):
-        sequence_event = SequenceEvent(message.timestamp, message.get_payload_property("short_name"), self.short_name, message.get_directive())
+        sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
         self.send(self.log_actor, sequence_event)
 
         
@@ -344,17 +385,37 @@ class Environment(Actor):
 
         self.institutions.append(new_institution)
 
+    def send_message(self, directive, receiver, payload=None):
+        """Send message
+           Constructs and sends a message inside the system """
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive(directive)
+        if payload is not None:
+            new_message.set_payload(payload)
+    
+        receiver_address = self.address_book.select_addresses(
+                               {"short_name": receiver})
+
+        self.send(receiver_address, new_message)
+
+
     def send(self, targetAddress, message):
         if hasattr(self, 'short_name') and type(message) is Message:
             try:
-                message.set_payload_property("short_name", self.short_name)
+                message.set_short_name(self.short_name)
             except:
-                message.set_payload_property("short_name", self.__class__.__name__)
+                message.set_short_name(self.__class__.__name__)
+        elif type(message) is Message:
+            try:
+                message.set_short_name(self.__class__.__name__)
+            except:
+                pass
 
         if isinstance(message, Message):
             self.log_message("Environment: sending to "  + " directive: " + message.get_directive() )
         super().send(targetAddress, message)
-
+   
 
     def list_agents(self):
         message = MessageSpace.list_agents()

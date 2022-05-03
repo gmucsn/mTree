@@ -1,5 +1,6 @@
 from mTree.microeconomic_system.message import Message
 import uuid
+import logging
 
 class AddressBook:
     def __init__(self, base_component):
@@ -62,7 +63,8 @@ class AddressBook:
 
 
     def add_address(self, address, additional_information=None):
-        address_str = str(address)
+        logging.info("ADDING AN ADDRESS TO THE ADDRESS BOOK: " + address +  " - " + str(additional_information))
+        address_str = str(address) 
         self.addresses[address_str] = additional_information
         if additional_information["address_type"] == "agent":
             self.agents[address_str] = additional_information
@@ -85,11 +87,23 @@ class AddressBook:
                 List of Thespian actor addresses
         """
         address = []
+        # try:
         if "short_name" in selector.keys():
             address = [entry["address"] for entry in self.addresses.values() if entry["short_name"] == selector["short_name"]]
         elif "address_type" in selector.keys():
-            address = [entry["address"] for entry in self.addresses.values() if entry["address_type"] == selector["address_type"]]
-        
+            logging.info("SHOULD BE SELECTOR TYPE: " + str(selector))
+            logging.info("DOUBLE CHECK ADDRESS: " + str(self.addresses.values()))
+            
+            for entry in self.addresses.values():
+                try:
+                    if entry["address_type"] == selector["address_type"]:
+                        address.append(entry["address"])
+                except:
+                    pass
+            #address = [entry["address"] for entry in self.addresses.values() if entry["address_type"] == selector["address_type"]]
+        # except:
+        #     pass
+
         if len(address) == 1:
             return address[0]
         return address

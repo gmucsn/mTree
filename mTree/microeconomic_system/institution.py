@@ -28,7 +28,9 @@ class Institution(Actor):
 
 
     def log_sequence_event(self, message):
-        sequence_event = SequenceEvent(message.timestamp, message.get_payload_property("short_name"), self.short_name, message.get_directive())
+        logging.info("Institution should be sequence logging")
+        logging.info("ISL: " + str(message))
+        sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
         self.send(self.log_actor, sequence_event)
 
     def log_message(self, logline):
@@ -81,12 +83,11 @@ class Institution(Actor):
         self.send(self.environment, new_message)
         
 
-    def excepted_mes(self):
+    def excepted_mes(self, exception_payload):
         new_message = Message()
         new_message.set_directive("excepted_mes")
         new_message.set_sender(self.myAddress)
-        payload = {}
-        new_message.set_payload(payload)
+        new_message.set_payload(exception_payload)
         self.send(self.environment, new_message)
 
 
@@ -111,7 +112,9 @@ class Institution(Actor):
                 try:
                     self.log_sequence_event(message)
                 except:
-                   pass
+                    logging.info("AN EXCEPTED INSTITUTION LOGG")
+                    logging.info("EIL: " + str(message))
+                    pass
 
                 directive_handler(self, message)
                 try:
@@ -131,20 +134,22 @@ class Institution(Actor):
                     trace_output += "\t" + trace_line + "\n"
                 error_message += "\n"
                 error_message += trace_output
-                self.log_message(error_message)
-                self.excepted_mes()
-                # self.log_message("MES AGENT CRASHING - EXCEPTION FOLLOWS")
-                # self.log_message("\tSource Message: " + str(message))
-                # filename, lineno, func_name, line = traceback.extract_tb(tb)[-1]
-                # self.log_message("\tError Type: " + str(error_type))
-                # self.log_message("\tError: " + str(error))
-                # self.log_message("\tFilename: " + str(filename))
-                # self.log_message("\tLine Number: " + str(lineno))
-                # self.log_message("\tFunction Name: " + str(func_name))
-                # self.log_message("\tLine: " + str(line))
+                #self.log_message(error_message)
+                self.log_message("INSITUTION: EXCEPTION! Check exception log. ")
+                exception_payload = {}
+                exception_payload["error_message"] = error_message
+                exception_payload["source_message"]= str(message)
+                exception_payload["error_type"]= str(error_type)
+                exception_payload["error"]= str(error)
+
+                excepting_trace = traces[0] 
+                exception_payload["filename"] = excepting_trace.filename
+                exception_payload["lineno"] = excepting_trace.lineno
+                exception_payload["name"] = excepting_trace.name
+                exception_payload["line"] = excepting_trace.line
                 
-                
-                #self.actorSystemShutdown()
+                self.excepted_mes(exception_payload)
+
         elif isinstance(message, WakeupMessage):
             try:
                 wakeup_message = message.payload
@@ -198,12 +203,27 @@ class Institution(Actor):
         
         self.environment = message.get_payload()["environment"]
 
+    def send_message(self, directive, receiver, payload=None):
+        """Send message
+           Constructs and sends a message inside the system """
+        new_message = Message()
+        new_message.set_sender(self.myAddress)
+        new_message.set_directive(directive)
+        if payload is not None:
+            new_message.set_payload(payload)
+    
+        receiver_address = self.address_book.select_addresses(
+                               {"short_name": receiver})
+
+        self.send(receiver_address, new_message)
+
+
     def send(self, targetAddress, message):
         if hasattr(self, 'short_name') and type(message) is Message:
             try:
-                message.set_payload_property("short_name", self.short_name)
+                message.set_short_name(self.short_name)
             except:
-                message.set_payload_property("short_name", self.__class__.__name__)
+                message.set_short_name(self.__class__.__name__)
 
         if isinstance(message, Message):
             self.log_message("Institution (" + self.short_name + ") : sending to "  + " directive: " + message.get_directive())

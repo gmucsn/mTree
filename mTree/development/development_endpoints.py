@@ -1,25 +1,23 @@
-from flask import Blueprint, render_template, abort, request, jsonify
+from flask import Blueprint, render_template, abort, request, jsonify, redirect, url_for
+from flask import session
+from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
 from jinja2 import TemplateNotFound
 import jinja2
-from flask import session
-from flask_socketio import emit, join_room, leave_room
-#from .. import socketio
-from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
 import os
 import json
-
-
-from mTree.components import registry
-from mTree.simulation.mes_simulation_library import MESSimulationLibrary
-
-from mTree.server.configuration_scanner import ConfigurationScanner
-from mTree.runner.server_runner import ServerRunner
-from mTree.server.component_registrar import ComponentRegistrar
-from mTree.server.simulation_controller import SimulationController
-from mTree.server.actor_system_connector import ActorSystemConnector
-
 import markdown
 import markdown.extensions.fenced_code
+
+
+# from mTree.components.registry import registry
+from mTree.components.registry import Registry
+from mTree.simulation.mes_simulation_library import MESSimulationLibrary
+from mTree.server.actor_system_connector import ActorSystemConnector
+# from mTree.server.configuration_scanner import ConfigurationScanner
+# from mTree.runner.server_runner import ServerRunner
+# from mTree.server.component_registrar import ComponentRegistrar
+# from mTree.server.simulation_controller import SimulationController
+
 
 development_area = Blueprint('development_area', __name__, template_folder='templates')
 
@@ -38,7 +36,7 @@ def show(page):
         mes_folders = [ f for f in os.scandir(working_dir) if f.is_dir() and f.name[0] != "."]
 
 
-        component_registry = registry.Registry()
+        component_registry = Registry()
         return render_template('mes_library.html', mes_folders=mes_folders, registry=component_registry)
         #except TemplateNotFound:
         #    abort(404)
@@ -102,7 +100,7 @@ def mes_components():
         mes_directory = request.args.get('mes_directory')
         title = mes_directory + " - Components"
         working_dir = os.path.join(os.getcwd(), mes_directory)
-        component_registry = registry.Registry()
+        component_registry = Registry()
         component_registry.clear_contents()
         component_registry.examine_directory(working_dir)
         return render_template('mes_components.html',  title=title, mes_directory=mes_directory, registry=component_registry)
@@ -114,7 +112,7 @@ def mes_component_view():
     #try:
     mes_directory = request.args.get('mes_directory')
     
-    component_registry = registry.Registry()
+    component_registry = Registry()
     component_type = request.args.get('component_type')
     component_name = request.args.get('component_name')
     title = mes_directory + " - " + component_name + " - Component View"
@@ -130,16 +128,78 @@ def mes_component_view():
                            title=title)
 
 
+@development_area.route('/system_runs')
+def system_runs():
+    component_registry = Registry()
+    system_runs = component_registry.get_system_runs()
+    return render_template('system_runs.html', system_runs=system_runs)
+
+@development_area.route('/view_system_run_output')
+def view_system_run_output():
+    system_run_log_dir = request.args.get('system_run_log_dir')
+    run_code = request.args.get("run_code")
+    
+    component_registry = Registry()
+
+    if system_run_log_dir is not None:
+        system_run_output = component_registry.get_system_run_output(system_run_log_dir)
+    else:
+        system_run_output = component_registry.get_system_run_output_by_run_code(run_code)
+
+    return render_template('view_system_run_output.html', system_run_output=system_run_output)
+
+
+
+@development_area.route('/display_mes_run_configuration')
+def display_mes_run_configuration():
+    system_run_log_dir = request.args.get('system_run_log_dir')
+    component_registry = Registry()
+    mes_configuration = component_registry.get_system_run_configuration(system_run_log_dir)
+    return render_template('display_mes_run_configuration.html', simulation=mes_configuration)
+
+@development_area.route('/display_mes_run_log')
+def display_mes_run_log():
+    system_run_log_dir = request.args.get('system_run_log_dir')
+    component_registry = Registry()
+    mes_run_log = component_registry.get_system_run_log(system_run_log_dir)
+    json_run_log = json.dumps(mes_run_log)
+    return render_template('display_mes_run_log.html', mes_run_log=json_run_log)
+
+@development_area.route('/display_mes_run_data')
+def display_mes_run_data():
+    system_run_log_dir = request.args.get('system_run_log_dir')
+    component_registry = Registry()
+    mes_data_log = component_registry.get_system_data_log(system_run_log_dir)
+    json_data_log = json.dumps(mes_data_log)
+    return render_template('display_mes_run_data.html', mes_data_log=json_data_log)
+
+@development_area.route('/display_mes_run_sequence_diagram')
+def display_mes_run_sequence_diagram():
+    system_run_log_dir = request.args.get('system_run_log_dir')
+    component_registry = Registry()
+    system_run_output = component_registry.get_system_run_output(system_run_log_dir)
+    sequence_file = component_registry.read_mes_run_sequence_file(system_run_log_dir)
+
+    return render_template('display_mes_run_sequence_diagram.html', system_run_output=system_run_output,
+        sequence_file=sequence_file)
+
+
 @development_area.route('/mes_results')
 def mes_results():
     mes_directory = request.args.get('mes_directory')
-    title = mes_directory + " - Results"
-    log_dir = os.path.join(os.getcwd(), mes_directory, "logs")
-    results_files = []
-    for result_file in os.listdir(log_dir): 
-        if result_file.endswith(".log") or result_file.endswith(".data"): 
-            results_files.append(result_file)
-    return render_template('mes_results.html',  results_files=results_files, mes_directory=mes_directory, title=title) 
+
+    component_registry = Registry()
+    system_runs = component_registry.get_system_runs()
+    return render_template('system_runs.html', system_runs=system_runs)
+
+    # mes_directory = request.args.get('mes_directory')
+    # title = mes_directory + " - Results"
+    # log_dir = os.path.join(os.getcwd(), mes_directory, "logs")
+    # results_files = []
+    # for result_file in os.listdir(log_dir): 
+    #     if result_file.endswith(".log") or result_file.endswith(".data"): 
+    #         results_files.append(result_file)
+    # return render_template('mes_results.html',  results_files=results_files, mes_directory=mes_directory, title=title) 
 
 @development_area.route('/mes_results_view')
 def mes_results_view():
@@ -159,15 +219,12 @@ def mes_results_view():
     return render_template('mes_results_viewer.html',  results_file=results_file, mes_directory=mes_directory, title=title, file_content=file_content) 
 
 
-mes_results_view
-
-
 # this endpoint should probably be switched to websockets...
 @development_area.route('/mes_run_simulation')
 def mes_run_simulation():
     mes_directory = request.args.get('mes_directory')
     configuration = request.args.get('configuration')
-    component_registry = registry.Registry()
+    component_registry = Registry()
 
 
     title = mes_directory + " - " + configuration + " - Configuration"
@@ -179,13 +236,15 @@ def mes_run_simulation():
     actor_system = ActorSystemConnector()
     working_dir = os.path.join(os.getcwd(), mes_directory)
     #actor_system.send_message()
-    actor_system.run_simulation(working_dir, simulation["description"].to_hash())
+    #actor_system.run_simulation(working_dir, simulation["description"].to_hash())
+    actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
+
 
     # sim_controller = SimulationController()
     # sim_controller.process_configuration(simulation["source_file"])
 
-
-    return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title) 
+    return redirect("/status")
+    #return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title) 
 
 
 
@@ -200,7 +259,7 @@ def mes_run_simulation():
 @development_area.route('/component_dashboard')
 def component_dashboard(page):
     #try:
-        component_registry = registry.Registry()
+        component_registry = Registry()
         print("COMPONENTS AVAILABLE")
         print(component_registry)
         print(component_registry.agent_list())
@@ -214,7 +273,7 @@ def component_dashboard(page):
 def component_view():
     #try:
     mes_directory = request.args.get('mes_directory')
-    component_registry = registry.Registry()
+    component_registry = Registry()
     component_type = request.args.get('component_type')
     component_name = request.args.get('component_name')
     component_details = component_registry.get_mes_component_details(component_name)
@@ -228,12 +287,12 @@ def component_view():
 
 @development_area.route('/simulation_builder')
 def simulation_builder():
-    component_registry = registry.Registry()
+    component_registry = Registry()
     return render_template('simulation_builder.html', registry=component_registry)
 
 @development_area.route('/test_runner')
 def test_runner():
-    component_registry = registry.Registry()
+    component_registry = Registry()
     return render_template('test_runner.html', registry=component_registry)
 
 
@@ -259,7 +318,7 @@ def simulation_configuration_viewer():
 
 @development_area.route('/_agent_type_list')
 def agent_type_list():
-    component_registry = registry.Registry()
+    component_registry = Registry()
     agent_types = [agent_type for agent_type in component_registry.agent_list()]
     return jsonify(agent_types=agent_types)
 

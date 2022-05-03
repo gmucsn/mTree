@@ -9,25 +9,33 @@
 
 
 {% block content %}
-
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <div class="row">
-            <h3>MES Status</h3>
-            <table class="table table-striped table-hover" id="status-table">
+            <h3>MES System Runs</h3>
+            <table class="table table-striped table-hover" id="system-runs-table">
               <thead>
                 <tr>
                   <th scope="col">Run Code</th>
-                  <th scope="col">Configuration</th>
+                  <th scope="col">System Run ID</th>
                   <th scope="col">Run Number</th>
                   <th scope="col">Status</th>
                   <th scope="col">Total Time</th>
                   <th scope="col">Actions</th>
+                  
                 </tr>
               </thead>
-              <tbody id="status-body">
+              <tbody id="system-runs-body">
+                {% for system_run in system_runs %}
                 <tr>
-                  <td colspan="6" class="text-center">No runs available</td>
+                  <td>{{ system_run["run_code"] }}</td>
+                  <td>{{ system_run["simulation_run_id"] }}</td>
+                  <td>{{ system_run["run_number"] }}</td>
+                  <td>{{ system_run["status"] }}</td>
+                  <td>{{ system_run["total_time"] }}</td>
+                  <td><a href="view_system_run_output?system_run_log_dir={{ system_run["mes_log_directory"] }}">View System Run Output</a></td>
+
                 </tr>
+                {% endfor %}
               </tbody>
 
             </table>
@@ -36,14 +44,4 @@
         </div>
     </div>
 
-    <script>
-
-      function check_status(){
-        const mTreeConnection = new MTreeConnection();
-        mTreeConnection.send_admin_message({"request": "system_status"});
-        setTimeout(check_status,1000);
-      }
-      setTimeout(check_status,1000);
-
-    </script>
 {% endblock %}

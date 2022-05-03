@@ -1,5 +1,6 @@
 from email.mime import base
 from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 import numpy as np
 
 from mTree.microeconomic_system.message_space import Message
@@ -64,9 +65,9 @@ class SimulationRun:
                 total_time = self.end_time - self.start_time
             else:
                 total_time = datetime.now() - self.start_time
-        return [self.run_code, self.name, self.run_number, self.status, total_time]
+        return [self.run_code, self.name, self.run_number, self.status, str(total_time)]
 
-
+@initializing_messages([('starting', str)], initdone='init_done')
 class Dispatcher(Actor):
     def __str__(self):
         return "<Dispatcher: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
@@ -74,13 +75,28 @@ class Dispatcher(Actor):
     def __repr__(self):
         return self.__str__()
 
-    def __init__(self):
-        #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
+
+    # def __init__(self):
+    #     pass
+    #     #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
+    #     # self.simulation_runs = []
+    #     # self.configurations_pending = []
+    #     # self.configurations_finished = []
+    #     # self.agent_memory = {}
+        
+    def init_done(self):
         self.simulation_runs = []
         self.configurations_pending = []
         self.configurations_finished = []
         self.agent_memory = {}
+
+        logging.info("Dispatcher initialized and sending message to system status actor")
+        system_status_actor = self.createActor(Actor, globalName = "SystemStatusActor")
+        message = AdminMessage(request="register_dispatcher")
+        self.send(system_status_actor, message)
+                    
         
+
 
     def get_status(self, sender):
         output = []
@@ -108,6 +124,9 @@ class Dispatcher(Actor):
 
 
     def request_system_status(self):
+        '''
+            This provides system simulation status suitable for emission via websockets
+        '''
         web_socket_router_actor = self.createActor(Actor, globalName = "WebSocketRouterActor")
 
         output = []
@@ -147,32 +166,44 @@ class Dispatcher(Actor):
         ####
         # Create the environment for the new MES
         ####
+        logging.info('Creating a simulation environment')
         source_hash = configuration["source_hash"]
         environment_class = configuration["environment"]
         environment = self.createActor(environment_class,sourceHash=source_hash)
         # environment created
         self.environment = environment
 
+        logging.info('Simulation environment created')
+
         if configuration_obect is not None:
             configuration_obect.set_mes_base_address(environment)
 
         ####
         # Setup logger for the MES
+        #   This will setup the folders necessary for the simulation files to be written to
         ####
         message = Message()
         message.set_directive("logger_setup")
         payload = {}
+        logging.info("SHOULD HAVE AN ENVIRONMENT CLASS: " + str(environment_class))
+        payload["short_name"] = str(environment_class)
         payload["simulation_id"] = configuration["id"]
         payload["simulation_run_id"] = configuration["simulation_run_id"]
         payload["simulation_run_number"] = run_number
         payload["mes_directory"] = configuration["mes_directory"]
         payload["simulation_configuration"] = configuration
+        payload["run_code"] = configuration_obect.run_code
+        payload["status"] = configuration_obect.status
+
+        # payload["run_code"] = configuration_obect.run_code
+        # payload["run_code"] = configuration_obect.run_code
         if "data_logging" in configuration.keys():
             payload["data_logging"] = configuration["data_logging"]
         message.set_payload(payload)
         self.send(environment, message)
         
-        
+        logging.info('Environment logger created')
+
         ####
         # Setup Institution(s) for the MES    
         # This preps configuration, but won't intitiate instantiation
@@ -190,7 +221,8 @@ class Dispatcher(Actor):
             #     # for institution_d in configuration["institutions"]:
                     # institution_class = institution_d
                     # institutions.append(institution_class)
-            
+        logging.info('Simulation institution(s) created')
+
         ####
         # Setup Agent(s) for the MES    
         # This preps configuration, but won't intitiate instantiation
@@ -204,7 +236,8 @@ class Dispatcher(Actor):
             # for i in range(0, agent_count):
             #     agents.append((agent_type, 1))
 
-        
+        logging.info('Simulation Agents created')
+
 
         
         if "properties" in configuration.keys():
@@ -259,6 +292,8 @@ class Dispatcher(Actor):
         start_message.set_sender("experimenter")
         start_message.set_directive("start_environment")
         self.send(environment, start_message)
+        logging.info('Simulation environment should have started')
+
         
 
     # TODO examine this to verify that the component registry is the problem in live launch...
@@ -518,21 +553,63 @@ class Dispatcher(Actor):
             
 
     def shutdown_mes(self, environment_address):
-        self.send(environment_address, ActorExitRequest())
         for run in self.simulation_runs:
             if run.mes_base_address == environment_address:
                 run.mark_finished()
         
+                message = Message()
+                message.set_directive("update_mes_status")
+                message.set_sender(self.myAddress)
+                payload = {}
+                payload["status"] = run.status
+                payload["start_time"] = str(run.start_time)
+                payload["end_time"] = str(run.end_time)
+                payload["total_time"] = str(run.end_time - run.start_time)        
+                message.set_payload(payload)
+                self.send(environment_address, message)
+            
+        self.send(environment_address, ActorExitRequest())
+    
     def kill_run_by_id(self, message):
         for run in self.simulation_runs:
+            logging.info("DISOPATCHEWR IKILL REUEST " + str(message.get_payload()))
             if run.run_code == message.get_payload()["run_id"]:
-                self.send(run.mes_base_address, ActorExitRequest())
                 run.mark_killed()
+
+                message = Message()
+                message.set_directive("update_mes_status")
+                message.set_sender(self.myAddress)
+                payload = {}
+                payload["status"] = run.status
+                payload["start_time"] = str(run.start_time)
+                payload["end_time"] = str(run.end_time)
+                payload["total_time"] = str(run.end_time - run.start_time)
+
+                message.set_payload(payload)
+                self.send(run.mes_base_address, message)
+
+                self.send(run.mes_base_address, ActorExitRequest())
+
+
+    
+
                 
-    def excepted_mes_shutdown(self, environment_address):
+    def excepted_mes_shutdown(self, environment_address, exception_payload):
         for run in self.simulation_runs:
             if run.mes_base_address == environment_address:
                 run.mark_excepted()
+
+                message = Message()
+                message.set_directive("update_mes_status")
+                message.set_sender(self.myAddress)
+                payload = {}
+                payload["status"] = run.status
+                payload["start_time"] = str(run.start_time)
+                payload["end_time"] = str(run.end_time)
+                payload["total_time"] = str(run.end_time - run.start_time)
+                payload["exception_payload"] = exception_payload
+                message.set_payload(payload)
+                self.send(run.mes_base_address, message)
                 self.send(environment_address, ActorExitRequest())
 
 
@@ -551,12 +628,15 @@ class Dispatcher(Actor):
                     logging.info('System status message received')
                     self.return_admin_status()
                 elif message.get_request() == "kill_run_by_id":
-                    self.kill_run_by_id(message.payload)
+                    self.kill_run_by_id(message)
             else:        
                 if message.get_directive() == "simulation_configurations":
+                    logging.info('Preparing to run a new set of simulation configurations')
                     self.configurations_pending = message.get_payload()
                     self.prepare_simulation_run(message.get_payload())
+                    logging.info('Prepared the simulation')
                     self.begin_simulations()
+                    logging.info('Simulations started')
                 elif message.get_directive() == "check_status":
                     self.get_status(sender)
                 elif message.get_directive  () == "kill_run_by_id":
@@ -568,11 +648,20 @@ class Dispatcher(Actor):
                 elif message.get_directive() == "shutdown_mes":
                     self.shutdown_mes(sender)
                 elif message.get_directive() == "excepted_mes":
-                    self.excepted_mes_shutdown(sender)
+                    self.excepted_mes_shutdown(sender, message.get_payload())
 
                 elif message.get_directive() == "request_system_status":
                     self.request_system_status()
+
+                elif message.get_directive() == "register_dispatcher":
+                    pass
+                    # system_status_actor = self.createActor(Actor, globalName = "SystemStatusActor")
+                    # message = AdminMessage(request="register_dispatcher")
+                    # self.send(system_status_actor, message)
+                    
                 elif message.get_directive() == "register_websocket_router":
+                    # registering the dispatcher at the system status actor to prevent starting another
+                    
                     self.websocket_router = sender
                     self.send(self.websocket_router, "SLAMBACK")
                 elif message.get_directive() == "store_agent_memory":

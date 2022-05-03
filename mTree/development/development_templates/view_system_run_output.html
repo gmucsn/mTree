@@ -1,0 +1,62 @@
+{% extends 'index.html' %}
+
+
+{% block mesnav %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ title }}</h1>
+  </div>
+{% endblock %}
+
+
+{% block content %}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row">
+              <dl class="row">
+                <dt class="col-sm-3">Simulation ID</dt>
+                <dd class="col-sm-9">{{system_run_output["system_run_output"]}}</dd>
+              
+                <dt class="col-sm-3">Simulation Run ID</dt>
+                <dd class="col-sm-9">{{system_run_output["simulation_run_id"]}}</dd>
+              
+                <dt class="col-sm-3">Run Number</dt>
+                <dd class="col-sm-9">{{system_run_output["run_number"]}}</dd>
+
+                <dt class="col-sm-3">Run Code</dt>
+                <dd class="col-sm-9">{{system_run_output["run_code"]}}</dd>
+
+                <dt class="col-sm-3">MES Source Code Directory</dt>
+                <dd class="col-sm-9"><a href="file://{{system_run_output["mes_directory"]}}" target="_blank">{{system_run_output["mes_directory"]}}</a></dd>
+
+                <dt class="col-sm-3">MES Run Log Directory</dt>
+                <dd class="col-sm-9"><a href="file://{{system_run_output["mes_log_directory"]}}" target="_blank">{{system_run_output["mes_log_directory"]}}</a></dd>
+
+                <dt class="col-sm-3">MES Status</dt>
+                <dd class="col-sm-9">{{system_run_output["status"]}}</dd>
+
+                <dt class="col-sm-3">MES Start Time</dt>
+                <dd class="col-sm-9">{{system_run_output["start_time"]}}</dd>
+
+                <dt class="col-sm-3">MES End Time</dt>
+                <dd class="col-sm-9">{{system_run_output["end_time"]}}</dd>
+
+                <dt class="col-sm-3">MES Total Time</dt>
+                <dd class="col-sm-9">{{system_run_output["total_time"]}}</dd>
+              
+              </dl>
+          </div>
+
+        <div class="row">
+            <a href="/display_mes_run_configuration?system_run_log_dir={{system_run_output["mes_log_directory"]}}">View Configuration for this MES Run</a>
+            <br>
+            <a href="/display_mes_run_log?system_run_log_dir={{system_run_output["mes_log_directory"]}}">View Log File for this MES Run</a>
+            <br>
+            <a href="/display_mes_run_data?system_run_log_dir={{system_run_output["mes_log_directory"]}}">View Data File for this MES Run</a>
+            <br>
+            <a href="/display_mes_run_sequence_diagram?system_run_log_dir={{system_run_output["mes_log_directory"]}}">View Sequence Diagram for this MES Run</a>
+            <br>
+          </div>
+
+        </div>
+    </div>
+
+{% endblock %}

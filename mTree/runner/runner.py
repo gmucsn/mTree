@@ -25,6 +25,9 @@ from cmd import Cmd
 import atexit
 from thespian.actors import *
 
+
+capabilities = dict([('Admin Port', 19000)])
+
 @atexit.register
 def goodbye():
     capabilities = dict([('Admin Port', 19000)])
@@ -278,18 +281,13 @@ class Runner():
     def run_simulation(self):
         working_dir = os.getcwd()
         #actor_system.send_message()
-        print(self.configuration)
-        print("ABOUT TO TRY TO RUN")
-        print(working_dir)
         simulation_library = MESSimulationLibrary()
         simulation_library.list_simulation_files_directory(working_dir)
         
         simulation = simulation_library.get_simulation_by_filename(os.path.basename(self.configuration))
-        print(simulation)
         actor_system = ActorSystemConnector()
         working_dir = os.getcwd()
         #actor_system.send_message()
-        print(working_dir)
         actor_system.run_simulation(working_dir, simulation["description"].to_hash())
 
         # self.examine_directory()
@@ -304,6 +302,8 @@ class Runner():
         ]
         actor_system = ActorSystemConnector()
         statuses = actor_system.get_status()
+        print("STATUS REPORTING")
+        print(statuses)
         if statuses is None:
             table_data.append(["No Simulations Runnings"])
         else:

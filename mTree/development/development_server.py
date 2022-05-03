@@ -14,33 +14,24 @@ import importlib
 
 import sys
 
-from mTree.microeconomic_system.subject_container import SubjectContainer
-
-from mTree.microeconomic_system.admin_message import AdminMessage
-
-# from mTree.components.admin_message import AdminMessage
-import mTree
 
 import logging
 from logging.handlers import RotatingFileHandler
 from logging import Handler
 from inspect import getframeinfo, stack
-import mTree.base.response as willow
-
-import json
 import jinja2
 from jinja2 import Environment, FileSystemLoader
 
 from flask_sqlalchemy import SQLAlchemy
-from jinja2 import Environment, FileSystemLoader
 import os
 
-from mTree.components import registry
-
-from mTree.base.response import Response
-
-from mTree.development.development_endpoints import development_area
 from mTree.server.actor_system_connector import ActorSystemConnector
+from mTree.development.development_endpoints import development_area
+from mTree.components import registry
+from mTree.base.response import Response
+from mTree.microeconomic_system.admin_message import AdminMessage
+# from mTree.microeconomic_system.subject_container import SubjectContainer
+# from mTree.components.admin_message import AdminMessage
 
 
 class RequestsHandler(Handler):
@@ -94,7 +85,7 @@ class DevelopmentServer(object):
         self.app.register_blueprint(development_area, url_prefix='/')
         self.subject_container = None #SubjectContainer()
 
-        self.actor_system = ActorSystemConnector()
+        #self.actor_system = ActorSystemConnector()
 
         # attempts at logger adding...
         self.logger = logging.getLogger()
@@ -231,16 +222,13 @@ class DevelopmentServer(object):
 
         @self.socketio.on('run_test_configuration', namespace='/developer')
         def run_test_configuration(message):
-            print("Shoud start to run a sim")
-            print(message)
-            self.actor_system.send_message()
+            actor_system = ActorSystemConnector()
+            actor_system.send_message()
             #return self.component_registry.message(message)
 
 
         @self.socketio.on('message', namespace='/developer')
         def message_handler(message):
-            print("RECEIVED GENERIC MESSAGE")
-            print(message)
             self.socketio.send(message, namespace='/developer', broadcast=True)
 
 
@@ -251,14 +239,17 @@ class DevelopmentServer(object):
 
         @self.socketio.on('admin_mes_message', namespace='/developer')
         def admin_mes_message(message):
-            admin_message = AdminMessage(request=message["request"])
 
-            self.actor_system.send_message(admin_message)
+            admin_message = AdminMessage(request=message["request"])
+            if "payload" in message.keys():
+                admin_message.set_payload(message["payload"])
+                
+            actor_system = ActorSystemConnector()
+            actor_system.send_message(admin_message)
 
         @self.socketio.on('admin_mes_response', namespace='/developer')
         def admin_mes_response(message):
-            print("RECEIVED GENERIC MESSAGE")
-            print(message)
+            print("WebServer handling an MES admin response")
             self.socketio.emit('mes_response', message, namespace='/developer', broadcast=True)
 
 
@@ -276,7 +267,8 @@ class DevelopmentServer(object):
         def get_system_status(message):
             print("Shoud start to run a sim")
             print(message)
-            self.actor_system.send_message(message)
+            actor_system = ActorSystemConnector()
+            actor_system.send_message(message)
             self.socketio.emit({'data': 'echo back'}, namespace='/developer', broadcast=True)
 
             # self.socketio.emit('message', {'data': 'foo'}, namespace='/admin', broadcast=True)
@@ -292,6 +284,14 @@ class DevelopmentServer(object):
             #self.actor_system.send_message()
             #return self.component_registry.message(message)
 
+
+        @self.app.route('/mes_response_channel', methods=['POST'])
+        def mes_response_channel():
+            print("MES Response channel activated...")
+            data = request.get_json()
+            self.socketio.emit('mes_response', data, namespace='/developer', broadcast=True)
+            response = {"status": "success"}
+            return response, 200
 
         # @self.app.route('/component_view')
         # def component_view():
@@ -342,9 +342,8 @@ class DevelopmentServer(object):
     def run_server(self):
         self.examine_directory()
         self.list_rules()
-        print("ABOUT TO START SERVER")
-        self.socketio.run(self.app, host='0.0.0.0', log_output=True)
-        print("SERVER STARTED")
+        # Flask Service Launch
+        self.socketio.run(self.app, host='0.0.0.0', log_output=True, use_reloader=False)
 
     def attach_experiment(self, experiment):
         self.experiment = experiment()

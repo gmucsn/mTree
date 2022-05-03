@@ -47,7 +47,12 @@ class LogActor(Actor):
 
     def log_data(self, message):
         with open(os.path.join(self.tmp_data_target), "a") as file_object:
-            file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
+            json_data = ""
+            try:
+                json_data = json.dumps(message.get_content())
+            except:
+                json_data = message.get_content()
+            file_object.write(str(message.get_timestamp()) + "\t" + json_data + "\n")
 
     def log_json_data(self, message):
         with open(os.path.join(self.tmp_data_target), "a") as file_object:
@@ -81,6 +86,140 @@ class LogActor(Actor):
         # print("LOG ACTOR SHOULD LOG")   
         # logging.log(EXPERIMENT_DATA, message)
 
+    def setup_log_files_folder(self):
+        # first check to see if the MES contains an appropriate logs directory
+        log_container_directory = os.path.join(self.mes_directory, "logs") 
+        if not os.path.isdir(log_container_directory):
+            os.mkdir(log_container_directory)
+
+        # setup directory for simulation run's log files
+        self.output_log_folder = os.path.join(log_container_directory, self.simulation_run_id + "-R" + str(self.run_number))
+        if not os.path.isdir(self.output_log_folder):
+            os.mkdir(self.output_log_folder)
+
+        
+        # setup various paths to files for writing log information to 
+        self.log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.log")
+        self.data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.data")
+        self.tmp_log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.log.tmp")
+        self.tmp_data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.data.tmp")
+        
+        self.sequence_target_tmp = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.logtmp")
+        self.sequence_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.log")
+        
+        # if "run_number" in message.keys():
+        #     self.run_number = message["run_number"]
+
+        # self.simulation_configuration = message["simulation_configuration"]
+
+        self.configuration_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-configuration.json")
+        with open(os.path.join(self.configuration_target), "a") as file_object:
+            file_object.write(json.dumps(self.simulation_configuration, indent=4))
+
+    
+    def create_mes_status_file(self):
+        '''
+            This method creates a hidden json file that contains the status of an mtree mes run
+            The intention is for this file to be used to watch an mes while running or to look
+            at a previous run
+        '''
+        self.mtree_mes_status_file = os.path.join(self.output_log_folder, ".mtree_mes_status.json")
+
+        mes_information = {}
+        mes_information["simulation_id"] = self.simulation_id
+        mes_information["simulation_run_id"] = self.simulation_run_id
+        mes_information["run_number"] = self.run_number
+        mes_information["run_code"] = self.run_code
+        # !! note that these directory locations could be out of date if folders are moved !!
+        mes_information["mes_directory"] = self.mes_directory
+        mes_information["mes_log_directory"] = self.output_log_folder
+        mes_information["status"] = self.status
+        mes_information["start_time"] = None
+        
+        with open(os.path.join(self.mtree_mes_status_file), "a") as file_object:
+            file_object.write(json.dumps(mes_information, indent=4))
+
+    def write_mes_exception(self, exception_payload):
+        self.mtree_mes_exception_file = os.path.join(self.output_log_folder, "mes_exception_information.json")
+        
+        with open(os.path.join(self.mtree_mes_exception_file), "w") as file_object:
+            file_object.write(json.dumps(exception_payload, indent=4))
+
+    def update_mes_status(self, status_dict):
+        '''
+            Method to take limited information about the status of the mes and write to the hidden status file
+        '''
+        if status_dict["status"] == "Exception!":
+            self.write_mes_exception(status_dict["exception_payload"])
+
+        status_file = open (self.mtree_mes_status_file, "r")
+        mes_information = json.loads(status_file.read())
+        status_file.close()
+
+        for key in status_dict.keys():
+            mes_information[key] = status_dict[key]
+
+        
+        with open(os.path.join(self.mtree_mes_status_file), "w") as file_object:
+            file_object.write(json.dumps(mes_information, indent=4))
+
+
+    def write_sequence_file(self):
+        '''
+            Method to write out a sequence file useful for producing sequence diagrams
+        '''
+
+        # first read the temp sequence file to sort based on timestamp
+        sequence_events = []
+        with open(os.path.join(self.sequence_target_tmp), "r") as file_object:
+            for line in file_object:
+                sequence_events.append(line.strip())
+        sorted_events = sorted(sequence_events)
+
+        # write the content of the sequence file out in sequential order
+        with open(os.path.join(self.sequence_target), "a") as file_object:
+            for event in sorted_events:
+                output = event.split("\t")[1]
+                file_object.write(output + "\n")
+
+        os.remove(self.sequence_target_tmp)
+
+
+    def complete_log_files(self):
+        '''
+            Method to close all log files and other records created for a run of an MES
+        '''
+        self.write_sequence_file()
+
+        #####
+        sequence_events = []
+        with open(os.path.join(self.tmp_log_target), "r") as file_object:
+            for line in file_object:
+                sequence_events.append(line.strip())
+        sorted_events = sorted(sequence_events)
+
+        # 
+        with open(os.path.join(self.log_target), "a") as file_object:
+            for event in sorted_events:
+                file_object.write(event + "\n")
+
+        os.remove(self.tmp_log_target)
+
+        #####
+        sequence_events = []
+        with open(os.path.join(self.tmp_data_target), "r") as file_object:
+            for line in file_object:
+                sequence_events.append(line.strip())
+        sorted_events = sorted(sequence_events)
+
+        #####
+        with open(os.path.join(self.data_target), "a") as file_object:
+            for event in sorted_events:
+                file_object.write(event + "\n")
+
+        os.remove(self.tmp_data_target)
+
+
     def receiveMessage(self, message, sender):
         # outconnect = self.createActor(OutConnect, globalName = "OutConnect")
         # self.send(outconnect, message)
@@ -91,27 +230,13 @@ class LogActor(Actor):
                     self.simulation_id = message["simulation_id"]
                     self.simulation_run_id = message["simulation_run_id"]
                     self.run_number = message["run_number"]
+                    self.run_code = message["run_code"]
+                    self.status = message["status"]
                     self.mes_directory = message["mes_directory"]
                     self.output_type = message["data_logging"]
-                    self.output_log_folder = os.path.join(self.mes_directory, "logs")
-                    if not os.path.isdir(self.output_log_folder):
-                        os.mkdir(self.output_log_folder)
-                    self.log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.log")
-                    self.data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.data")
-                    self.tmp_log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.log.tmp")
-                    self.tmp_data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.data.tmp")
-                    
-                    self.sequence_target_tmp = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.logtmp")
-                    self.sequence_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.log")
-                    
-                    if "run_number" in message.keys():
-                        self.run_number = message["run_number"]
-
                     self.simulation_configuration = message["simulation_configuration"]
-
-                    with open(os.path.join(self.log_target), "a") as file_object:
-                       file_object.write("Simulation Configuration: " + "\t" + json.dumps(self.simulation_configuration) + "\n")
-
+                    self.setup_log_files_folder()
+                    self.create_mes_status_file()
 
                 elif type(message) is LogMessage:
                     if message.get_message_type() == "data":
@@ -124,7 +249,11 @@ class LogActor(Actor):
 
                 elif type(message) is SequenceEvent:
                     self.log_sequence_event(message)
-
+                
+                elif type(message) is Message:
+                    if message.get_directive() == "update_mes_status":
+                        self.update_mes_status(message.get_payload())
+                    
                 # if "message_type" in message.keys():
                 #     self.simulation_id = message["simulation_id"]
                 #     self.mes_directory = message["mes_directory"]
@@ -141,45 +270,5 @@ class LogActor(Actor):
                 self.actorSystemShutdown()
 
         elif isinstance(message, ActorExitRequest):
-            # clean up logs for final use...
-            sequence_events = []
-            with open(os.path.join(self.sequence_target_tmp), "r") as file_object:
-                for line in file_object:
-                    sequence_events.append(line.strip())
-            sorted_events = sorted(sequence_events)
-
-# 
-            with open(os.path.join(self.sequence_target), "a") as file_object:
-                for event in sorted_events:
-                    output = event.split("\t")[1]
-                    file_object.write(output + "\n")
-
-            os.remove(self.sequence_target_tmp)
-
-            #####
-            sequence_events = []
-            with open(os.path.join(self.tmp_log_target), "r") as file_object:
-                for line in file_object:
-                    sequence_events.append(line.strip())
-            sorted_events = sorted(sequence_events)
-
-# 
-            with open(os.path.join(self.log_target), "a") as file_object:
-                for event in sorted_events:
-                    file_object.write(event + "\n")
-
-            os.remove(self.tmp_log_target)
-
-            #####
-            sequence_events = []
-            with open(os.path.join(self.tmp_data_target), "r") as file_object:
-                for line in file_object:
-                    sequence_events.append(line.strip())
-            sorted_events = sorted(sequence_events)
-
-            #####
-            with open(os.path.join(self.data_target), "a") as file_object:
-                for event in sorted_events:
-                    file_object.write(event + "\n")
-
-            os.remove(self.tmp_data_target)
+            # clean up logs before exit
+            self.complete_log_files()

@@ -1,44 +1,25 @@
 import sys, getopt
 import json
-import importlib
 import inspect
 import os
 import glob
-
+from zipfile import ZipFile
+import datetime
+import importlib
 import importlib.util
-import sys
 import time
 
+from thespian.actors import *
+
 from mTree.microeconomic_system.dispatcher import Dispatcher
-from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
-from mTree.microeconomic_system.outconnect import OutConnect
 from mTree.microeconomic_system.message import Message
+# from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
+# from mTree.microeconomic_system.outconnect import OutConnect
 from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.container import Container
 from mTree.microeconomic_system.simulation_container import SimulationContainer
-from thespian.actors import *
 from mTree.components import registry
-import os
-import glob
-from zipfile import ZipFile
-
-import datetime
-
-
-class Hello(Actor):
-    def receiveMessage(self, message, sender):
-        self.send(sender, 'Hello, World!')
-
-class SimpleSourceAuthority(Actor):
-    def receiveMessage(self, msg, sender):
-        if msg is True:
-            self.registerSourceAuthority()
-        if isinstance(msg, ValidateSource):
-            self.send(sender,
-                      ValidatedSource(msg.sourceHash,
-                                      msg.sourceData,
-                                      # Thespian pre 3.2.0 has no sourceInfo
-                                      getattr(msg, 'sourceInfo', None)))
+from mTree.server.log_config import logcfg
 
 
 capabilities = dict([('Admin Port', 19000)])
@@ -76,6 +57,11 @@ class ActorSystemConnector():
             #self.multi_simulation = multi_simulation
             self.container = None
             self.configuration = None
+            # self.capabilities = dict([('Admin Port', 19000)])
+            # self.actor_system = ActorSystem('multiprocTCPBase', capabilities=self.capabilities, logDefs=logcfg)
+            # self.capabilities = dict([('Admin Port', 19000)])
+            self.actor_system = ActorSystem('multiprocTCPBase') #, logDefs=logcfg)
+
             ActorSystemConnector.__instance = self
             self.dispatchers = []
             self.source_hashes = []
@@ -119,11 +105,11 @@ class ActorSystemConnector():
             for component in base_components:
                 zipObj2.write(component[0],arcname=component[1])
 
-        capabilities = dict([('Admin Port', 19000)])
+        self.capabilities = dict([('Admin Port', 19000)])
 
         source_hash = None
         try:
-            asys = ActorSystem('multiprocTCPBase', capabilities)
+            asys = ActorSystemConnector.__instance.actor_system #ActorSystem('multiprocTCPBase', self.capabilities)
             source_hash = asys.loadActorSource('temp_components.zip')
             #asys.createActor(Dispatcher,sourceHash=source_hash, globalName="dispatcher")
             os.remove("temp_components.zip")
@@ -135,8 +121,8 @@ class ActorSystemConnector():
         #sa = ActorSystem("multiprocTCPBase", capabilities).createActor(SimpleSourceAuthority)
         #ActorSystem("multiprocTCPBase").tell(sa, True)
         
-        print("!&@#*" * 25)
-        print(json.dumps(run_configuration))
+        # print("!&@#*" * 25)
+        # print(json.dumps(run_configuration))
 
         source_hash = self.load_base_mes(mes_base_dir)
         print(source_hash)
@@ -146,17 +132,20 @@ class ActorSystemConnector():
        
         #return
         # actor_system = ActorSystem()
-        capabilities = dict([('Admin Port', 19000)])
+        self.capabilities = dict([('Admin Port', 19000)])
 
         # Kill old dispatchers....
 
         # for dispatcher in self.__instance.dispatchers:
         #     ActorSystem().tell(dispatcher, ActorExitRequest())
 
-        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Actor, globalName = "Dispatcher") # ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        print("DISPATCHER for connector should be available")
+        print(str(dispatcher))
         self.__instance.dispatchers.append(dispatcher)
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
 
+        print("SHould be sendign to dispatcher!!!")
         configuration_message = Message()
         configuration_message.set_directive("simulation_configurations")
         # configuration = [{"mtree_type": "mes_simulation_description",
@@ -179,36 +168,42 @@ class ActorSystemConnector():
         nowtime = datetime.datetime.now().timestamp()
         nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
         simulation_run_id = config_base_name + "-" + nowtime_filename #str(nowtime).split(".")[0]
-        
-
-
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
         configuration_message.set_payload(run_configuration)
-        ActorSystem().tell(dispatcher, configuration_message)
+        print("SHOULD BE SENDING TO DISPATCHER")
+        ActorSystemConnector.__instance.actor_system.tell(dispatcher, configuration_message) #createActor(Dispatcher, globalName = "Dispatcher")
+        print("dispatcher request -> " + str(configuration_message))
+        # ActorSystem("multiprocTCPBase", self.capabilities).tell(dispatcher, configuration_message)
 
     def get_status(self):
         if len(self.__instance.dispatchers) == 0:
-            return "None"
+            return []
         else:
-            dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+            dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Dispatcher, globalName = "Dispatcher")# ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
             configuration_message = Message()
             configuration_message.set_directive("check_status")
-            response = ActorSystem().ask(dispatcher, configuration_message)
+            response = ActorSystemConnector.__instance.actor_system.ask(dispatcher, configuration_message) #.createActor(Dispatcher, globalName = "Dispatcher")
+            # ActorSystem("multiprocTCPBase", self.capabilitie).ask(dispatcher, configuration_message)
             return response
 
     def kill_run_by_id(self, run_id):
-        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Dispatcher, globalName = "Dispatcher") #ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
         configuration_message = Message()
         configuration_message.set_directive("kill_run_by_id")
         payload = {}
         payload["run_id"] = run_id
         configuration_message.set_payload(payload)
-        ActorSystem().tell(dispatcher, configuration_message)
+        ActorSystemConnector.__instance.actor_system.tell(dispatcher, configuration_message)
+        # ActorSystem("multiprocTCPBase", self.capabilitie).tell(dispatcher, configuration_message)
 
     def send_message(self, message):
-        dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
-        ActorSystem().tell(dispatcher, message)
+        '''
+            This method allows injections of messages into the Actor System by routing through the Dispatcher.
+        '''
+        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Dispatcher, globalName = "Dispatcher")#ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        ActorSystemConnector.__instance.actor_system.tell(dispatcher, message)
+        #ActorSystem("multiprocTCPBase", self.capabilitie).tell(dispatcher, message)
 
     # 2022 purge
     # def send_message(self):

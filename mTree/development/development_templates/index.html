@@ -63,8 +63,6 @@
           this.socket.on('system_status', (msg) => this.logMessage(msg));
 
           this.socket.on('mes_response', (msg) => {
-              console.log("MES RESPONDING>>>>");
-              console.log(msg);
               if (msg.response == "system_status"){
                 this.update_status_table(msg);
               }
@@ -79,9 +77,13 @@
 
         }
 
+        kill_run(run_code) {
+          this.send_admin_message({"request": "kill_run_by_id", "payload": {"run_id": run_code}});
+        }
+
         update_status_table(message){
           $("#status-body").empty()
-
+          
           var status = message.payload.status;
           
           if (status.length == 0){
@@ -98,6 +100,30 @@
                 row.append($('<td>').text(status[i][2]));
                 row.append($('<td>').text(status[i][3]));
                 row.append($('<td>').text(status[i][4]));
+                var action_cell = $('<td>');
+                if (status[i][3] == "Running"){
+                  var kill_button = $('<button>').attr({
+                         type: "button",
+                         class: "btn btn-danger",
+                         id: "kill-" + status[i][0],
+                         value: "Kill Run",
+                    }).text("Kill Run").on("click", (evt) => {
+                      var run_code = evt.currentTarget.id.split("-")[1]
+                      this.kill_run(run_code);
+                    });
+                    action_cell.append(kill_button);
+                }
+                else {
+                  var results_link = $('<a>').attr({
+                         type: "button",
+                         class: "btn btn-success",
+                         href: "/view_system_run_output?run_code=" + status[i][0],
+                         id: "results-" + status[i][0],
+                    }).text("View Results");
+                    action_cell.append(results_link);
+ 
+                }
+                row.append(action_cell);
                 $("#status-body").append(row);
             }
 
@@ -122,12 +148,10 @@
         }
 
         send_status_request(){
-          console.log("about to send...");
           this.socket.emit("get_system_status", {});
         }
 
         send_admin_message(message){
-          console.log("about to send...");
           this.socket.emit("admin_mes_message", message);
         }
 
@@ -344,6 +368,13 @@
                   </a>
                 </li>
                 <li class="nav-item">
+                  <a class="nav-link active" href="/system_runs">
+                    <span data-feather="home"></span>
+                    MES System Runs
+                  </a>
+                </li>
+                <!--
+                <li class="nav-item">
                   <a class="nav-link active" href="/simulation_builder">
                     <span data-feather="home"></span>
                     Simulation Builder
@@ -355,6 +386,7 @@
                     Simulation Library
                   </a>
                 </li>
+                -->
               </ul>
             </div>
           </nav>

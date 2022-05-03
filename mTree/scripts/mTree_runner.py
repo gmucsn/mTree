@@ -1,11 +1,5 @@
-import sys, getopt
-import json
-import importlib
-import inspect
+import sys
 import os
-import glob
-
-import importlib.util
 import sys
 import pyfiglet
 
@@ -31,7 +25,7 @@ def goodbye():
     #print("Shutting down mTree Actor land now...")
     #ActorSystemStartup.shutdown()
     capabilities = dict([('Admin Port', 19000)])
-    actors = ActorSystem('multiprocTCPBase', capabilities)
+    actors = ActorSystem('multiprocTCPBase') #, capabilities)
     time.sleep(2)
     actors.shutdown()
     
@@ -42,7 +36,7 @@ def main():
     # Set Thespian log file location so we can track issues...
     os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
     # TODO Fix and make this selectable from the command line
-    os.environ['THESPLOG_THRESHOLD'] =  "INFO"
+    os.environ['THESPLOG_THRESHOLD'] =  "DEBUG"
 
     background_actor_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "server", "background_actor_system.py")
     
@@ -51,6 +45,7 @@ def main():
     # creationflags=subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.HIGH_PRIORITY_CLASS
     process = Popen([sys.executable, background_actor_py], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
     #process = subprocess.run([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
+    time.sleep(3)
     launch() #sys.argv[1:])
 
 def launch():
