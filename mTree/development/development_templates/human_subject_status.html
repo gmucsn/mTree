@@ -1,0 +1,41 @@
+{% extends 'index.html' %}
+
+
+{% block mesnav %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ title }}</h1>
+  </div>
+{% endblock %}
+
+
+{% block content %}
+
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row">
+            <h3>Subject Connections</h3>
+            <table class="table table-striped table-hover" id="status-table">
+              <thead>
+                <tr>
+                  <th scope="col">Subject ID</th>
+                  <th scope="col">Websocket ID</th>
+                  <th scope="col">Agent ID</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="subject-body">
+                <tr>
+                  <td colspan="6" class="text-center">No Subjects</td>
+                </tr>
+              </tbody>
+
+            </table>
+          </div>
+
+        </div>
+    </div>
+
+    <script>
+
+
+    </script>
+{% endblock %}

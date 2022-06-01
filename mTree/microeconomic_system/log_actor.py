@@ -12,6 +12,7 @@ from mTree.microeconomic_system.sequence_event import SequenceEvent
 import traceback
 
 import os
+import sys
 import logging
 import json
 
@@ -68,15 +69,19 @@ class LogActor(Actor):
 
 
     def log_sequence_event(self, message):
-        sequence_line = str(message.timestamp)  + "\t" + message.sender + "->" + message.receiver + ": " + message.directive    
-            
+        sequence_line = ""
+        try:
+            sequence_line = str(message.timestamp)  + "\t" + message.sender + "->" + message.receiver + ": " + message.directive    
+        except:
+            pass
+
         with open(os.path.join(self.sequence_target_tmp), "a") as file_object:
             file_object.write(sequence_line + "\n")
 
 
     def log_message(self, message):
         with open(os.path.join(self.tmp_log_target), "a") as file_object:
-           file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()) + "\n")
+           file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()).replace("\n", "  ") + "\n")
 
         # print("SHOULD BE WRITING OUT LOG LINE")
         # if self.simulation_id is not None:
@@ -104,7 +109,7 @@ class LogActor(Actor):
         self.tmp_log_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.log.tmp")
         self.tmp_data_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-experiment.data.tmp")
         
-        self.sequence_target_tmp = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.logtmp")
+        self.sequence_target_tmp = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.log.tmp")
         self.sequence_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-sequence.log")
         
         # if "run_number" in message.keys():
@@ -179,8 +184,11 @@ class LogActor(Actor):
         # write the content of the sequence file out in sequential order
         with open(os.path.join(self.sequence_target), "a") as file_object:
             for event in sorted_events:
-                output = event.split("\t")[1]
-                file_object.write(output + "\n")
+                try:
+                    output = event.split("\t")[1]
+                    file_object.write(output + "\n")
+                except:
+                    pass
 
         os.remove(self.sequence_target_tmp)
 
@@ -189,16 +197,24 @@ class LogActor(Actor):
         '''
             Method to close all log files and other records created for a run of an MES
         '''
+
+        logging.info("Completing Log Files...")
+
         self.write_sequence_file()
 
         #####
+        logging.info("Completing Log Sequence Files...")
+
         sequence_events = []
         with open(os.path.join(self.tmp_log_target), "r") as file_object:
             for line in file_object:
                 sequence_events.append(line.strip())
         sorted_events = sorted(sequence_events)
 
+
         # 
+        logging.info("Completing Log Event Files...")
+
         with open(os.path.join(self.log_target), "a") as file_object:
             for event in sorted_events:
                 file_object.write(event + "\n")
@@ -206,6 +222,7 @@ class LogActor(Actor):
         os.remove(self.tmp_log_target)
 
         #####
+
         sequence_events = []
         with open(os.path.join(self.tmp_data_target), "r") as file_object:
             for line in file_object:
@@ -213,6 +230,8 @@ class LogActor(Actor):
         sorted_events = sorted(sequence_events)
 
         #####
+        logging.info("Completing Log Data Files...")
+
         with open(os.path.join(self.data_target), "a") as file_object:
             for event in sorted_events:
                 file_object.write(event + "\n")
@@ -227,6 +246,7 @@ class LogActor(Actor):
         if not isinstance(message, ActorSystemMessage):
             try:
                 if type(message) is dict:
+                    logging.info("SHOULD BE SETTING UP LOGGER")
                     self.simulation_id = message["simulation_id"]
                     self.simulation_run_id = message["simulation_run_id"]
                     self.run_number = message["run_number"]
@@ -262,6 +282,8 @@ class LogActor(Actor):
                 # else:
                 #     self.log_message(message)
             except Exception as e:
+                logging.info("LOGGING CRASHED")
+                logging.info(traceback.format_exc())
                 logline = "MES CRASHING - EXCEPTION FOLLOWS - LOG ISSUE"
                 log_message = LogMessage(message_type="log", content=logline)
                 self.log_message(log_message)
@@ -271,4 +293,22 @@ class LogActor(Actor):
 
         elif isinstance(message, ActorExitRequest):
             # clean up logs before exit
-            self.complete_log_files()
+            try:
+                self.complete_log_files()
+            except Exception as e:
+                error_type, error, tb = sys.exc_info()
+                error_message = "MES AGENT CRASHING - EXCEPTION FOLLOWS \n"
+                error_message += "\tSource Message: " + str(message) + "\n"
+                error_message += "\tError Type: " + str(error_type) + "\n"
+                error_message += "\tError: " + str(error) + "\n"
+                traces = traceback.extract_tb(tb)
+                trace_output = "\tTrace Output: \n"
+                                
+                for trace_line in traceback.format_list(traces):
+                    trace_output += "\t" + trace_line + "\n"
+                error_message += "\n"
+                error_message += trace_output
+                
+                logging.info("LOGGING CRASHED DURING COMPLETION STAGE")
+                logging.info(error_message)
+                

@@ -1,4 +1,6 @@
 from thespian.actors import *
+from thespian.initmsgs import initializing_messages
+
 import numpy as np
 
 from mTree.microeconomic_system.message_space import Message
@@ -19,9 +21,21 @@ import time
 import sys
 import inspect
 
-
+@initializing_messages([('startup', str)],
+                            initdone='invoke_prepare')
 @directive_enabled_class
 class Agent(Actor):
+
+    def prepare(self):
+        pass
+
+    def invoke_prepare(self):
+        # prepare for actor startup....
+        try:
+            self.prepare()
+        except:
+            pass
+
     def __init__(self):
         self.address_book = AddressBook(self)
         #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
@@ -185,11 +199,14 @@ class Agent(Actor):
         if payload is not None:
             new_message.set_payload(payload)
     
-        receiver_address = self.address_book.select_addresses(
-                               {"short_name": receiver})
+        if isinstance(receiver, list):
+            for target_address in receiver:
+                self.send(target_address, new_message)
+        else:
+            receiver_address = self.address_book.select_addresses(
+                                {"short_name": receiver})
 
-        self.send(receiver_address, new_message)
-
+            self.send(receiver_address, new_message)
 
     def send(self, targetAddress, message):
         if hasattr(self, 'short_name') and type(message) is Message:

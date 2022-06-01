@@ -1,4 +1,6 @@
 from thespian.actors import *
+from thespian.initmsgs import initializing_messages
+
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.log_message import LogMessage
@@ -16,7 +18,22 @@ from datetime import datetime, timedelta
 import time
 import sys
 
+@initializing_messages([('startup', str)],
+                            initdone='invoke_prepare')
+@directive_enabled_class
 class Institution(Actor):
+
+    def prepare(self):
+        pass
+
+    def invoke_prepare(self):
+        # prepare for actor startup....
+        try:
+            self.prepare()
+        except:
+            pass
+
+
     def __init__(self):
         self.address_book = AddressBook(self)
         self.log_actor = None
@@ -28,8 +45,8 @@ class Institution(Actor):
 
 
     def log_sequence_event(self, message):
-        logging.info("Institution should be sequence logging")
-        logging.info("ISL: " + str(message))
+        # logging.info("Institution should be sequence logging")
+        # logging.info("ISL: " + str(message))
         sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
         self.send(self.log_actor, sequence_event)
 
@@ -112,7 +129,7 @@ class Institution(Actor):
                 try:
                     self.log_sequence_event(message)
                 except:
-                    logging.info("AN EXCEPTED INSTITUTION LOGG")
+                    logging.info("AN EXCEPTED INSTITUTION LOG")
                     logging.info("EIL: " + str(message))
                     pass
 
@@ -212,10 +229,16 @@ class Institution(Actor):
         if payload is not None:
             new_message.set_payload(payload)
     
-        receiver_address = self.address_book.select_addresses(
-                               {"short_name": receiver})
-
-        self.send(receiver_address, new_message)
+        if isinstance(receiver, list):
+            for target_address in receiver:
+                self.send(target_address, new_message)
+        else:
+            receiver_address = self.address_book.select_addresses(
+                                {"short_name": receiver})
+            logging.info("SHOULD BE GETTING THE ADDRESS")
+            logging.info(self.address_book.addresses)
+            logging.info("---> " + str(receiver_address))
+            self.send(receiver_address, new_message)
 
 
     def send(self, targetAddress, message):

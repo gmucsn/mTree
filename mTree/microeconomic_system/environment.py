@@ -1,4 +1,5 @@
 from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 from datetime import datetime, timedelta
   
 import logging
@@ -19,9 +20,57 @@ import os
 import sys
 
 
-
 @directive_enabled_class
+@initializing_messages([('startup', str)],
+                            initdone='invoke_prepare')
 class Environment(Actor):
+
+    def prepare(self):
+        pass
+
+    def invoke_prepare(self):
+        logging.info("ENVIRONMENT INVOKING PREPARE ")
+        # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
+        # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
+        # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
+        
+        # # prepping log actor
+        # self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
+        
+        # log_basis = {}
+        # log_basis["message_type"] = "setup"
+
+        # # setting short name for environment
+        # #self.short_name = message.get_payload()["short_name"]
+        # logging.info("ENVIRONMENT logger prepared")
+        
+        # self.short_name = self.config_payload["short_name"]
+        # # self.short_name = "environment"
+
+        # # if "address_book" not in dir(self):
+        # #     self.address_book = AddressBook(self)        
+
+        # # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
+        
+        # log_basis["simulation_run_id"] = self.config_payload["simulation_run_id"]
+        # log_basis["simulation_id"] = self.config_payload["simulation_id"]
+        # log_basis["run_number"] = self.config_payload["simulation_run_number"]
+        # log_basis["run_code"] = self.config_payload["run_code"]
+        # log_basis["status"] = self.config_payload["status"]
+        # log_basis["mes_directory"] = self.config_payload["mes_directory"]
+        # log_basis["data_logging"] = self.config_payload["data_logging"]
+        # log_basis["simulation_configuration"] = self.config_payload["simulation_configuration"]
+        # self.send(self.log_actor, log_basis) 
+
+        # logging.info("ENVIRONMENT sent logger configuration")
+        
+        # prepare for actor startup....
+        try:
+            self.prepare()
+        except:
+            pass
+
+
     # def __init__(self):
     #     self.address_book = AddressBook(self)
     #     self.short_name = None
@@ -64,7 +113,10 @@ class Environment(Actor):
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("excepted_mes")
-        new_message.set_payload(message.get_payload())
+        try:
+            new_message.set_payload(message.get_payload())
+        except:
+            new_message.set_payload(message)
         self.send(self.dispatcher, new_message)
 
 
@@ -306,12 +358,12 @@ class Environment(Actor):
         #     memory = True
         #     agent_memory = message.get_payload()["agent_memory"]
         for i in range(num_agents):
-        
+            agent_number = i + 1
             new_agent = self.createActor(agent_class, sourceHash=source_hash)
-            
+            self.send(new_agent, agent_class + " " + str(agent_number) )
             self.agent_addresses.append(new_agent)
             self.agents.append([new_agent, agent_class])
-            agent_number = i + 1
+            
             agent_info = {}
             agent_info["address_type"] = "agent"
             agent_info["address"] = new_agent
@@ -353,6 +405,7 @@ class Environment(Actor):
         institution_order = message.get_payload()["order"]
 
         new_institution = self.createActor(institution_class, sourceHash=source_hash)
+        self.send(new_institution, institution_class + " " + str(institution_order))
         institution_info = {}
         institution_info["address_type"] = "institution"
         institution_info["address"] = new_institution
@@ -394,10 +447,14 @@ class Environment(Actor):
         if payload is not None:
             new_message.set_payload(payload)
     
-        receiver_address = self.address_book.select_addresses(
-                               {"short_name": receiver})
+        if isinstance(receiver, list):
+            for target_address in receiver:
+                self.send(target_address, new_message)
+        else:
+            receiver_address = self.address_book.select_addresses(
+                                {"short_name": receiver})
 
-        self.send(receiver_address, new_message)
+            self.send(receiver_address, new_message)
 
 
     def send(self, targetAddress, message):

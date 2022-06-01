@@ -1,0 +1,117 @@
+{% extends 'subject_index.html' %}
+
+
+
+{% block content %}
+
+<div class="container">
+  <div class="bg-light p-5 rounded" id="subject-view">
+    Waiting for experiment to commence....
+  </div>
+</div>
+
+<script
+src="https://code.jquery.com/jquery-3.4.1.min.js"
+integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.4/ace.js"></script>
+<!-- JavaScript Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+
+
+<script type="text/javascript" charset="utf-8">
+  var subject_id = "{{subject_id}}";
+
+
+  class MTreeSubjectConnection{
+        constructor(){
+          if(! MTreeSubjectConnection.instance){
+
+            this.connect();
+
+            this._data = [];
+            MTreeSubjectConnection.instance = this;
+          }
+
+          return MTreeSubjectConnection.instance;
+
+        }
+
+        connect(){
+          console.log("Setting up WebSocket connection");
+          this.namespace = '/subject';
+          this.subject_id = '{{subject_id}}';
+          this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + this.namespace);
+          console.log(this.socket);
+          // register
+          this.socket.on('connect', () => {
+              console.log("A connection has occurred");
+              console.log(this.socket.id);
+            this.connected();
+            });
+          this.socket.on('log_message', (msg) => this.logMessage(msg));
+          this.socket.on('system_status', (msg) => this.logMessage(msg));
+
+          this.socket.on('subject_message', (message) => {
+            this.logMessage(message);
+          });
+
+
+        }
+
+
+       
+
+        logMessage(msg){
+          console.log("LOG MESSAGE RECEIVED");
+          console.log(msg);
+        }
+
+        connected(){
+          console.log("Subject connected...");
+          this.socket.emit('json', {command: 'register_subject_id', payload: {subject_id: this.subject_id}});
+          
+        }
+
+        status(){
+          console.log("mTreeConnection object available");
+        }
+
+        send_status_request(){
+          this.socket.emit("get_system_status", {});
+        }
+
+        send_admin_message(message){
+          this.socket.emit("admin_mes_message", message);
+        }
+
+        send(action, data){
+          this.socket.emit(action, {data: data});
+        }
+
+      }
+
+        $(document).ready(() => {
+
+          const mTree_subject_connection = new MTreeSubjectConnection();
+          console.log(mTree_subject_connection);
+          
+           
+
+        });
+
+
+
+  // $(document).ready(function() {
+  //     namespace = '/subject';
+  //     var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+  //     socket.on('connect', function() {
+  //         socket.emit('my_event', {data: 'I\'m connected!'});
+  //     });
+
+</script>
+
+
+
+{% endblock %}

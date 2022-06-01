@@ -81,7 +81,7 @@ simulation_description_schema = {
 
 class MESSimulationDescription():
     def __init__(self, input_json=None, filename=None):
-        self.mtree_type = "mes_simulation_description"
+        self.mtree_type = None #"mes_simulation_description"
         self.name = None
         self.id = str(uuid.uuid1())
         self.description = None

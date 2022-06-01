@@ -17,6 +17,7 @@ from mTree.server.actor_system_connector import ActorSystemConnector
 # from mTree.runner.server_runner import ServerRunner
 # from mTree.server.component_registrar import ComponentRegistrar
 # from mTree.server.simulation_controller import SimulationController
+from mTree.development.mtree_configuration import MTreeConfiguration
 
 
 development_area = Blueprint('development_area', __name__, template_folder='templates')
@@ -30,17 +31,38 @@ development_area.jinja_loader = jinja2.ChoiceLoader([
 @development_area.route('/', defaults={'page': 'index'})
 @development_area.route('/<page>')
 def show(page):
-    #try:
-        # going to get the subfolders of the base folders... this should show available MES
+    if 'admin-user' not in session.keys():
+        return render_template('admin_login.html')
+    else:
         working_dir = os.getcwd()
         mes_folders = [ f for f in os.scandir(working_dir) if f.is_dir() and f.name[0] != "."]
-
-
         component_registry = Registry()
         return render_template('mes_library.html', mes_folders=mes_folders, registry=component_registry)
-        #except TemplateNotFound:
-        #    abort(404)
 
+MTree_configuration = MTreeConfiguration()
+ADMIN_PASSOWRD =  MTree_configuration.instance.admin_password
+
+@development_area.route('/admin_login', methods = ['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        admin_credentials = request.form['admin-credentials']
+        if admin_credentials == ADMIN_PASSOWRD:
+            session['admin-user'] = "ADMIN-USER"
+            return redirect("/status")
+        else:
+            return render_template('admin_login.html', error="Invalid Credentials")    
+    
+
+@development_area.route('/subject_runs')
+def subject_runs():
+    title = "Human Subject Configurations"
+    working_dir = os.path.join(os.getcwd())
+    mes_directory = working_dir
+    simulation_library = MESSimulationLibrary()
+    simulation_library.list_human_subject_files_directory(working_dir)
+    simulations = simulation_library.get_simulations()
+
+    return render_template('mes_human_subject_configurations.html',  simulations=simulations, mes_directory=mes_directory, title=title) 
 
 @development_area.route('/mes_overview')
 def mes_overview():
@@ -83,6 +105,19 @@ def mes_configuration_view():
     simulation = simulation_library.get_simulation_by_filename(configuration)
 
     return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title) 
+
+@development_area.route('/mes_human_subject_configuration_view')
+def mes_human_subject_configuration_view():
+    mes_directory = request.args.get('mes_directory')
+    configuration = request.args.get('configuration')
+    title = mes_directory + " - " + configuration + " - Configuration"
+    working_dir = os.path.join(os.getcwd(), mes_directory)
+    simulation_library = MESSimulationLibrary()
+    simulation_library.list_simulation_files_directory(working_dir)
+    simulation = simulation_library.get_simulation_by_filename(configuration)
+
+    return render_template('mes_human_subject_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title) 
+
 
 
 @development_area.route('/status')
@@ -217,6 +252,41 @@ def mes_results_view():
         except:
             pass
     return render_template('mes_results_viewer.html',  results_file=results_file, mes_directory=mes_directory, title=title, file_content=file_content) 
+
+
+@development_area.route('/mes_run_human_subject_experiment')
+def mes_run_human_subject_experiment():
+    mes_directory = request.args.get('mes_directory')
+    configuration = request.args.get('configuration')
+    component_registry = Registry()
+
+
+    title = mes_directory + " - " + configuration + " - Configuration"
+    working_dir = os.path.join(os.getcwd(), mes_directory)
+    simulation_library = MESSimulationLibrary()
+    simulation_library.list_simulation_files_directory(working_dir)
+    simulation = simulation_library.get_simulation_by_filename(configuration)
+
+    # actor_system = ActorSystemConnector()
+    # working_dir = os.path.join(os.getcwd(), mes_directory)
+    # #actor_system.send_message()
+    # #actor_system.run_simulation(working_dir, simulation["description"].to_hash())
+    # actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
+
+
+    # sim_controller = SimulationController()
+    # sim_controller.process_configuration(simulation["source_file"])
+
+    return redirect("/human_subject_status")
+    #return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title) 
+
+@development_area.route('/human_subject_status')
+def human_subject_status():
+    #try:
+        title = "Human Subject Status"
+        return render_template('human_subject_status.html',  title=title)
+        #except TemplateNotFound:
+        #    abort(404)
 
 
 # this endpoint should probably be switched to websockets...

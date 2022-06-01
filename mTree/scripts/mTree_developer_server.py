@@ -42,9 +42,6 @@ def launch_background_actor_system():
 
 def start_developer_server():
     from mTree.development.development_server import DevelopmentServer#, MTreeController
-    from mTree.server.admin import admin_area
-    from mTree.microeconomic_system.agent import Agent
-
 
     ascii_banner = pyfiglet.figlet_format("mTree - Developer Server")
     print(ascii_banner)

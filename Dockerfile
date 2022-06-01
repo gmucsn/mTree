@@ -1,6 +1,6 @@
 FROM  continuumio/miniconda3:4.10.3
 LABEL Author, S. Kunath
-LABEL version="0.9"
+LABEL version="1.1"
 
 RUN apt-get update && apt-get install -y procps vim
 ENV APP_HOME /mtree
@@ -24,7 +24,7 @@ WORKDIR /auctions
 ENTRYPOINT ["mTree_developer_server"]
 
 # basic build:
-# docker build -t mtree/mtree:1.0.11e .
+# docker build -t mtree/mtree:1.1.0 .
 
 # Pulling:
 # docker pull mtree/mtree

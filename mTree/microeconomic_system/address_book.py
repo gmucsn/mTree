@@ -63,7 +63,7 @@ class AddressBook:
 
 
     def add_address(self, address, additional_information=None):
-        logging.info("ADDING AN ADDRESS TO THE ADDRESS BOOK: " + address +  " - " + str(additional_information))
+        # logging.info("ADDING AN ADDRESS TO THE ADDRESS BOOK: " + address +  " - " + str(additional_information))
         address_str = str(address) 
         self.addresses[address_str] = additional_information
         if additional_information["address_type"] == "agent":
@@ -76,6 +76,25 @@ class AddressBook:
 
     def num_institutions(self):
         return len(self.institutions.keys())
+
+
+    def broadcast_message(self, selector, message):
+        raise Exception("broadcast_message deprecated")
+        addresses = self.select_addresses(selector)
+        if not isinstance(addresses, list):
+            temp_addressess = [addresses]
+            addresses = temp_addressess
+        for address in addresses:
+            self.base_component.send(address, message)  
+
+    def broadcast_message_to_group(self, group, message):
+        raise Exception("broadcast_message_to_group deprecated")
+        addresses = [address["address"] for address in self.address_groups[group]]
+        if not isinstance(addresses, list):
+            temp_addressess = [addresses]
+            addresses = temp_addressess
+        for address in addresses:
+            self.base_component.send(address, message)
 
     def select_addresses(self, selector):
         """Select addresses from the address book based on provided selector.
@@ -91,8 +110,8 @@ class AddressBook:
         if "short_name" in selector.keys():
             address = [entry["address"] for entry in self.addresses.values() if entry["short_name"] == selector["short_name"]]
         elif "address_type" in selector.keys():
-            logging.info("SHOULD BE SELECTOR TYPE: " + str(selector))
-            logging.info("DOUBLE CHECK ADDRESS: " + str(self.addresses.values()))
+            # logging.info("SHOULD BE SELECTOR TYPE: " + str(selector))
+            # logging.info("DOUBLE CHECK ADDRESS: " + str(self.addresses.values()))
             
             for entry in self.addresses.values():
                 try:
@@ -127,21 +146,6 @@ class AddressBook:
     def add_information(self, address, information):
         pass
 
-    def broadcast_message(self, selector, message):
-        addresses = self.select_addresses(selector)
-        if not isinstance(addresses, list):
-            temp_addressess = [addresses]
-            addresses = temp_addressess
-        for address in addresses:
-            self.base_component.send(address, message)  
-
-    def broadcast_message_to_group(self, group, message):
-        addresses = [address["address"] for address in self.address_groups[group]]
-        if not isinstance(addresses, list):
-            temp_addressess = [addresses]
-            addresses = temp_addressess
-        for address in addresses:
-            self.base_component.send(address, message)
 
     def add_address_group(self, group_name, addresses):
         pass

@@ -27,11 +27,14 @@ import os
 
 from mTree.server.actor_system_connector import ActorSystemConnector
 from mTree.development.development_endpoints import development_area
+from mTree.subject_interface.subject_endpoints import subject_area
+from mTree.development.mtree_configuration import MTreeConfiguration
 from mTree.components import registry
 from mTree.base.response import Response
 from mTree.microeconomic_system.admin_message import AdminMessage
 # from mTree.microeconomic_system.subject_container import SubjectContainer
 # from mTree.components.admin_message import AdminMessage
+
 
 
 class RequestsHandler(Handler):
@@ -77,12 +80,17 @@ class DevelopmentServer(object):
 
         self.basic_auth = BasicAuth(self.app)
 
+        self.mTree_configuration = MTreeConfiguration()
+
         self.add_routes()
         # self.scheduler = APScheduler()
         # self.scheduler.init_app(self.app)
         # self.scheduler.start()
         #self.scheduler.add_listener(self.my_listener, events.EVENT_ALL)
         self.app.register_blueprint(development_area, url_prefix='/')
+
+        self.app.register_blueprint(subject_area, url_prefix='/subjects')
+
         self.subject_container = None #SubjectContainer()
 
         #self.actor_system = ActorSystemConnector()
@@ -212,9 +220,20 @@ class DevelopmentServer(object):
 
     def add_routes(self):
 
-        @self.socketio.on('connect')
+        @self.socketio.on('connect', namespace='/developer')
         def test_connect(auth):
-            self.socketio.emit('my response', {'data': 'Connected'})
+            emit('subject_message', {'response': 'connected'})
+
+        @self.socketio.on('json', namespace='/developer')
+        def admin_json(json):
+            print("Received a json message to admin...")
+            command = json["command"]
+            payload = json["payload"]
+
+            if command == "register_admin":
+                join_room("admin")
+                emit('subject_message', {'response': 'subject_connection', 'payload': {"subject_id": "111111"}}, to="admin")
+
 
         @self.socketio.on('disconnect')
         def test_disconnect():
@@ -292,6 +311,22 @@ class DevelopmentServer(object):
             self.socketio.emit('mes_response', data, namespace='/developer', broadcast=True)
             response = {"status": "success"}
             return response, 200
+
+
+        @self.socketio.on('connect', namespace='/subject')
+        def subject_connect(message):
+            emit('subject_message', {'response': 'Subject Connected'})
+
+        @self.socketio.on('json', namespace='/subject')
+        def subject_json(json):
+            command = json["command"]
+            payload = json["payload"]
+
+            if command == "register_subject_id":
+                join_room(payload["subject_id"])
+                join_room("all_subjects")
+                emit('subject_message', {'response': 'Another Subject Connected '}, to="all_subjects")
+                emit('subject_message', {'response': 'subject_connection', 'payload': {"subject_id": payload["subject_id"]}}, namespace='/developer', to="admin")
 
         # @self.app.route('/component_view')
         # def component_view():

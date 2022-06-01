@@ -1,0 +1,37 @@
+{% extends 'subject_index.html' %}
+
+
+
+{% block content %}
+
+<div class="container">
+  <div class="bg-light p-5 rounded">
+    <div class="col-sm-8 mx-auto">
+      <h1>Subject Login</h1>
+      <p>Please enter the Subject ID you were provided to participate in this experiment.</p>
+      <p><br></p>
+      <p>
+        <form method="POST">
+          {% if error is defined %}
+            <div class="mb-3">
+              ENSURE YOU ARE ENTERING THE CORRECT SUBJECT ID
+            </div>
+          
+          {% endif %}
+          <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Subject ID</label>
+            <input type="text" length="6" name="subject-id" class="form-control" id="exampleFormControlInput1">
+          </div>
+          <div class="mb-3">
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary mb-3">Confirm Subject ID</button>
+            </div>
+          </div>
+        </form>
+      </p>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

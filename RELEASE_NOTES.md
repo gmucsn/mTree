@@ -4,6 +4,34 @@
 
 To get a new Docker Image: docker pull mtree/mtree:1.0.11c
 
+## mTree - 1.0.113 - Docker Image
+
+Fixes:
+    -Add check_status in mTree_runner to get list of running simulations
+    -Fix simulation runner to run total of run number
+    -Update logger so that individual runs result in individual log files
+    -Include new logging statement for entry and exit of a directive
+        -will be configurable eventually
+    -Include basic websocket actor to use for ui routing
+
+## Reminder
+
+To get a new Docker Image: docker pull mtree/mtree:1.0.11e
+
+## mTree - 1.0.11d - Docker Image
+
+Fixes:
+    -Add check_status in mTree_runner to get list of running simulations
+    -Fix simulation runner to run total of run number
+    -Update logger so that individual runs result in individual log files
+    -Include new logging statement for entry and exit of a directive
+        -will be configurable eventually
+    -Include basic websocket actor to use for ui routing
+
+## Reminder
+
+To get a new Docker Image: docker pull mtree/mtree:1.0.11d
+
 ## mTree - 1.0.11c - Docker Image
 
 Fixes:
