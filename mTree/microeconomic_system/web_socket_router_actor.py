@@ -136,6 +136,11 @@ class WebSocketRouterActor(Actor):
             logging.info('websocket DISCONNECT')
         
 
+    def emit_subject_message(self, message):
+        url = 'http://127.0.0.1:5000/mes_subject_channel'
+        
+        response = requests.post(url, json=message.get_payload())
+
     def emit_message(self, message):
         url = 'http://127.0.0.1:5000/mes_response_channel'
         data = {
@@ -201,11 +206,14 @@ class WebSocketRouterActor(Actor):
 
 
     def receiveMessage(self, message, sender):
-        logging.info("Websocket received a message to send")
+        logging.info("Websocket Output: " + str(message))
         if not isinstance(message, ActorSystemMessage): 
             if isinstance(message, AdminMessage):
                 if message.get_response() == "system_status":
                     self.emit_message(message)
+                elif message.get_response() == "send_to_subject":
+                    self.emit_subject_message(message)
+                
                 # if message.get_directive() == "system_status":
                 #     logging.info('Status message about to be sent out')
                 #     # self.sio.send({'status': message.get_payload()["status"]}, namespace="/developer" )
@@ -216,7 +224,8 @@ class WebSocketRouterActor(Actor):
                 #this.socket.emit("get_system_status", {data: "asfkl;jalskfjlkascvklj znlkjhnds"});
                 logging.info('websocket actor received an internal message froim the system ')
                 logging.info(message)
-                self.emit_message(message)
+                
+                # self.emit_message(message)
                 # self.send(sender, "tests.,dmgf.sk,dmg")
                 # self.wakeupAfter( 5, payload=message)    
 

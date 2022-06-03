@@ -277,17 +277,15 @@ def mes_run_human_subject_experiment():
     # sim_controller = SimulationController()
     # sim_controller.process_configuration(simulation["source_file"])
 
-    return redirect("/human_subject_status")
+    return redirect(url_for('development_area.human_subject_status', configuration=configuration))
     #return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title) 
 
 @development_area.route('/human_subject_status')
 def human_subject_status():
-    #try:
-        title = "Human Subject Status"
-        return render_template('human_subject_status.html',  title=title)
-        #except TemplateNotFound:
-        #    abort(404)
-
+    configuration = request.args.get('configuration')
+    title = "Human Subject Status"
+    return render_template('human_subject_status.html',  title=title, configuration=configuration)
+    
 
 # this endpoint should probably be switched to websockets...
 @development_area.route('/mes_run_simulation')

@@ -396,7 +396,7 @@ class Dispatcher(Actor):
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         # with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
         #     file_object.write("SHOULD BE RUNNING SIMULATION" + str(message) +  "\n")
-    
+        logging.info("Dispatcher recieved message: " + str(message))
         if not isinstance(message, ActorSystemMessage):
             if isinstance(message, AdminMessage):
                 logging.info('DISPATCHER RECEIVED ADMIN MESSAGE')
@@ -406,6 +406,17 @@ class Dispatcher(Actor):
                     self.return_admin_status()
                 elif message.get_request() == "kill_run_by_id":
                     self.kill_run_by_id(message)
+            elif isinstance(message, dict):
+                # agent action processing...
+                new_message = Message()
+                new_message.set_directive("agent_action_forward")
+                new_message.set_sender(self.myAddress)
+                payload = message
+                new_message.set_payload(payload["payload"])
+                
+                self.send(self.environment, new_message)
+
+
             else:        
                 if message.get_directive() == "simulation_configurations":
                     logging.info('Preparing to run a new set of simulation configurations')
@@ -414,6 +425,12 @@ class Dispatcher(Actor):
                     logging.info('Prepared the simulation')
                     self.begin_simulations()
                     logging.info('Simulations started')
+                
+                elif message.get_directive() == "human_subject_configuration":
+                    logging.info('Human Subject Configuration Starting!')
+                    self.run_human_subject_experiment(message.get_payload())
+
+
                 elif message.get_directive() == "check_status":
                     self.get_status(sender)
                 elif message.get_directive  () == "kill_run_by_id":
@@ -459,3 +476,149 @@ class Dispatcher(Actor):
 
         
 
+    def run_human_subject_experiment(self, configuration, run_number=None, configuration_obect=None):
+        # self.(simulation_configuration.configuration, simulation_configuration.run_number, configuration_obect=simulation_configuration)
+        
+        ####
+        # get the source hash for the newly loaded MES components
+        ####
+        source_hash = configuration["source_hash"]
+        
+        ####
+        # Create the environment for the new MES
+        ####
+        logging.info('Creating a simulation environment')
+        source_hash = configuration["source_hash"]
+        environment_class = configuration["environment"]
+        environment = self.createActor(environment_class,sourceHash=source_hash)
+        # environment created
+        self.environment = environment
+
+        ####
+        # Initializing Environment
+        ####
+        self.send(environment, str(environment_class))
+
+
+        logging.info('Simulation environment created')
+
+        if configuration_obect is not None:
+            configuration_obect.set_mes_base_address(environment)
+
+
+        ####
+        # Setup logger for the MES
+        #   This will setup the folders necessary for the simulation files to be written to
+        ####
+        message = Message()
+        message.set_directive("logger_setup")
+        payload = {}
+        payload["short_name"] = str(environment_class)
+        payload["simulation_id"] = configuration["id"]
+        payload["simulation_run_id"] = configuration["simulation_run_id"]
+        payload["simulation_run_number"] = run_number
+        payload["mes_directory"] = configuration["mes_directory"]
+        payload["simulation_configuration"] = configuration
+        payload["run_code"] = "a1" #configuration_obect.run_code
+        payload["status"] = "running" #configuration_obect.status
+        payload["subjects"] = configuration["subjects"]
+        # payload["run_code"] = configuration_obect.run_code
+        # payload["run_code"] = configuration_obect.run_code
+        if "data_logging" in configuration.keys():
+            payload["data_logging"] = configuration["data_logging"]
+        payload["human_subjects"] = True
+        message.set_payload(payload)
+        self.send(environment, message)
+        
+        logging.info('Environment logger created')
+
+        ####
+        # Setup Institution(s) for the MES    
+        # This preps configuration, but won't intitiate instantiation
+        ####
+
+        institutions = []
+        if "institution" in configuration.keys():
+            institutions = [configuration["institution"]]
+        elif "institutions" in configuration.keys():
+            institutions = configuration["institutions"]
+            # if len(configuration["institutions"]) == 1:
+            #     institutions = [configuration["institutions"]]
+            # else:
+            #     pass
+            #     # for institution_d in configuration["institutions"]:
+                    # institution_class = institution_d
+                    # institutions.append(institution_class)
+
+        ####
+        # Setup Agent(s) for the MES    
+        # This preps configuration, but won't intitiate instantiation
+        ####
+        
+        agents = []
+        for agent_d in configuration["agents"]:
+            agent_type = agent_d["agent_name"]
+            agent_count = agent_d["number"]
+            agents.append((agent_type, agent_count))
+            # for i in range(0, agent_count):
+            #     agents.append((agent_type, 1))
+
+
+        
+        if "properties" in configuration.keys():
+            message = Message()
+            message.set_directive("simulation_properties")
+            message.set_sender(self.myAddress)
+            payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
+            payload["simulation_id"] = configuration["id"]
+            payload["simulation_run_id"] = configuration["simulation_run_id"]
+            payload["subjects"] = configuration["subjects"]
+            if run_number is not None:
+                payload["run_number"] = run_number
+            message.set_payload(payload)
+            
+            self.send(environment, message)
+
+        
+
+        # if 'institutions' not in locals():
+        #     message = Message()
+        #     message.set_directive("setup_institution")
+        #     message.set_payload({"order": 2, "institution_class": institution, "source_hash": source_hash})
+        #     self.send(environment, message)
+        # else:
+        
+        for index, setup_inst in enumerate(institutions):
+            order = index + 1
+            message = Message()
+            message.set_directive("setup_institution")
+            logging.info("DISPATCHING INSTITUTIONS./..")
+            logging.info(institutions)
+            message.set_payload({"order": order, "institution_class": setup_inst["institution"], "source_hash": source_hash})    
+            
+            # if isinstance(setup_inst, dict):
+            #     message.set_payload({"order": order, "institution_class": setup_inst["institution"], "source_hash": source_hash})    
+            # else:
+            #     message.set_payload({"order": order, "institution_class": institutions, "source_hash": source_hash})
+            self.send(environment, message)
+
+        # if hasattr(self, 'agent_memory_prepared'):
+        #     for agent in zip(agents, self.agent_memory):
+        #         message = Message()
+        #         message.set_directive("setup_agents")
+        #         message.set_payload({"agent_class": agent[0][0], "num_agents": agent[0][1], "agent_memory": agent[1], "source_hash": source_hash})
+        #         self.send(environment, message)
+        # else:
+        for agent in agents:
+            message = Message()
+            message.set_directive("setup_agents")
+            message.set_payload({"agent_class": agent[0], "num_agents": agent[1], "source_hash": source_hash})
+            self.send(environment, message)
+
+        
+
+        start_message = Message()
+        start_message.set_sender("experimenter")
+        start_message.set_directive("start_environment")
+        self.send(environment, start_message)
+        logging.info('Simulation environment should have started')

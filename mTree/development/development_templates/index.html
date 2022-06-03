@@ -75,7 +75,10 @@
 
           
           this.socket.on('subject_message', (message) => {
-            this.logMessage(message);
+            if (message.response == "subject_connection"){
+              this.process_subject_message(message);
+            }
+            
           });
 
           this.socket.on('message',  (message) => {
@@ -97,7 +100,6 @@
 
         update_status_table(message){
           $("#status-body").empty()
-          
           var status = message.payload.status;
           
           if (status.length == 0){
@@ -147,13 +149,34 @@
         }
 
         process_subject_message(message){
-          var subject_id = message.payload.subject_id;
-          var row = $('<tr>');
-          row.append($('<td>').text(subject_id));
-          row.append($('<td>'));
-          row.append($('<td>'));
-          row.append($('<td>'));
-          $("#subject-body").append(row);
+
+          $("#subject-body").empty()
+          console.log(message);
+          
+          var subjects = message.payload.subjects;
+          
+          if (subjects.length == 0){
+            var row = $('<tr>');
+            row.append($('<td>').text("No subjects connected"));
+            $("#subject-body").append(row);
+            
+
+          } else {
+            for(var i=0; i< subjects.length; i++){
+                var row = $('<tr>');        
+                row.append($('<td>').text(subjects[i].subject_id));
+                row.append($('<td>').text(subjects[i].websocket_id));
+                row.append($('<td>').text(subjects[i].status));
+                row.append($('<td>'));
+                row.append($('<td>'));
+                $("#subject-body").append(row);
+            }
+
+          }
+
+
+
+
         }
 
         logMessage(msg){
@@ -175,6 +198,10 @@
           this.socket.emit("admin_mes_message", message);
         }
 
+        send_control_message(message){
+          this.socket.emit('json', message);
+        }
+
         send(action, data){
           this.socket.emit(action, {data: data});
         }
@@ -185,7 +212,31 @@
 
           const mTreeConnection = new MTreeConnection();
           console.log(mTreeConnection);
+
+          {% if configuration %}
+          const configuration = '{{configuration}}';
+          {% endif %}
           mTreeConnection.status();
+
+          $('button').click(function(){
+                    var button_pressed = this.id;
+                    message = {};
+                    console.log("Should be routing...")
+                    switch(button_pressed){
+                    case "start_experiment":
+                        message = {command: 'start_subject_experiment', payload: {configuration: configuration}};
+                        break;
+                    case "pause_experiment":
+                        message = {command: 'pause_subject_experiment', payload: {}};
+                        break;
+                    case "stop_experiment":
+                        message = {command: 'stop_subject_experiment', payload: {}};
+                        break;
+                    }
+                    mTreeConnection.send_control_message(message);
+
+                }
+            );
 
 
         });

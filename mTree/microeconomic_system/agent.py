@@ -12,6 +12,7 @@ from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.mes_exceptions import *
+from mTree.microeconomic_system.admin_message import AdminMessage
 #from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 import logging
@@ -144,6 +145,15 @@ class Agent(Actor):
         new_message.set_payload({"agent_memory": self.agent_memory})
         self.send(self.dispatcher, new_message)
 
+
+    def send_to_subject(self, command, payload):
+        web_socket_router_actor = self.createActor(Actor, globalName = "WebSocketRouterActor")
+        message_payload = {"command": command, "subject_id": self.subject_id, "payload": payload }
+        message = AdminMessage(response="send_to_subject", payload=message_payload)
+        
+        self.send(web_socket_router_actor, message)
+
+
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
         self.address_book = AddressBook(self)
@@ -162,6 +172,10 @@ class Agent(Actor):
         if "agent_information" in message.get_payload().keys():
             self.short_name = message.get_payload()["agent_information"]["short_name"]
             self.agent_information = message.get_payload()["agent_information"]
+
+        if "subject_id" in message.get_payload().keys():
+            self.subject_id = message.get_payload()["subject_id"]
+
 
         #self.log_actor = message.get_payload()["log_actor"]
         #self.dispatcher = message.get_payload()["dispatcher"]

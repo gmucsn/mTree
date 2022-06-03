@@ -140,12 +140,9 @@ class ActorSystemConnector():
         #     ActorSystem().tell(dispatcher, ActorExitRequest())
 
         dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Actor, globalName = "Dispatcher") # ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
-        print("DISPATCHER for connector should be available")
-        print(str(dispatcher))
         self.__instance.dispatchers.append(dispatcher)
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
 
-        print("SHould be sendign to dispatcher!!!")
         configuration_message = Message()
         configuration_message.set_directive("simulation_configurations")
         # configuration = [{"mtree_type": "mes_simulation_description",
@@ -205,6 +202,13 @@ class ActorSystemConnector():
         ActorSystemConnector.__instance.actor_system.tell(dispatcher, message)
         #ActorSystem("multiprocTCPBase", self.capabilitie).tell(dispatcher, message)
 
+    def send_agent_action(self, message):
+        '''
+            This method allows injections of messages into the Actor System by routing through the Dispatcher.
+        '''
+        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Dispatcher, globalName = "Dispatcher")#ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        ActorSystemConnector.__instance.actor_system.tell(dispatcher, message)
+
     # 2022 purge
     # def send_message(self):
     #     # if self.instance.container is None:
@@ -235,4 +239,29 @@ class ActorSystemConnector():
     #         }]
     #     configuration_message.set_payload(configuration)
     #     ActorSystem().tell(dispatcher, configuration_message)
-       
+    
+    
+    def run_human_subject_experiment(self, mes_base_dir, configuration_filename, run_configuration, subjects):
+        source_hash = self.load_base_mes(mes_base_dir)
+        self.capabilities = dict([('Admin Port', 19000)])
+
+        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Actor, globalName = "Dispatcher") # ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        
+        self.__instance.dispatchers.append(dispatcher)
+
+        configuration_message = Message()
+        configuration_message.set_directive("human_subject_configuration") #"simulation_configurations")
+        run_configuration["source_hash"] = source_hash
+        config_base_name = os.path.basename(configuration_filename).split('.')[0]
+        nowtime = datetime.datetime.now().timestamp()
+        nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+        simulation_run_id = config_base_name + "-" + nowtime_filename #str(nowtime).split(".")[0]
+        run_configuration["simulation_run_id"] = simulation_run_id
+        run_configuration["mes_directory"] = mes_base_dir
+        run_configuration["subjects"] = subjects
+        run_configuration["properties"] = run_configuration["properties"]
+        configuration_message.set_payload(run_configuration)
+        print("RUN CONFIG --> ", run_configuration)
+
+        ActorSystemConnector.__instance.actor_system.tell(dispatcher, configuration_message) #createActor(Dispatcher, globalName = "Dispatcher")
+ 

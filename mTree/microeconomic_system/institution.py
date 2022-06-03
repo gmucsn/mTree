@@ -153,6 +153,7 @@ class Institution(Actor):
                 error_message += trace_output
                 #self.log_message(error_message)
                 self.log_message("INSITUTION: EXCEPTION! Check exception log. ")
+                self.log_message(error_message)
                 exception_payload = {}
                 exception_payload["error_message"] = error_message
                 exception_payload["source_message"]= str(message)

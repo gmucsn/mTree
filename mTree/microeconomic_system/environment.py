@@ -333,6 +333,14 @@ class Environment(Actor):
         self.mtree_properties = message.get_payload()["properties"]
         self.simulation_id = message.get_payload()["simulation_id"]
         self.simulation_run_id = message.get_payload()["simulation_run_id"]
+        if "subjects" in message.get_payload().keys():
+            self.subjects = message.get_payload()["subjects"]
+            logging.info("Subjects list available...")
+            logging.info(self.subjects)
+        # if "subjects" in message.get_payload()["properties"].keys():
+        #     self.subjects = message.get_payload()["properties"]["subjects"]
+        #     logging.info("Subjects list available...")
+        #     logging.info(self.subjects)
         if "run_number" in message.get_payload().keys():
             self.run_number = message.get_payload()["run_number"]
 
@@ -357,6 +365,10 @@ class Environment(Actor):
         # if "agent_memory" in message.get_payload().keys():
         #     memory = True
         #     agent_memory = message.get_payload()["agent_memory"]
+
+        if "subjects" in dir(self):
+            self.subject_map = {}
+
         for i in range(num_agents):
             agent_number = i + 1
             new_agent = self.createActor(agent_class, sourceHash=source_hash)
@@ -383,13 +395,27 @@ class Environment(Actor):
             #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
             payload["properties"] = self.mtree_properties
             payload["agent_information"] = agent_info
+            logging.info("SHOULD BE BINDING SUBJECT ID")
+            logging.info(self.subjects)
+            if "subjects" in dir(self):
+                payload["subject_id"] = self.subjects[i]["subject_id"]
+                self.subject_map[payload["subject_id"]] = new_agent
             
             # if memory:
             #     payload["agent_memory"] = agent_memory
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
 
-        
+
+    @directive_decorator("agent_action_forward")
+    def agent_action_forward(self, message:Message):        
+        subject_id = message.get_payload()["subject_id"]
+        subject_agent_map = self.subject_map[subject_id]
+        new_message = Message()
+        new_message.set_directive(message.get_payload()["action"])
+        new_message.set_sender(self.myAddress)
+        new_message.set_payload(message.get_payload())
+        self.send(subject_agent_map, new_message)
 
     @directive_decorator("setup_institution")
     def create_institution(self, message:Message):
@@ -451,8 +477,9 @@ class Environment(Actor):
             for target_address in receiver:
                 self.send(target_address, new_message)
         else:
-            receiver_address = self.address_book.select_addresses(
-                                {"short_name": receiver})
+            receiver_address = receiver
+            # self.address_book.select_addresses(
+            #                     {"short_name": receiver})
 
             self.send(receiver_address, new_message)
 

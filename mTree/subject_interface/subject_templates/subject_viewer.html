@@ -10,18 +10,15 @@
   </div>
 </div>
 
-<script
-src="https://code.jquery.com/jquery-3.4.1.min.js"
-integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.4/ace.js"></script>
 <!-- JavaScript Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
 
 <script type="text/javascript" charset="utf-8">
-  var subject_id = "{{subject_id}}";
+  window.subject_id = "{{subject_id}}";
 
 
   class MTreeSubjectConnection{
@@ -46,9 +43,7 @@ crossorigin="anonymous"></script>
           console.log(this.socket);
           // register
           this.socket.on('connect', () => {
-              console.log("A connection has occurred");
-              console.log(this.socket.id);
-            this.connected();
+              this.connected();
             });
           this.socket.on('log_message', (msg) => this.logMessage(msg));
           this.socket.on('system_status', (msg) => this.logMessage(msg));
@@ -57,11 +52,45 @@ crossorigin="anonymous"></script>
             this.logMessage(message);
           });
 
+          this.socket.on('display_ui', (message) => {
+            console.log("About to update UI Screen");
+            this.display_ui(message);
+          });
+
+
+          this.socket.on('update_data', (message) => {
+            console.log("About to update Data");
+            this.update_data(message);
+          });
+
+          this.socket.on('execute_method', (message) => {
+            console.log("About to execute method");
+            this.execute_method(message);
+          });
+
 
         }
 
-
+        display_ui(message){
+          $("#subject-view").html(message.ui_content);
+        }
        
+        update_data(message){
+          console.log("Trying to update data...");
+          console.log(message);
+          window.ui_manager.update_property(message.property, message.value);
+        }
+
+        execute_method(message){
+          console.log("Trying to execute method...");
+          console.log(message);
+          if ("parameters" in message){
+            window.ui_manager[message.method](message.parameters);
+          } else {
+            window.ui_manager[message.method]();
+          }         
+          
+        }
 
         logMessage(msg){
           console.log("LOG MESSAGE RECEIVED");
@@ -86,6 +115,10 @@ crossorigin="anonymous"></script>
           this.socket.emit("admin_mes_message", message);
         }
 
+        send_agent_action(message){
+          this.socket.emit('json', {command: 'agent_action', payload: message});          
+        }
+
         send(action, data){
           this.socket.emit(action, {data: data});
         }
@@ -94,8 +127,8 @@ crossorigin="anonymous"></script>
 
         $(document).ready(() => {
 
-          const mTree_subject_connection = new MTreeSubjectConnection();
-          console.log(mTree_subject_connection);
+          window.mTree_subject_connection = new MTreeSubjectConnection();
+          console.log(window.mTree_subject_connection);
           
            
 

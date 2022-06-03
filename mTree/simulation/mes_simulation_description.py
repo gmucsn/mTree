@@ -104,13 +104,13 @@ class MESSimulationDescription():
         self.import_json(configuration)
 
     def import_json(self, input_json):
-        try:
+        # try:
             # TODO Fix configuration schema validation
             # currently there is an issue on the properties setup...
             #validate(instance=input_json, schema=simulation_description_schema)
-            self.configure_from_json(input_json)
-        except Exception as e:
-            print(e)
+        self.configure_from_json(input_json)
+        # except Exception as e:
+        #     print(e)
 
     def configure_from_json(self, input_json):
         if "mtree_type" in input_json.keys():

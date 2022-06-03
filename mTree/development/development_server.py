@@ -29,9 +29,13 @@ from mTree.server.actor_system_connector import ActorSystemConnector
 from mTree.development.development_endpoints import development_area
 from mTree.subject_interface.subject_endpoints import subject_area
 from mTree.development.mtree_configuration import MTreeConfiguration
+from mTree.development.subject_directory import SubjectDirectory
 from mTree.components import registry
 from mTree.base.response import Response
 from mTree.microeconomic_system.admin_message import AdminMessage
+from mTree.components.registry import Registry
+from mTree.simulation.mes_simulation_library import MESSimulationLibrary
+
 # from mTree.microeconomic_system.subject_container import SubjectContainer
 # from mTree.components.admin_message import AdminMessage
 
@@ -81,6 +85,8 @@ class DevelopmentServer(object):
         self.basic_auth = BasicAuth(self.app)
 
         self.mTree_configuration = MTreeConfiguration()
+        self.subject_directory = SubjectDirectory()
+
 
         self.add_routes()
         # self.scheduler = APScheduler()
@@ -232,7 +238,21 @@ class DevelopmentServer(object):
 
             if command == "register_admin":
                 join_room("admin")
-                emit('subject_message', {'response': 'subject_connection', 'payload': {"subject_id": "111111"}}, to="admin")
+            if command == "start_subject_experiment":
+                subject_directory = SubjectDirectory()
+                if not subject_directory.experiment_status():   
+                    subject_directory.start_experiment()
+                    configuration = payload["configuration"]
+                    component_registry = Registry()
+                    working_dir = os.path.join(os.getcwd())
+                    simulation_library = MESSimulationLibrary()
+                    simulation_library.list_human_subject_files_directory(working_dir)
+                    simulation = simulation_library.get_simulation_by_filename(configuration)
+                    actor_system = ActorSystemConnector()
+                    working_dir = os.path.join(os.getcwd())
+                    actor_system.run_human_subject_experiment(working_dir, configuration, simulation["description"].to_hash(), subject_directory.get_subjects())
+
+
 
 
         @self.socketio.on('disconnect')
@@ -312,21 +332,63 @@ class DevelopmentServer(object):
             response = {"status": "success"}
             return response, 200
 
+        @self.app.route('/mes_subject_channel', methods=['POST'])
+        def mes_subject_channel():
+            print("MES subject channel...")
+            data = request.get_json()
+            command = data["command"]
+            if command == "display_ui":
+                # get ui...
+                ui_file = os.path.join(os.getcwd(), "ui", data["payload"]["ui_file"])
+                ui_content = None
+                with open(ui_file, "r") as t_file:
+                    ui_content = t_file.read()
+                emit('display_ui', {'ui_content': ui_content}, namespace='/subject', to=data["subject_id"])
+            elif command == "update_data":
+                emit('update_data', data["payload"], namespace='/subject', to=data["subject_id"])
+            elif command == "update_value":
+                emit('subject_message', {'response': 'Another Subject Connected '}, namespace='/subject', to=data["subject_id"])
+            elif command == "execute_method":
+                emit('execute_method', data["payload"], namespace='/subject', to=data["subject_id"])
+                        
+
+
+            response = {"status": "success"}
+            return response, 200
+
+
 
         @self.socketio.on('connect', namespace='/subject')
         def subject_connect(message):
             emit('subject_message', {'response': 'Subject Connected'})
 
+        
+
+        @self.socketio.on('disconnect', namespace='/subject')
+        def subject_disconnect():
+            subject_directory = SubjectDirectory()
+            subject_directory.disconnect_subject(request.sid)
+            emit('subject_message', {'response': 'subject_connection', 'payload': {"subjects": subject_directory.get_subjects()}}, namespace='/developer', to="admin")
+
+
+
         @self.socketio.on('json', namespace='/subject')
         def subject_json(json):
+            
             command = json["command"]
             payload = json["payload"]
 
             if command == "register_subject_id":
+                subject_directory = SubjectDirectory()
+                subject_directory.update_subjects(payload["subject_id"], request.sid)
                 join_room(payload["subject_id"])
                 join_room("all_subjects")
                 emit('subject_message', {'response': 'Another Subject Connected '}, to="all_subjects")
-                emit('subject_message', {'response': 'subject_connection', 'payload': {"subject_id": payload["subject_id"]}}, namespace='/developer', to="admin")
+                emit('subject_message', {'response': 'subject_connection', 'payload': {"subjects": subject_directory.get_subjects()}}, namespace='/developer', to="admin")
+            elif command == "agent_action":
+                actor_system = ActorSystemConnector()
+                actor_system.send_agent_action(json)
+                
 
         # @self.app.route('/component_view')
         # def component_view():
