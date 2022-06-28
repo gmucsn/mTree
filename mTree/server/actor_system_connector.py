@@ -163,7 +163,8 @@ class ActorSystemConnector():
         
         config_base_name = os.path.basename(configuration_filename).split('.')[0]
         nowtime = datetime.datetime.now().timestamp()
-        nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+        # Simulation Run ID Generator - TODO consolidate with subject ID generation
+        nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
         simulation_run_id = config_base_name + "-" + nowtime_filename #str(nowtime).split(".")[0]
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
@@ -254,7 +255,8 @@ class ActorSystemConnector():
         run_configuration["source_hash"] = source_hash
         config_base_name = os.path.basename(configuration_filename).split('.')[0]
         nowtime = datetime.datetime.now().timestamp()
-        nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+        # Simulation Run ID setup
+        nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
         simulation_run_id = config_base_name + "-" + nowtime_filename #str(nowtime).split(".")[0]
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir

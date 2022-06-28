@@ -395,8 +395,6 @@ class Environment(Actor):
             #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
             payload["properties"] = self.mtree_properties
             payload["agent_information"] = agent_info
-            logging.info("SHOULD BE BINDING SUBJECT ID")
-            logging.info(self.subjects)
             if "subjects" in dir(self):
                 payload["subject_id"] = self.subjects[i]["subject_id"]
                 self.subject_map[payload["subject_id"]] = new_agent

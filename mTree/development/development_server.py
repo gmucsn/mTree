@@ -241,6 +241,7 @@ class DevelopmentServer(object):
             if command == "start_subject_experiment":
                 subject_directory = SubjectDirectory()
                 if not subject_directory.experiment_status():   
+                    emit('experiment_status_message', {'response': 'status', 'payload': {'status': 'Started'}})
                     subject_directory.start_experiment()
                     configuration = payload["configuration"]
                     component_registry = Registry()

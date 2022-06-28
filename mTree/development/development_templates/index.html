@@ -81,6 +81,14 @@
             
           });
 
+          this.socket.on('experiment_status_message', (message) => {
+            if (message.response == "status"){
+              this.process_experiment_status_message(message);
+            }
+            
+          });
+
+
           this.socket.on('message',  (message) => {
             console.log(message);
           });
@@ -147,6 +155,13 @@
           
 
         }
+
+        process_experiment_status_message(message){
+
+            $("#experiment_status").html("")
+            $("#experiment_status").html(message.payload.status)
+          }
+
 
         process_subject_message(message){
 
