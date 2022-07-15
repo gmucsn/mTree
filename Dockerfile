@@ -24,7 +24,7 @@ WORKDIR /auctions
 ENTRYPOINT ["mTree_developer_server"]
 
 # basic build:
-# docker build -t mtree/mtree:1.1.2 .
+# docker build -t mtree/mtree:1.1.3 .
 
 # Pulling:
 # docker pull mtree/mtree
