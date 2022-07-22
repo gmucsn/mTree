@@ -1,4 +1,5 @@
 from email.mime import base
+from importlib.util import source_hash
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 import numpy as np
@@ -20,6 +21,21 @@ import hashlib
 import random
 from datetime import datetime
 
+from dataclasses import dataclass, field
+from typing import Dict
+
+
+# This class represents a request for an MES component
+@dataclass
+class ComponentRequest:
+    short_name: str = None
+    short_name_base: str = None
+    source_class: str = None
+    source_hash: str = None
+    local_properties: dict = field(default_factory=dict) 
+    global_properties: dict = field(default_factory=dict)
+    number: int = 1
+    
 
 class SimulationRun:
     def __init__(self, configuration, run_number=None) -> None:
@@ -160,8 +176,37 @@ class Dispatcher(Actor):
         ####
         # Initializing Environment
         ####
-        self.send(environment, str(environment_class))
 
+        # Initialization Message 1
+        self.send(environment, str(environment_class))
+        startup_payload = {}
+        startup_payload["properties"] = configuration["properties"]
+        startup_payload["dispatcher"] = self.myAddress
+        startup_payload["simulation_id"] = configuration["id"]
+        startup_payload["simulation_run_id"] = configuration["simulation_run_id"]
+        startup_payload["short_name"] = str(environment_class)
+        
+        if run_number is not None:
+            startup_payload["run_number"] = run_number
+        
+        # Initialization Message 2
+        self.send(environment, startup_payload)
+
+
+
+        # if "properties" in configuration.keys():
+        #     message = Message()
+        #     message.set_directive("simulation_properties")
+        #     message.set_sender(self.myAddress)
+        #     payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
+        #     payload["simulation_id"] = configuration["id"]
+        #     payload["simulation_run_id"] = configuration["simulation_run_id"]
+            
+        #     if run_number is not None:
+        #         payload["run_number"] = run_number
+        #     message.set_payload(payload)
+            
+        #     self.send(environment, message)
 
         logging.info('Simulation environment created')
 
@@ -203,7 +248,13 @@ class Dispatcher(Actor):
         ####
 
         institutions = []
+        institution_requests = []
         if "institution" in configuration.keys():
+            institution_request = ComponentRequest()
+            institution_request.source_hash=source_hash
+            institution_request.number=agent_d["number"]
+            institution_request.source_class=agent_d["agent_name"]
+            
             institutions = [configuration["institution"]]
         elif "institutions" in configuration.keys():
             institutions = configuration["institutions"]
@@ -221,9 +272,18 @@ class Dispatcher(Actor):
         ####
         
         agents = []
+        agent_requests = []
         for agent_d in configuration["agents"]:
             agent_type = agent_d["agent_name"]
             agent_count = agent_d["number"]
+            # message.set_payload({"agent_class": agent[0], "num_agents": agent[1], "source_hash": source_hash})
+            
+            agent_request = ComponentRequest()
+            agent_request.source_hash=source_hash
+            agent_request.number=agent_d["number"]
+            agent_request.source_class=agent_d["agent_name"]
+            agent_requests.append(agent_request)
+            
             agents.append((agent_type, agent_count))
             # for i in range(0, agent_count):
             #     agents.append((agent_type, 1))
@@ -270,12 +330,25 @@ class Dispatcher(Actor):
         #         message.set_payload({"agent_class": agent[0][0], "num_agents": agent[0][1], "agent_memory": agent[1], "source_hash": source_hash})
         #         self.send(environment, message)
         # else:
+        
+        
+        # TODO replace with agent requests
         for agent in agents:
             message = Message()
             message.set_directive("setup_agents")
             message.set_payload({"agent_class": agent[0], "num_agents": agent[1], "source_hash": source_hash})
             self.send(environment, message)
 
+        # for agent_request in agent_requests:
+        #     message = Message()
+        #     message.set_directive("setup_agent_requests")
+        #     message.set_payload(agent_request)
+        #     self.send(environment, message)
+
+        start_message = Message()
+        start_message.set_sender("experimenter")
+        start_message.set_directive("distribute_address_book")
+        self.send(environment, start_message)
         
 
         start_message = Message()

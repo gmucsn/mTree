@@ -22,7 +22,7 @@ import time
 import sys
 import inspect
 
-@initializing_messages([('startup', str)],
+@initializing_messages([('startup', str), ('initialization_dict', dict), ('address_book', AddressBook)],
                             initdone='invoke_prepare')
 @directive_enabled_class
 class Agent(Actor):
@@ -31,11 +31,51 @@ class Agent(Actor):
         pass
 
     def invoke_prepare(self):
-        # prepare for actor startup....
+        logging.info("Agent Starting Preparation ")
+        
+        self.mtree_properties = self.initialization_dict["properties"]
+        self.simulation_id = self.initialization_dict["simulation_id"]
+        self.simulation_run_id = self.initialization_dict["simulation_run_id"]
+        self.short_name = self.initialization_dict["short_name"]
+        self.environment = self.initialization_dict["environment"]
+        self.log_actor = self.initialization_dict["log_actor"]
+        self.address_type = self.initialization_dict["address_type"]
+        # startup_payload["component_class"] = agent_class
+        # startup_payload["component_number"] = agent_number
+
+
+        if "subjects" in dir(self.initialization_dict):
+            self.subject_id = self.initialization_dict["subject_id"]
+
+        logging.info("Agent Completed Preparation ")
+        
         try:
             self.prepare()
         except:
-            pass
+            error_type, error, tb = sys.exc_info()
+            error_message = "MES CRASHING IN PREPARATION - EXCEPTION FOLLOWS \n"
+            error_message += "\tError Type: " + str(error_type) + "\n"
+            error_message += "\tError: " + str(error) + "\n"
+            traces = traceback.extract_tb(tb)
+            trace_output = "\tTrace Output: \n"
+            for trace_line in traceback.format_list(traces):
+                trace_output += "\t" + trace_line + "\n"
+            error_message += "\n"
+            error_message += trace_output
+            #self.log_message(error_message)
+            self.log_message("Environment: PREPARATION EXCEPTION! Check exception log. ")
+            exception_payload = {}
+            exception_payload["error_message"] = error_message
+            exception_payload["error_type"]= str(error_type)
+            exception_payload["error"]= str(error)
+
+            excepting_trace = traces[0] 
+            exception_payload["filename"] = excepting_trace.filename
+            exception_payload["lineno"] = excepting_trace.lineno
+            exception_payload["name"] = excepting_trace.name
+            exception_payload["line"] = excepting_trace.line
+            
+            self.excepted_mes(exception_payload)
 
     def __init__(self):
         self.address_book = AddressBook(self)

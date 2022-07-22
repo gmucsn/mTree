@@ -21,7 +21,7 @@ import sys
 
 
 @directive_enabled_class
-@initializing_messages([('startup', str)],
+@initializing_messages([('startup', str), ('initialization_dict', dict)],
                             initdone='invoke_prepare')
 class Environment(Actor):
 
@@ -29,6 +29,16 @@ class Environment(Actor):
         pass
 
     def invoke_prepare(self):
+        # prepare the environment...
+        self.address_book = AddressBook(self)        
+
+        self.mtree_properties = self.initialization_dict["properties"]
+        self.dispatcher = self.initialization_dict["dispatcher"]
+        self.simulation_id = self.initialization_dict["simulation_id"]
+        self.simulation_run_id = self.initialization_dict["simulation_run_id"]
+        self.short_name = self.initialization_dict["short_name"]
+        
+
         logging.info("ENVIRONMENT INVOKING PREPARE ")
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
@@ -68,7 +78,31 @@ class Environment(Actor):
         try:
             self.prepare()
         except:
-            pass
+            error_type, error, tb = sys.exc_info()
+            error_message = "MES CRASHING IN PREPARATION - EXCEPTION FOLLOWS \n"
+            error_message += "\tSource Message: " + str(message) + "\n"
+            error_message += "\tError Type: " + str(error_type) + "\n"
+            error_message += "\tError: " + str(error) + "\n"
+            traces = traceback.extract_tb(tb)
+            trace_output = "\tTrace Output: \n"
+            for trace_line in traceback.format_list(traces):
+                trace_output += "\t" + trace_line + "\n"
+            error_message += "\n"
+            error_message += trace_output
+            #self.log_message(error_message)
+            self.log_message("Environment: PREPARATION EXCEPTION! Check exception log. ")
+            exception_payload = {}
+            exception_payload["error_message"] = error_message
+            exception_payload["error_type"]= str(error_type)
+            exception_payload["error"]= str(error)
+
+            excepting_trace = traces[0] 
+            exception_payload["filename"] = excepting_trace.filename
+            exception_payload["lineno"] = excepting_trace.lineno
+            exception_payload["name"] = excepting_trace.name
+            exception_payload["line"] = excepting_trace.line
+            
+            self.excepted_mes(exception_payload)
 
 
     # def __init__(self):
@@ -344,8 +378,9 @@ class Environment(Actor):
         if "run_number" in message.get_payload().keys():
             self.run_number = message.get_payload()["run_number"]
 
-    @directive_decorator("setup_agents")
-    def setup_agents(self, message:Message):
+
+    @directive_decorator("setup_agent_requests")
+    def setup_agent_requests(self, message:Message):
         if "address_book" not in dir(self):
             self.address_book = AddressBook(self)        
 
@@ -354,11 +389,11 @@ class Environment(Actor):
             self.agent_addresses = []
         # ensure that the actor system and institution are running...
         #message = MessageSpace.create_agent(agent_class)
-        num_agents = message.get_payload()["num_agents"]
-        agent_class = message.get_payload()["agent_class"]
+        num_agents = message.get_payload().number
+        agent_class = message.get_payload().source_class
         
         # need to check source hash for simulation
-        source_hash = message.get_payload()["source_hash"]
+        source_hash = message.get_payload().source_hash
         
         # memory = False
         # agent_memory = None
@@ -404,6 +439,99 @@ class Environment(Actor):
             new_message.set_payload(payload)
             self.send(new_agent, new_message)
 
+    @directive_decorator("distribute_address_book")
+    def distribute_address_book(self, message:Message):
+        for agent in self.agent_addresses:
+            self.send(agent, self.address_book)
+
+        for institution in self.institutions:
+            self.send(institution, self.address_book)
+
+    @directive_decorator("setup_agents")
+    def setup_agents(self, message:Message):
+        if "agents" not in dir(self):
+            self.agents = []
+            self.agent_addresses = []
+        # ensure that the actor system and institution are running...
+        #message = MessageSpace.create_agent(agent_class)
+        num_agents = message.get_payload()["num_agents"]
+        agent_class = message.get_payload()["agent_class"]
+        
+        # need to check source hash for simulation
+        source_hash = message.get_payload()["source_hash"]
+        
+        # memory = False
+        # agent_memory = None
+        # if "agent_memory" in message.get_payload().keys():
+        #     memory = True
+        #     agent_memory = message.get_payload()["agent_memory"]
+
+        if "subjects" in dir(self):
+            self.subject_map = {}
+
+        for i in range(num_agents):
+            agent_number = i + 1
+            new_agent = self.createActor(agent_class, sourceHash=source_hash)
+            # Agent Initialization Message #1
+            self.send(new_agent, agent_class + " " + str(agent_number) )
+            
+            # Agent Initialization Message #2
+            
+            startup_payload = {}
+            startup_payload["address_type"] = "agent"
+            startup_payload["address"] = new_agent
+            startup_payload["component_class"] = agent_class
+            startup_payload["component_number"] = agent_number
+            startup_payload["short_name"] = agent_class + " " + str(agent_number) 
+            startup_payload["properties"] = self.mtree_properties
+
+            startup_payload["environment"] = self.myAddress
+            startup_payload["simulation_id"] = self.simulation_id
+            startup_payload["simulation_run_id"] = self.simulation_run_id
+            startup_payload["log_actor"] = self.log_actor
+            if "run_number" in dir(self):
+                startup_payload["run_number"] = self.run_number
+            
+
+            if "subjects" in dir(self):
+                startup_payload["subject_id"] = self.subjects[i]["subject_id"]
+                self.subject_map[payload["subject_id"]] = new_agent
+            
+            self.send(new_agent, startup_payload)
+
+            ###
+            
+            self.agent_addresses.append(new_agent)
+            self.agents.append([new_agent, agent_class])
+            
+            agent_info = {}
+            agent_info["address_type"] = "agent"
+            agent_info["address"] = new_agent
+            agent_info["component_class"] = agent_class
+            agent_info["component_number"] = agent_number
+            agent_info["short_name"] = agent_class + " " + str(agent_number)
+
+            self.address_book.add_address(agent_info["short_name"], agent_info)
+
+            new_message = Message()
+            #new_message.set_sender(self.myAddress)
+            new_message.set_directive("simulation_properties")
+            new_message.set_sender(self.myAddress)
+            payload = {}
+            #if "mtree_properties" not in dir(self):
+            payload["log_actor"] = self.log_actor
+            #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
+            payload["properties"] = self.mtree_properties
+            payload["agent_information"] = agent_info
+            if "subjects" in dir(self):
+                payload["subject_id"] = self.subjects[i]["subject_id"]
+                self.subject_map[payload["subject_id"]] = new_agent
+            
+            # if memory:
+            #     payload["agent_memory"] = agent_memory
+            new_message.set_payload(payload)
+            #self.send(new_agent, new_message)
+
 
     @directive_decorator("agent_action_forward")
     def agent_action_forward(self, message:Message):        
@@ -429,7 +557,31 @@ class Environment(Actor):
         institution_order = message.get_payload()["order"]
 
         new_institution = self.createActor(institution_class, sourceHash=source_hash)
+
+        # Insitutiton Initialization Message 1
         self.send(new_institution, institution_class + " " + str(institution_order))
+        
+        # Insitutiton Initialization Message 2
+
+        startup_payload = {}
+        startup_payload["address_type"] = "institution"
+        startup_payload["address"] = new_institution
+        startup_payload["component_class"] = institution_class
+        startup_payload["component_number"] = 1
+        startup_payload["short_name"] = institution_class + " " + str(institution_order)
+        startup_payload["properties"] = self.mtree_properties
+
+        startup_payload["environment"] = self.myAddress
+        startup_payload["simulation_id"] = self.simulation_id
+        startup_payload["simulation_run_id"] = self.simulation_run_id
+        startup_payload["log_actor"] = self.log_actor
+        if "run_number" in dir(self):
+            startup_payload["run_number"] = self.run_number
+        
+        self.send(new_institution, startup_payload)
+
+        
+        
         institution_info = {}
         institution_info["address_type"] = "institution"
         institution_info["address"] = new_institution
@@ -458,7 +610,7 @@ class Environment(Actor):
         payload["institution_info"] = institution_info
 
         new_message.set_payload(payload)
-        self.send(new_institution, new_message)
+        #self.send(new_institution, new_message)
 
         self.institutions.append(new_institution)
 
@@ -496,7 +648,15 @@ class Environment(Actor):
 
         if isinstance(message, Message):
             self.log_message("Environment: sending to "  + " directive: " + message.get_directive() )
-        super().send(targetAddress, message)
+        
+        if type(targetAddress) is list:            
+            if len(targetAddress) == 0:
+                raise Exception("Trying to send to an empty list of addresses.")
+            for address in targetAddress:
+                super().send(address, message)
+        else:
+            if targetAddress is not None:
+                super().send(targetAddress, message)
    
 
     def list_agents(self):
