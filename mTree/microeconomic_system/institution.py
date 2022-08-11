@@ -11,6 +11,7 @@ from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.sequence_event import SequenceEvent
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.initialization_messages import *
 import logging
 import json
 import traceback
@@ -18,7 +19,7 @@ from datetime import datetime, timedelta
 import time
 import sys
 
-@initializing_messages([('startup', str), ('initialization_dict', dict), ('address_book', AddressBook)],
+@initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 @directive_enabled_class
 class Institution(Actor):
@@ -28,8 +29,13 @@ class Institution(Actor):
 
     def invoke_prepare(self):
         # prepare the institution...
+        self.initialization_dict = self._startup_payload.startup_payload
+        self._address_book = self._address_book_payload.address_book_payload
         logging.info("Institution Starting Preparation ")
-        
+        logging.info("-->" + str(self.startup))
+        logging.info("-->" + str(self.initialization_dict))
+        logging.info("-->" + str(self._address_book))
+        logging.info("<<<<-->")
         self.mtree_properties = self.initialization_dict["properties"]
         self.simulation_id = self.initialization_dict["simulation_id"]
         self.simulation_run_id = self.initialization_dict["simulation_run_id"]
@@ -37,6 +43,7 @@ class Institution(Actor):
         self.environment = self.initialization_dict["environment"]
         self.log_actor = self.initialization_dict["log_actor"]
         self.address_type = self.initialization_dict["address_type"]
+        self.address_book = AddressBook(self, self._address_book)
         logging.info("Institution Completed Preparation ")
         
         try:
@@ -68,14 +75,14 @@ class Institution(Actor):
             self.excepted_mes(exception_payload)
 
 
-    def __init__(self):
-        self.address_book = AddressBook(self)
-        self.log_actor = None
-        self.dispatcher = None
-        self.run_number = None
-        self.agents = []
-        self.agent_ids = []
-        self.mtree_properties = {}
+    # def __init__(self):
+    #     self.address_book = AddressBook(self)
+    #     self.log_actor = None
+    #     self.dispatcher = None
+    #     self.run_number = None
+    #     self.agents = []
+    #     self.agent_ids = []
+    #     self.mtree_properties = {}
 
 
     def log_sequence_event(self, message):

@@ -289,20 +289,20 @@ class Dispatcher(Actor):
             #     agents.append((agent_type, 1))
 
 
-        
-        if "properties" in configuration.keys():
-            message = Message()
-            message.set_directive("simulation_properties")
-            message.set_sender(self.myAddress)
-            payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
-            payload["simulation_id"] = configuration["id"]
-            payload["simulation_run_id"] = configuration["simulation_run_id"]
+        #### PROBABLY DEPRECATED AS INCLUDED IN ENVIRONMENT STARTUP        
+        # if "properties" in configuration.keys():
+        #     message = Message()
+        #     message.set_directive("simulation_properties")
+        #     message.set_sender(self.myAddress)
+        #     payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
+        #     payload["simulation_id"] = configuration["id"]
+        #     payload["simulation_run_id"] = configuration["simulation_run_id"]
             
-            if run_number is not None:
-                payload["run_number"] = run_number
-            message.set_payload(payload)
+        #     if run_number is not None:
+        #         payload["run_number"] = run_number
+        #     message.set_payload(payload)
             
-            self.send(environment, message)
+        #     self.send(environment, message)
 
         
 

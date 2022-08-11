@@ -13,6 +13,7 @@ from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.mes_exceptions import *
 from mTree.microeconomic_system.admin_message import AdminMessage
+from mTree.microeconomic_system.initialization_messages import *
 #from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 import logging
@@ -22,7 +23,7 @@ import time
 import sys
 import inspect
 
-@initializing_messages([('startup', str), ('initialization_dict', dict), ('address_book', AddressBook)],
+@initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 @directive_enabled_class
 class Agent(Actor):
@@ -31,7 +32,14 @@ class Agent(Actor):
         pass
 
     def invoke_prepare(self):
+        self.initialization_dict = self._startup_payload.startup_payload
+        self._address_book = self._address_book_payload.address_book_payload
         logging.info("Agent Starting Preparation ")
+        logging.info("-->" + str(self.startup))
+        logging.info("-->" + str(self.initialization_dict))
+        logging.info("-->" + str(self._address_book))
+        logging.info("<<<<-->")
+        
         
         self.mtree_properties = self.initialization_dict["properties"]
         self.simulation_id = self.initialization_dict["simulation_id"]
@@ -42,7 +50,7 @@ class Agent(Actor):
         self.address_type = self.initialization_dict["address_type"]
         # startup_payload["component_class"] = agent_class
         # startup_payload["component_number"] = agent_number
-
+        self.address_book = AddressBook(self, self._address_book)
 
         if "subjects" in dir(self.initialization_dict):
             self.subject_id = self.initialization_dict["subject_id"]
@@ -77,13 +85,13 @@ class Agent(Actor):
             
             self.excepted_mes(exception_payload)
 
-    def __init__(self):
-        self.address_book = AddressBook(self)
-        #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
-        self.log_actor = None
-        self.mtree_properties = {}
-        self.agent_memory = {}
-        self.outlets = {}
+    # def __init__(self):
+    #     self.address_book = AddressBook(self)
+    #     #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
+    #     self.log_actor = None
+    #     self.mtree_properties = {}
+    #     self.agent_memory = {}
+    #     self.outlets = {}
 
     environment = None
 
