@@ -140,6 +140,7 @@ class ActorSystemConnector():
         #     ActorSystem().tell(dispatcher, ActorExitRequest())
 
         dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Actor, globalName = "Dispatcher") # ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        # ActorSystemConnector.__instance.actor_system.tell(dispatcher, "START DISPATCHER")
         self.__instance.dispatchers.append(dispatcher)
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
 
@@ -169,7 +170,6 @@ class ActorSystemConnector():
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
         configuration_message.set_payload(run_configuration)
-        print("SHOULD BE SENDING TO DISPATCHER")
         ActorSystemConnector.__instance.actor_system.tell(dispatcher, configuration_message) #createActor(Dispatcher, globalName = "Dispatcher")
         print("dispatcher request -> " + str(configuration_message))
         # ActorSystem("multiprocTCPBase", self.capabilities).tell(dispatcher, configuration_message)

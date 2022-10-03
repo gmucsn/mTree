@@ -12,7 +12,6 @@ class AddressBook:
         self.agents = {}
         self.institutions = {}
         self.environment = None
-        logging.info("loading something: ", address_data)
         if address_data is not None:
             self.addresses = address_data["addresses"]
             self.address_groups = address_data["address_groups"]

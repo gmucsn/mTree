@@ -18,6 +18,7 @@ import traceback
 from datetime import datetime, timedelta
 import time
 import sys
+import os
 
 @initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
@@ -31,12 +32,10 @@ class Institution(Actor):
         # prepare the institution...
         self.initialization_dict = self._startup_payload.startup_payload
         self._address_book = self._address_book_payload.address_book_payload
-        logging.info("Institution Starting Preparation ")
-        logging.info("-->" + str(self.startup))
-        logging.info("-->" + str(self.initialization_dict))
-        logging.info("-->" + str(self._address_book))
-        logging.info("<<<<-->")
         self.mtree_properties = self.initialization_dict["properties"]
+        if "local_properties" in self.initialization_dict.keys():
+            self.local_properties = self.initialization_dict["local_properties"]
+
         self.simulation_id = self.initialization_dict["simulation_id"]
         self.simulation_run_id = self.initialization_dict["simulation_run_id"]
         self.short_name = self.initialization_dict["short_name"]
@@ -44,7 +43,7 @@ class Institution(Actor):
         self.log_actor = self.initialization_dict["log_actor"]
         self.address_type = self.initialization_dict["address_type"]
         self.address_book = AddressBook(self, self._address_book)
-        logging.info("Institution Completed Preparation ")
+        self.container = self.initialization_dict["container"]
         
         try:
             self.prepare()
@@ -60,7 +59,7 @@ class Institution(Actor):
             error_message += "\n"
             error_message += trace_output
             #self.log_message(error_message)
-            self.log_message("Environment: PREPARATION EXCEPTION! Check exception log. ")
+            self.log_message("Institution: PREPARATION EXCEPTION! Check exception log. ")
             exception_payload = {}
             exception_payload["error_message"] = error_message
             exception_payload["error_type"]= str(error_type)
@@ -91,8 +90,8 @@ class Institution(Actor):
         sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
         self.send(self.log_actor, sequence_event)
 
-    def log_message(self, logline):
-        log_message = LogMessage(message_type="log", content=logline)
+    def log_message(self, logline, target=None):
+        log_message = LogMessage(message_type="log", content=logline, target=target)
         self.send(self.log_actor, log_message)
 
     def log_data(self, logline):
@@ -133,12 +132,13 @@ class Institution(Actor):
                 self.send(agent, new_message)      
 
     def shutdown_mes(self):
+        logging.info("INST shutting down sim")
         new_message = Message()
         new_message.set_directive("shutdown_mes")
         new_message.set_sender(self.myAddress)
         payload = {}
         new_message.set_payload(payload)
-        self.send(self.environment, new_message)
+        self.send(self.container, new_message)
         
 
     def excepted_mes(self, exception_payload):
@@ -146,7 +146,7 @@ class Institution(Actor):
         new_message.set_directive("excepted_mes")
         new_message.set_sender(self.myAddress)
         new_message.set_payload(exception_payload)
-        self.send(self.environment, new_message)
+        self.send(self.container, new_message)
 
 
     @directive_decorator("external_reminder")
@@ -282,9 +282,7 @@ class Institution(Actor):
         else:
             receiver_address = self.address_book.select_addresses(
                                 {"short_name": receiver})
-            logging.info("SHOULD BE GETTING THE ADDRESS")
-            logging.info(self.address_book.addresses)
-            logging.info("---> " + str(receiver_address))
+
             self.send(receiver_address, new_message)
 
 

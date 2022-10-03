@@ -1,5 +1,6 @@
 from email.mime import base
 from importlib.util import source_hash
+from mTree.microeconomic_system.initialization_messages import MESConfigurationPayload
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 import numpy as np
@@ -11,6 +12,8 @@ from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.outconnect import OutConnect
+from mTree.microeconomic_system.mes_container import MESContainer
+
 # from mTree.microeconomic_system.web_socket_router_actor import WebSocketRouterActor
 
 #from socketIO_client import SocketIO, LoggingNamespace
@@ -82,6 +85,13 @@ class SimulationRun:
             else:
                 total_time = datetime.now() - self.start_time
         return [self.run_code, self.name, self.run_number, self.status, str(total_time)]
+    
+    def __str__(self):
+        output_string = f"<SimulationRunStatus run_code: {self.run_code} id: {self.id} run_number: {self.run_number} status: {self.status} start_time: {self.start_time} end_time: {self.start_time}  >"
+        return output_string
+
+    def __repr__(self):
+        return self.__str__()
 
 @initializing_messages([('starting', str)], initdone='init_done')
 class Dispatcher(Actor):
@@ -106,8 +116,8 @@ class Dispatcher(Actor):
         self.configurations_finished = []
         self.agent_memory = {}
 
-        logging.info("Dispatcher initialized and sending message to system status actor")
         system_status_actor = self.createActor(Actor, globalName = "SystemStatusActor")
+        self.send(system_status_actor, "START")
         message = AdminMessage(request="register_dispatcher")
         self.send(system_status_actor, message)
                     
@@ -133,8 +143,6 @@ class Dispatcher(Actor):
         # message.set_sender(self.myAddress)
         # 
         # message.set_payload(payload)
-        logging.info('SENT TO WWEBSOCKET FOR FURTHER PROCESSING')
-        logging.info(message)
                 
         self.send(web_socket_router_actor, message)
 
@@ -164,34 +172,53 @@ class Dispatcher(Actor):
         source_hash = configuration["source_hash"]
         
         ####
+        # Startup the MES Container that will contain this simulation
+        ####
+
+        source_hash = configuration["source_hash"]
+        mes_container = self.createActor(MESContainer)
+        
+
+        ####
         # Create the environment for the new MES
         ####
-        logging.info('Creating a simulation environment')
         source_hash = configuration["source_hash"]
         environment_class = configuration["environment"]
-        environment = self.createActor(environment_class,sourceHash=source_hash)
-        # environment created
-        self.environment = environment
+        # environment = self.createActor(environment_class,sourceHash=source_hash)
+        # # environment created
+        # self.environment = environment
 
         ####
         # Initializing Environment
         ####
 
         # Initialization Message 1
-        self.send(environment, str(environment_class))
+        # self.send(environment, str(environment_class))
         startup_payload = {}
+        startup_payload["simulation_configuration"] = configuration
         startup_payload["properties"] = configuration["properties"]
         startup_payload["dispatcher"] = self.myAddress
         startup_payload["simulation_id"] = configuration["id"]
         startup_payload["simulation_run_id"] = configuration["simulation_run_id"]
         startup_payload["short_name"] = str(environment_class)
+        startup_payload["run_code"] = configuration_obect.run_code
+        startup_payload["status"] = configuration_obect.status
+        startup_payload["configuration_object"] = configuration_obect
+
+        # payload["run_code"] = configuration_obect.run_code
+        # payload["run_code"] = configuration_obect.run_code
+        if "data_logging" in configuration.keys():
+            startup_payload["data_logging"] = configuration["data_logging"]
+        
         
         if run_number is not None:
             startup_payload["run_number"] = run_number
         
         # Initialization Message 2
-        self.send(environment, startup_payload)
+        # self.send(environment, startup_payload)
 
+        # Initialization Message for Container
+        self.send(mes_container, MESConfigurationPayload(mes_configuration_payload=startup_payload))
 
 
         # if "properties" in configuration.keys():
@@ -208,11 +235,12 @@ class Dispatcher(Actor):
             
         #     self.send(environment, message)
 
-        logging.info('Simulation environment created')
-
+      
+        ### CHANGE THIS TO THE CONTAINER
         if configuration_obect is not None:
-            configuration_obect.set_mes_base_address(environment)
+            configuration_obect.set_mes_base_address(mes_container)
 
+        return
 
         ####
         # Setup logger for the MES
@@ -247,6 +275,7 @@ class Dispatcher(Actor):
         # This preps configuration, but won't intitiate instantiation
         ####
 
+        # FIX
         institutions = []
         institution_requests = []
         if "institution" in configuration.keys():
@@ -255,7 +284,7 @@ class Dispatcher(Actor):
             institution_request.number=agent_d["number"]
             institution_request.source_class=agent_d["agent_name"]
             
-            institutions = [configuration["institution"]]
+            institutions = [{"institution_class": configuration["institution"]}]
         elif "institutions" in configuration.keys():
             institutions = configuration["institutions"]
             # if len(configuration["institutions"]) == 1:
@@ -402,27 +431,41 @@ class Dispatcher(Actor):
             self.send(self.myAddress, ActorExitRequest())
             
 
-    def shutdown_mes(self, environment_address):
+    def update_mes_status(self, sender, message):
+             
         for run in self.simulation_runs:
-            if run.mes_base_address == environment_address:
+            if run.mes_base_address == sender:
                 run.mark_finished()
-        
-                message = Message()
-                message.set_directive("update_mes_status")
-                message.set_sender(self.myAddress)
-                payload = {}
-                payload["status"] = run.status
-                payload["start_time"] = str(run.start_time)
-                payload["end_time"] = str(run.end_time)
-                payload["total_time"] = str(run.end_time - run.start_time)        
-                message.set_payload(payload)
-                self.send(environment_address, message)
+
+    def update_mes_run_information(self, sender, message):
             
-        self.send(environment_address, ActorExitRequest())
+        for run_index, run in enumerate(self.simulation_runs):
+            if run.mes_base_address == sender:
+                self.simulation_runs[run_index] = message
+                break
+        
+        
+    def shutdown_mes(self, environment_address):
+        pass
+        # for run in self.simulation_runs:
+        #     if run.mes_base_address == environment_address:
+        #         run.mark_finished()
+        
+        #         message = Message()
+        #         message.set_directive("update_mes_status")
+        #         message.set_sender(self.myAddress)
+        #         payload = {}
+        #         payload["status"] = run.status
+        #         payload["start_time"] = str(run.start_time)
+        #         payload["end_time"] = str(run.end_time)
+        #         payload["total_time"] = str(run.end_time - run.start_time)        
+        #         message.set_payload(payload)
+        #         self.send(environment_address, message)
+            
+        # self.send(environment_address, ActorExitRequest())
     
     def kill_run_by_id(self, message):
         for run in self.simulation_runs:
-            logging.info("DISOPATCHEWR IKILL REUEST " + str(message.get_payload()))
             if run.run_code == message.get_payload()["run_id"]:
                 run.mark_killed()
 
@@ -469,13 +512,9 @@ class Dispatcher(Actor):
         #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         # with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
         #     file_object.write("SHOULD BE RUNNING SIMULATION" + str(message) +  "\n")
-        logging.info("Dispatcher recieved message: " + str(message))
         if not isinstance(message, ActorSystemMessage):
             if isinstance(message, AdminMessage):
-                logging.info('DISPATCHER RECEIVED ADMIN MESSAGE')
-                logging.info(message)
                 if message.get_request() == "system_status":
-                    logging.info('System status message received')
                     self.return_admin_status()
                 elif message.get_request() == "kill_run_by_id":
                     self.kill_run_by_id(message)
@@ -492,15 +531,11 @@ class Dispatcher(Actor):
 
             else:        
                 if message.get_directive() == "simulation_configurations":
-                    logging.info('Preparing to run a new set of simulation configurations')
                     self.configurations_pending = message.get_payload()
                     self.prepare_simulation_run(message.get_payload())
-                    logging.info('Prepared the simulation')
                     self.begin_simulations()
-                    logging.info('Simulations started')
-                
+                    
                 elif message.get_directive() == "human_subject_configuration":
-                    logging.info('Human Subject Configuration Starting!')
                     self.run_human_subject_experiment(message.get_payload())
 
 
@@ -516,6 +551,10 @@ class Dispatcher(Actor):
                     self.shutdown_mes(sender)
                 elif message.get_directive() == "excepted_mes":
                     self.excepted_mes_shutdown(sender, message.get_payload())
+                elif message.get_directive() == "update_mes_status":
+                    self.update_mes_status(sender, message.get_payload())
+                elif message.get_directive() == "update_mes_run_information":
+                    self.update_mes_run_information(sender, message.get_payload())
 
                 elif message.get_directive() == "request_system_status":
                     self.request_system_status()

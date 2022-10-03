@@ -2,6 +2,7 @@ import glob
 import sys
 import os
 import json
+from mTree.microeconomic_system.mes_exceptions import *
 
 # from mTree.development.development_endpoints import simulation_library
 
@@ -49,7 +50,9 @@ class MESSimulationLibrary():
             try:
                 description = MESSimulationDescription(filename=filename)
             except Exception as e:
-                pass
+                print(f"ERROR: Configuration file {filename} has a problem!")
+                print("\t", e)
+                raise BadSimulationConfigurationFile(e)
             if description is not None:
                 self.simulations.append({
                                         "source": os.path.basename(filename),

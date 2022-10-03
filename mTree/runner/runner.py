@@ -134,21 +134,31 @@ class Runner():
         for configuration in configurations:
             working_dir = os.getcwd()
             #actor_system.send_message()
-            print("Running: ", configuration)
-            simulation_library = MESSimulationLibrary()
-            simulation_library.list_simulation_files_directory(working_dir)
-            
-            simulation = simulation_library.get_simulation_by_filename(os.path.basename(configuration))
-            actor_system = ActorSystemConnector()
-            working_dir = os.getcwd()
-            #actor_system.send_message()
-            actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
+            configuration_good = True
+            try:
+                simulation_library = MESSimulationLibrary()
+                simulation_library.list_simulation_files_directory(working_dir)
+                simulation = simulation_library.get_simulation_by_filename(os.path.basename(configuration))
+            except Exception as e:
+                configuration_good = False    
+                print("FIX CONFIGURATION FILE TO RUN SIMULATION")
+                print(e)
+                
+            if configuration_good:
+                print("Running: ", configuration)
+                actor_system = ActorSystemConnector()
+                working_dir = os.getcwd()
+                #actor_system.send_message()
+                print("TRYING TO RUN A SIM")
+                print(simulation)
+                print(configuration)
+                actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
 
-            # self.examine_directory()
-            # if self.multi_simulation is False:
-            #     self.launch_multi_simulations()
-            # else:
-            #     self.launch_multi_simulations()
+                # self.examine_directory()
+                # if self.multi_simulation is False:
+                #     self.launch_multi_simulations()
+                # else:
+                #     self.launch_multi_simulations()
 
     def load_mtree_config(self, config_file):
         configuration = None

@@ -1,4 +1,5 @@
 from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 import numpy as np
 
 from mTree.microeconomic_system.message_space import Message
@@ -8,6 +9,7 @@ from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.outconnect import OutConnect
 from mTree.microeconomic_system.sequence_event import SequenceEvent
+from mTree.microeconomic_system.initialization_messages import *
 #from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 
@@ -18,8 +20,23 @@ import json
 
 EXPERIMENT_DATA = 27
 
-
+@initializing_messages([('_log_actor_configuration', LogActorConfigurationPayload)],
+                            initdone='prepare_log_actor')
 class LogActor(Actor):
+    def prepare_log_actor(self):
+        self.simulation_id = self._log_actor_configuration.log_actor_configuration_payload["simulation_id"]
+        self.simulation_run_id = self._log_actor_configuration.log_actor_configuration_payload["simulation_run_id"]
+        self.run_number = self._log_actor_configuration.log_actor_configuration_payload["run_number"]
+        self.run_code = self._log_actor_configuration.log_actor_configuration_payload["run_code"]
+        self.status = self._log_actor_configuration.log_actor_configuration_payload["status"]
+        self.mes_directory = self._log_actor_configuration.log_actor_configuration_payload["mes_directory"]
+        self.output_type = self._log_actor_configuration.log_actor_configuration_payload["data_logging"]
+        self.simulation_configuration = self._log_actor_configuration.log_actor_configuration_payload["simulation_configuration"]
+        self.setup_log_files_folder()
+        self.create_mes_status_file()
+        self.targets = {}
+        
+
     def experiment_log(self, log_message):
         #self.mTree_logger().log(25, log_message)
         pass
@@ -80,8 +97,14 @@ class LogActor(Actor):
 
 
     def log_message(self, message):
-        with open(os.path.join(self.tmp_log_target), "a") as file_object:
-           file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()).replace("\n", "  ") + "\n")
+        if message.target is not None:
+            log_target = self.get_log_target(message.get_target())
+            with open(os.path.join(log_target), "a") as file_object:
+                            file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()).replace("\n", "  ") + "\n")
+
+        else:
+            with open(os.path.join(self.tmp_log_target), "a") as file_object:
+                file_object.write(str(message.get_timestamp()) + "\t" + str(message.get_content()).replace("\n", "  ") + "\n")
 
         # print("SHOULD BE WRITING OUT LOG LINE")
         # if self.simulation_id is not None:
@@ -91,6 +114,13 @@ class LogActor(Actor):
         # print("LOG ACTOR SHOULD LOG")   
         # logging.log(EXPERIMENT_DATA, message)
 
+    def get_log_target(self, target):
+        if target not in self.targets.keys():
+            new_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-" + target.strip() + ".log")
+            self.targets[target] = new_target
+            
+        return self.targets[target]
+            
     def setup_log_files_folder(self):
         # first check to see if the MES contains an appropriate logs directory
         log_container_directory = os.path.join(self.mes_directory, "logs") 
@@ -154,19 +184,49 @@ class LogActor(Actor):
         '''
             Method to take limited information about the status of the mes and write to the hidden status file
         '''
-        if status_dict["status"] == "Exception!":
+        if "status" in status_dict.keys() and status_dict["status"] == "Exception!":
             self.write_mes_exception(status_dict["exception_payload"])
 
         status_file = open (self.mtree_mes_status_file, "r")
         mes_information = json.loads(status_file.read())
         status_file.close()
 
-        for key in status_dict.keys():
-            mes_information[key] = status_dict[key]
 
+        # for key in status_dict.keys():
+        #     mes_information[key] = status_dict[key]
+        mes_information.update(status_dict)
         
         with open(os.path.join(self.mtree_mes_status_file), "w") as file_object:
             file_object.write(json.dumps(mes_information, indent=4))
+
+    def finalize_mes_status(self, status_dict):
+        logging.info("RECEIVING A FINALIZATION REQUEST")
+        logging.info(status_dict)
+        
+        configuration_object = status_dict["configuration_object"]
+        exception_payload = None
+        if "exception_payload" in status_dict:
+            exception_payload = status_dict["exception_payload"]
+
+        if exception_payload is not None:
+            self.write_mes_exception(exception_payload)
+
+        status_file = open (self.mtree_mes_status_file, "r")
+        mes_information = json.loads(status_file.read())
+        status_file.close()
+
+        output_information = {}
+        output_information["status"] = configuration_object.status
+        output_information["start_time"] = configuration_object.start_time
+        output_information["end_time"] = configuration_object.end_time
+
+
+        # for key in status_dict.keys():
+        #     mes_information[key] = status_dict[key]
+        mes_information.update(output_information)
+        
+        with open(os.path.join(self.mtree_mes_status_file), "w") as file_object:
+            file_object.write(json.dumps(mes_information, indent=4, default=str))
 
 
     def write_sequence_file(self):
@@ -193,6 +253,26 @@ class LogActor(Actor):
         os.remove(self.sequence_target_tmp)
 
 
+    def complete_log_target(self, target):
+         #####
+
+        sequence_events = []
+        with open(os.path.join(target), "r") as file_object:
+            for line in file_object:
+                sequence_events.append(line.strip())
+        sorted_events = sorted(sequence_events)
+
+        #####
+        logging.info("Completing Log Target File...")
+
+        with open(os.path.join(self.data_target), "w") as file_object:
+            for event in sorted_events:
+                file_object.write(event + "\n")
+
+
+
+
+
     def complete_log_files(self):
         '''
             Method to close all log files and other records created for a run of an MES
@@ -200,43 +280,59 @@ class LogActor(Actor):
 
         logging.info("Completing Log Files...")
 
-        self.write_sequence_file()
+        try:
+            self.write_sequence_file()
+        except:
+            pass
 
         #####
         logging.info("Completing Log Sequence Files...")
 
         sequence_events = []
-        with open(os.path.join(self.tmp_log_target), "r") as file_object:
-            for line in file_object:
-                sequence_events.append(line.strip())
-        sorted_events = sorted(sequence_events)
-
+        try:
+            with open(os.path.join(self.tmp_log_target), "r") as file_object:
+                for line in file_object:
+                    sequence_events.append(line.strip())
+            sorted_events = sorted(sequence_events)
+        except:
+            pass
 
         # 
         logging.info("Completing Log Event Files...")
+        try:
+            with open(os.path.join(self.log_target), "a") as file_object:
+                for event in sorted_events:
+                    file_object.write(event + "\n")
 
-        with open(os.path.join(self.log_target), "a") as file_object:
-            for event in sorted_events:
-                file_object.write(event + "\n")
-
-        os.remove(self.tmp_log_target)
+            os.remove(self.tmp_log_target)
+        except:
+            pass
 
         #####
 
         sequence_events = []
-        with open(os.path.join(self.tmp_data_target), "r") as file_object:
-            for line in file_object:
-                sequence_events.append(line.strip())
-        sorted_events = sorted(sequence_events)
-
+        try:
+            with open(os.path.join(self.tmp_data_target), "r") as file_object:
+                for line in file_object:
+                    sequence_events.append(line.strip())
+            sorted_events = sorted(sequence_events)
+        except:
+            pass
         #####
         logging.info("Completing Log Data Files...")
+        try:
+            with open(os.path.join(self.data_target), "a") as file_object:
+                for event in sorted_events:
+                    file_object.write(event + "\n")
 
-        with open(os.path.join(self.data_target), "a") as file_object:
-            for event in sorted_events:
-                file_object.write(event + "\n")
+            os.remove(self.tmp_data_target)
+        except:
+            pass
 
-        os.remove(self.tmp_data_target)
+        if len(list(self.targets.keys())) > 0:
+            for target in self.targets.keys():
+                self.complete_log_target(target)
+
 
 
     def receiveMessage(self, message, sender):
@@ -245,6 +341,7 @@ class LogActor(Actor):
         #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
             try:
+                # DEPRECATE
                 if type(message) is dict:
                     logging.info("SHOULD BE SETTING UP LOGGER")
                     self.simulation_id = message["simulation_id"]
@@ -273,6 +370,8 @@ class LogActor(Actor):
                 elif type(message) is Message:
                     if message.get_directive() == "update_mes_status":
                         self.update_mes_status(message.get_payload())
+                    elif message.get_directive() == "finalize_mes_status":
+                        self.finalize_mes_status(message.get_payload())
                     
                 # if "message_type" in message.keys():
                 #     self.simulation_id = message["simulation_id"]

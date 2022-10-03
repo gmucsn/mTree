@@ -22,6 +22,8 @@ from datetime import datetime, timedelta
 import time
 import sys
 import inspect
+import time
+import os
 
 @initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
@@ -34,14 +36,14 @@ class Agent(Actor):
     def invoke_prepare(self):
         self.initialization_dict = self._startup_payload.startup_payload
         self._address_book = self._address_book_payload.address_book_payload
-        logging.info("Agent Starting Preparation ")
-        logging.info("-->" + str(self.startup))
-        logging.info("-->" + str(self.initialization_dict))
-        logging.info("-->" + str(self._address_book))
-        logging.info("<<<<-->")
+
         
         
         self.mtree_properties = self.initialization_dict["properties"]
+
+        if "local_properties" in self.initialization_dict.keys():
+            self.local_properties = self.initialization_dict["local_properties"]
+
         self.simulation_id = self.initialization_dict["simulation_id"]
         self.simulation_run_id = self.initialization_dict["simulation_run_id"]
         self.short_name = self.initialization_dict["short_name"]
@@ -51,12 +53,11 @@ class Agent(Actor):
         # startup_payload["component_class"] = agent_class
         # startup_payload["component_number"] = agent_number
         self.address_book = AddressBook(self, self._address_book)
+        self.container = self.initialization_dict["container"]
 
         if "subjects" in dir(self.initialization_dict):
             self.subject_id = self.initialization_dict["subject_id"]
 
-        logging.info("Agent Completed Preparation ")
-        
         try:
             self.prepare()
         except:
@@ -71,7 +72,8 @@ class Agent(Actor):
             error_message += "\n"
             error_message += trace_output
             #self.log_message(error_message)
-            self.log_message("Environment: PREPARATION EXCEPTION! Check exception log. ")
+            self.log_message("Agent: PREPARATION EXCEPTION! Check exception log. --- " + error_message)
+            self.log_message(error_message)
             exception_payload = {}
             exception_payload["error_message"] = error_message
             exception_payload["error_type"]= str(error_type)
@@ -84,6 +86,7 @@ class Agent(Actor):
             exception_payload["line"] = excepting_trace.line
             
             self.excepted_mes(exception_payload)
+        logging.info("agent prepare finished...")
 
     # def __init__(self):
     #     self.address_book = AddressBook(self)
@@ -100,8 +103,8 @@ class Agent(Actor):
             raise Exception("Simulation property: " + str(name) + " not available")
         return self.mtree_properties[name]
 
-    def log_message(self, logline):
-        log_message = LogMessage(message_type="log", content=logline)
+    def log_message(self, logline, target=None):
+        log_message = LogMessage(message_type="log", content=logline, target=target)
         self.send(self.log_actor, log_message)
 
     def log_data(self, logline):
@@ -191,7 +194,7 @@ class Agent(Actor):
         new_message.set_sender(self.myAddress)
         new_message.set_directive("store_agent_memory")
         new_message.set_payload({"agent_memory": self.agent_memory})
-        self.send(self.dispatcher, new_message)
+        self.send(self.container, new_message)
 
 
     def send_to_subject(self, command, payload):
@@ -250,7 +253,7 @@ class Agent(Actor):
         new_message.set_directive("excepted_mes")
         new_message.set_sender(self.myAddress)
         new_message.set_payload(exception_payload)
-        self.send(self.environment, new_message)
+        self.send(self.container, new_message)
 
     def send_message(self, directive, receiver, payload=None):
         """Send message

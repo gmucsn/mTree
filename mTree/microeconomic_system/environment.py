@@ -23,7 +23,7 @@ import sys
 
 
 @directive_enabled_class
-@initializing_messages([('startup', str), ('initialization_dict', dict)],
+@initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 class Environment(Actor):
 
@@ -32,16 +32,27 @@ class Environment(Actor):
 
     def invoke_prepare(self):
         # prepare the environment...
-        self.address_book = AddressBook(self)        
 
+        # the address book will be sent from the container now
+        # self.address_book = AddressBook(self)        
+
+        self._address_book = self._address_book_payload.address_book_payload
+        self.initialization_dict = self._startup_payload.startup_payload
         self.mtree_properties = self.initialization_dict["properties"]
-        self.dispatcher = self.initialization_dict["dispatcher"]
         self.simulation_id = self.initialization_dict["simulation_id"]
         self.simulation_run_id = self.initialization_dict["simulation_run_id"]
         self.short_name = self.initialization_dict["short_name"]
+        self.log_actor = self.initialization_dict["log_actor"]
+        self.address_type = self.initialization_dict["address_type"]
+        # startup_payload["component_class"] = agent_class
+        # startup_payload["component_number"] = agent_number
+        self.address_book = AddressBook(self, self._address_book)
+
+        ### REPLACE WITH CONTAINER REFERENCE
+        #self.dispatcher = self.initialization_dict["dispatcher"]
+        self.container = self.initialization_dict["container"]
         
 
-        logging.info("ENVIRONMENT INVOKING PREPARE ")
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
@@ -137,23 +148,24 @@ class Environment(Actor):
 
     @directive_decorator("shutdown_mes")
     def shutdown_mes(self, message:Message=None):
+        logging.info("ENV shutting down sim")
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("shutdown_mes")
         payload = {}
         new_message.set_payload(payload)
-        self.send(self.dispatcher, new_message)
+        self.send(self.container, new_message)
 
     @directive_decorator("excepted_mes")
     def excepted_mes(self, message:Message):
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("excepted_mes")
-        try:
-            new_message.set_payload(message.get_payload())
-        except:
-            new_message.set_payload(message)
-        self.send(self.dispatcher, new_message)
+        # try:
+        #     new_message.set_payload(message.get_payload())
+        # except:
+        new_message.set_payload(message)
+        self.send(self.container, new_message)
 
 
 
@@ -174,8 +186,8 @@ class Environment(Actor):
         payload = {}
         payload["agents"] = self.agent_addresses
         new_message.set_payload(payload)
-        self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
-        self.send(self.dispatcher, new_message)
+        # self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
+        self.send(self.container, new_message)
 
         for agent in self.agent_addresses:
             new_message = Message()
@@ -302,7 +314,7 @@ class Environment(Actor):
 
     @directive_decorator("initialize_log_actor")
     def initialize_log_actor(self, message:Message):
-        self.log_actor = self.createActor("log_actor.LogActor")
+        # self.log_actor = self.createActor("log_actor.LogActor")
         log_basis = {}
         log_basis["message_type"] = "setup"
         log_basis["simulation_id"] = self.simulation_id
@@ -312,14 +324,14 @@ class Environment(Actor):
 
     @directive_decorator("logger_setup")
     def logger_setup(self, message:Message):
-        self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
+        # self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
         
         log_basis = {}
         log_basis["message_type"] = "setup"
 
         # setting short name for environment
         #self.short_name = message.get_payload()["short_name"]
-        logging.info("ENVIRONMENT should have : " + str(message.get_payload()))
+        
         
         short_name = message.get_payload()["short_name"]
         # self.short_name = "environment"
@@ -346,8 +358,8 @@ class Environment(Actor):
 
         
 
-    def log_message(self, logline):
-        log_message = LogMessage(message_type="log", content=logline)
+    def log_message(self, logline, target=None):
+        log_message = LogMessage(message_type="log", content=logline, target=target)
         self.send(self.log_actor, log_message)
 
     def log_data(self, logline):
@@ -371,8 +383,7 @@ class Environment(Actor):
         self.simulation_run_id = message.get_payload()["simulation_run_id"]
         if "subjects" in message.get_payload().keys():
             self.subjects = message.get_payload()["subjects"]
-            logging.info("Subjects list available...")
-            logging.info(self.subjects)
+            
         # if "subjects" in message.get_payload()["properties"].keys():
         #     self.subjects = message.get_payload()["properties"]["subjects"]
         #     logging.info("Subjects list available...")
@@ -441,110 +452,110 @@ class Environment(Actor):
     #         new_message.set_payload(payload)
     #         self.send(new_agent, new_message)
 
-    @directive_decorator("distribute_address_book")
-    def distribute_address_book(self, message:Message):
-        logging.info("Address book to distribute:")
-        logging.info(self.address_book._export_data())
+    # @directive_decorator("distribute_address_book")
+    # def distribute_address_book(self, message:Message):
+    #     logging.info("Address book to distribute:")
+    #     logging.info(self.address_book._export_data())
     
-        logging.info("Distributing address book for setup...")
-        for agent in self.agent_addresses:
-            super().send(agent, AddressBookPayload(address_book_payload=self.address_book._export_data()))
+    #     logging.info("Distributing address book for setup...")
+    #     for agent in self.agent_addresses:
+    #         super().send(agent, AddressBookPayload(address_book_payload=self.address_book._export_data()))
 
-        logging.info("Distributing address book for inst setup...")
-        for institution in self.institutions:
-            super().send(institution, AddressBookPayload(address_book_payload=self.address_book._export_data()))
-        logging.info("Address Book distribution finished...")
+    #     logging.info("Distributing address book for inst setup...")
+    #     for institution in self.institutions:
+    #         super().send(institution, AddressBookPayload(address_book_payload=self.address_book._export_data()))
+    #     logging.info("Address Book distribution finished...")
 
-    @directive_decorator("setup_agents")
-    def setup_agents(self, message:Message):
-        if "agents" not in dir(self):
-            self.agents = []
-            self.agent_addresses = []
-        # ensure that the actor system and institution are running...
-        #message = MessageSpace.create_agent(agent_class)
-        num_agents = message.get_payload()["num_agents"]
-        agent_class = message.get_payload()["agent_class"]
+    # @directive_decorator("setup_agents")
+    # def setup_agents(self, message:Message):
+    #     if "agents" not in dir(self):
+    #         self.agents = []
+    #         self.agent_addresses = []
+    #     # ensure that the actor system and institution are running...
+    #     #message = MessageSpace.create_agent(agent_class)
+    #     num_agents = message.get_payload()["num_agents"]
+    #     agent_class = message.get_payload()["agent_class"]
         
-        # need to check source hash for simulation
-        source_hash = message.get_payload()["source_hash"]
+    #     # need to check source hash for simulation
+    #     source_hash = message.get_payload()["source_hash"]
         
-        # memory = False
-        # agent_memory = None
-        # if "agent_memory" in message.get_payload().keys():
-        #     memory = True
-        #     agent_memory = message.get_payload()["agent_memory"]
+    #     # memory = False
+    #     # agent_memory = None
+    #     # if "agent_memory" in message.get_payload().keys():
+    #     #     memory = True
+    #     #     agent_memory = message.get_payload()["agent_memory"]
 
-        if "subjects" in dir(self):
-            self.subject_map = {}
+    #     if "subjects" in dir(self):
+    #         self.subject_map = {}
 
-        for i in range(num_agents):
-            agent_number = i + 1
-            new_agent = self.createActor(agent_class, sourceHash=source_hash)
-            ###
-            # Agent Initialization Message #1
-            ###
-            super().send(new_agent, agent_class + " " + str(agent_number))
+    #     for i in range(num_agents):
+    #         agent_number = i + 1
+    #         new_agent = self.createActor(agent_class, sourceHash=source_hash)
+    #         ###
+    #         # Agent Initialization Message #1
+    #         ###
+    #         super().send(new_agent, agent_class + " " + str(agent_number))
 
-            ###            
-            # Agent Initialization Message #2
-            ###
-            startup_payload = {}
-            startup_payload["address_type"] = "agent"
-            startup_payload["address"] = new_agent
-            startup_payload["component_class"] = agent_class
-            startup_payload["component_number"] = agent_number
-            startup_payload["short_name"] = agent_class + " " + str(agent_number) 
-            startup_payload["properties"] = self.mtree_properties
+    #         ###            
+    #         # Agent Initialization Message #2
+    #         ###
+    #         startup_payload = {}
+    #         startup_payload["address_type"] = "agent"
+    #         startup_payload["address"] = new_agent
+    #         startup_payload["component_class"] = agent_class
+    #         startup_payload["component_number"] = agent_number
+    #         startup_payload["short_name"] = agent_class + " " + str(agent_number) 
+    #         startup_payload["properties"] = self.mtree_properties
 
-            startup_payload["environment"] = self.myAddress
-            startup_payload["simulation_id"] = self.simulation_id
-            startup_payload["simulation_run_id"] = self.simulation_run_id
-            startup_payload["log_actor"] = self.log_actor
-            if "run_number" in dir(self):
-                startup_payload["run_number"] = self.run_number
+    #         startup_payload["environment"] = self.myAddress
+    #         startup_payload["simulation_id"] = self.simulation_id
+    #         startup_payload["simulation_run_id"] = self.simulation_run_id
+    #         startup_payload["log_actor"] = self.log_actor
+    #         if "run_number" in dir(self):
+    #             startup_payload["run_number"] = self.run_number
             
 
-            if "subjects" in dir(self):
-                startup_payload["subject_id"] = self.subjects[i]["subject_id"]
-                self.subject_map[payload["subject_id"]] = new_agent
-            ###
-            # Agent Initialization Message #2
-            ###
+    #         if "subjects" in dir(self):
+    #             startup_payload["subject_id"] = self.subjects[i]["subject_id"]
+    #             self.subject_map[payload["subject_id"]] = new_agent
+    #         ###
+    #         # Agent Initialization Message #2
+    #         ###
             
-            super().send(new_agent, StartupPayload(startup_payload=startup_payload))
+    #         super().send(new_agent, StartupPayload(startup_payload=startup_payload))
 
-            ###
+    #         ###
             
-            self.agent_addresses.append(new_agent)
-            self.agents.append([new_agent, agent_class])
+    #         self.agent_addresses.append(new_agent)
+    #         self.agents.append([new_agent, agent_class])
             
-            agent_info = {}
-            agent_info["address_type"] = "agent"
-            agent_info["address"] = new_agent
-            agent_info["component_class"] = agent_class
-            agent_info["component_number"] = agent_number
-            agent_info["short_name"] = agent_class + " " + str(agent_number)
+    #         agent_info = {}
+    #         agent_info["address_type"] = "agent"
+    #         agent_info["address"] = new_agent
+    #         agent_info["component_class"] = agent_class
+    #         agent_info["component_number"] = agent_number
+    #         agent_info["short_name"] = agent_class + " " + str(agent_number)
 
-            self.address_book.add_address(agent_info["short_name"], agent_info)
+    #         self.address_book.add_address(agent_info["short_name"], agent_info)
 
-            new_message = Message()
-            #new_message.set_sender(self.myAddress)
-            new_message.set_directive("simulation_properties")
-            new_message.set_sender(self.myAddress)
-            payload = {}
-            #if "mtree_properties" not in dir(self):
-            payload["log_actor"] = self.log_actor
-            #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
-            payload["properties"] = self.mtree_properties
-            payload["agent_information"] = agent_info
-            if "subjects" in dir(self):
-                payload["subject_id"] = self.subjects[i]["subject_id"]
-                self.subject_map[payload["subject_id"]] = new_agent
+    #         new_message = Message()
+    #         #new_message.set_sender(self.myAddress)
+    #         new_message.set_directive("simulation_properties")
+    #         new_message.set_sender(self.myAddress)
+    #         payload = {}
+    #         #if "mtree_properties" not in dir(self):
+    #         payload["log_actor"] = self.log_actor
+    #         #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
+    #         payload["properties"] = self.mtree_properties
+    #         payload["agent_information"] = agent_info
+    #         if "subjects" in dir(self):
+    #             payload["subject_id"] = self.subjects[i]["subject_id"]
+    #             self.subject_map[payload["subject_id"]] = new_agent
             
-            # if memory:
-            #     payload["agent_memory"] = agent_memory
-            new_message.set_payload(payload)
-            #self.send(new_agent, new_message)
+    #         # if memory:
+    #         #     payload["agent_memory"] = agent_memory
+    #         new_message.set_payload(payload)
+    #         #self.send(new_agent, new_message)
 
 
     @directive_decorator("agent_action_forward")
@@ -557,73 +568,73 @@ class Environment(Actor):
         new_message.set_payload(message.get_payload())
         self.send(subject_agent_map, new_message)
 
-    @directive_decorator("setup_institution")
-    def create_institution(self, message:Message):
-        if "institutions" not in dir(self):
-            self.institutions = []
+    # @directive_decorator("setup_institution")
+    # def create_institution(self, message:Message):
+    #     if "institutions" not in dir(self):
+    #         self.institutions = []
 
-        institution_class = message.get_payload()["institution_class"]
-        source_hash = message.get_payload()["source_hash"]
-        institution_order = message.get_payload()["order"]
+    #     institution_class = message.get_payload()["institution_class"]
+    #     source_hash = message.get_payload()["source_hash"]
+    #     institution_order = message.get_payload()["order"]
 
-        new_institution = self.createActor(institution_class, sourceHash=source_hash)
+    #     new_institution = self.createActor(institution_class, sourceHash=source_hash)
         
-        ###
-        # Insitutiton Initialization Message 1
-        ###
-        super().send(new_institution, institution_class + " " + str(institution_order))
+    #     ###
+    #     # Insitutiton Initialization Message 1
+    #     ###
+    #     super().send(new_institution, institution_class + " " + str(institution_order))
         
-        startup_payload = {}
-        startup_payload["address_type"] = "institution"
-        startup_payload["address"] = new_institution
-        startup_payload["component_class"] = institution_class
-        startup_payload["component_number"] = 1
-        startup_payload["short_name"] = institution_class + " " + str(institution_order)
-        startup_payload["properties"] = self.mtree_properties
+    #     startup_payload = {}
+    #     startup_payload["address_type"] = "institution"
+    #     startup_payload["address"] = new_institution
+    #     startup_payload["component_class"] = institution_class
+    #     startup_payload["component_number"] = 1
+    #     startup_payload["short_name"] = institution_class + " " + str(institution_order)
+    #     startup_payload["properties"] = self.mtree_properties
 
-        startup_payload["environment"] = self.myAddress
-        startup_payload["simulation_id"] = self.simulation_id
-        startup_payload["simulation_run_id"] = self.simulation_run_id
-        startup_payload["log_actor"] = self.log_actor
-        if "run_number" in dir(self):
-            startup_payload["run_number"] = self.run_number
+    #     startup_payload["environment"] = self.myAddress
+    #     startup_payload["simulation_id"] = self.simulation_id
+    #     startup_payload["simulation_run_id"] = self.simulation_run_id
+    #     startup_payload["log_actor"] = self.log_actor
+    #     if "run_number" in dir(self):
+    #         startup_payload["run_number"] = self.run_number
         
-        ###
-        # Insitutiton Initialization Message 2
-        ###
-        super().send(new_institution, StartupPayload(startup_payload=startup_payload))
+    #     ###
+    #     # Insitutiton Initialization Message 2
+    #     ###
+    #     super().send(new_institution, StartupPayload(startup_payload=startup_payload))
         
-        institution_info = {}
-        institution_info["address_type"] = "institution"
-        institution_info["address"] = new_institution
-        institution_info["component_class"] = institution_class
-        institution_info["component_number"] = 1
-        institution_info["short_name"] = institution_class + " " + str(institution_order)
-        self.address_book.add_address(institution_info["short_name"], institution_info)
+    #     institution_info = {}
+    #     institution_info["address_type"] = "institution"
+    #     institution_info["address"] = new_institution
+    #     institution_info["component_class"] = institution_class
+    #     institution_info["component_number"] = 1
+    #     institution_info["short_name"] = institution_class + " " + str(institution_order)
+    #     self.address_book.add_address(institution_info["short_name"], institution_info)
 
 
-        new_message = Message()
-        #new_message.set_sender(self.myAddress)
-        new_message.set_directive("simulation_properties")
-        payload = {}
+    #     new_message = Message()
+    #     #new_message.set_sender(self.myAddress)
+    #     new_message.set_directive("simulation_properties")
+    #     payload = {}
 
         
-        #if "mtree_properties" not in dir(self):
-        #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
-        payload["environment"] = self.myAddress
-        payload["properties"] = self.mtree_properties
-        payload["simulation_id"] = self.simulation_id
-        payload["simulation_run_id"] = self.simulation_run_id
-        payload["log_actor"] = self.log_actor
-        if "run_number" in dir(self):
-            payload["run_number"] = self.run_number
+    #     #if "mtree_properties" not in dir(self):
+    #     #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
+    #     payload["environment"] = self.myAddress
+    #     payload["properties"] = self.mtree_properties
+    #     payload["simulation_id"] = self.simulation_id
+    #     payload["simulation_run_id"] = self.simulation_run_id
+    #     payload["log_actor"] = self.log_actor
+    #     if "run_number" in dir(self):
+    #         payload["run_number"] = self.run_number
 
-        payload["institution_info"] = institution_info
+    #     payload["institution_info"] = institution_info
 
-        new_message.set_payload(payload)
-        #self.send(new_institution, new_message)
+    #     new_message.set_payload(payload)
+    #     #self.send(new_institution, new_message)
 
-        self.institutions.append(new_institution)
+    #     self.institutions.append(new_institution)
 
     def send_message(self, directive, receiver, payload=None):
         """Send message
@@ -641,9 +652,7 @@ class Environment(Actor):
         else:
             receiver_address = self.address_book.select_addresses(
                                 {"short_name": receiver})
-            logging.info("SHOULD BE GETTING THE ADDRESS")
-            logging.info(self.address_book.addresses)
-            logging.info("---> " + str(receiver_address))
+            
             self.send(receiver_address, new_message)
 
         # else:

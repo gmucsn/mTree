@@ -127,10 +127,10 @@ class MESSimulationDescription():
             print(input_json["environment"])
             self.environment  = input_json["environment"]
         if "institution" in input_json.keys():
-            self.institutions = [{"institution": input_json["institution"]}]
+            self.institutions = [{"institution_class": input_json["institution"]}]
         if "institutions" in input_json.keys():
           if isinstance(input_json["institutions"], str):
-            self.institutions = [{"institution": input_json["institutions"]}]
+            self.institutions = [{"institution_class": input_json["institutions"]}]
           else:
             self.institutions = input_json["institutions"]
         if "agents" in input_json.keys():
