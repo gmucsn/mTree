@@ -125,6 +125,7 @@ class AddressBook:
         # try:
         if "short_name" in selector.keys():
             address = [entry["address"] for entry in self.addresses.values() if entry["short_name"] == selector["short_name"]]
+            
         elif "address_type" in selector.keys():
             # logging.info("SHOULD BE SELECTOR TYPE: " + str(selector))
             # logging.info("DOUBLE CHECK ADDRESS: " + str(self.addresses.values()))

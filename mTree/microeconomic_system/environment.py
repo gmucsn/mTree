@@ -47,7 +47,8 @@ class Environment(Actor):
         # startup_payload["component_class"] = agent_class
         # startup_payload["component_number"] = agent_number
         self.address_book = AddressBook(self, self._address_book)
-
+        logging.info("Should have configured address book")
+        logging.info(self.address_book)
         ### REPLACE WITH CONTAINER REFERENCE
         #self.dispatcher = self.initialization_dict["dispatcher"]
         self.container = self.initialization_dict["container"]

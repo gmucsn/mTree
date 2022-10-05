@@ -398,6 +398,8 @@ class Dispatcher(Actor):
             self.simulation_runs.append(new_simulation_run)
 
     def begin_simulations(self):
+        MAX_CONCURRENT = 5
+        
         for simulation_configuration in self.simulation_runs:
             if simulation_configuration.status == "Registered":    
                 simulation_configuration.mark_running()

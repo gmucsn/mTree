@@ -58,6 +58,9 @@ class MESContainer(Actor):
         # logging.info("Logger for run should be avialable...")
         # # properties to track contained components
         
+        # This list will be used principally for maintaining which mes components
+        self.mes_component_list = []
+
         self.master_address_book = AddressBook(self)        
         self.environment = None
         self.institutions = []
@@ -111,6 +114,8 @@ class MESContainer(Actor):
         environment = self.createActor(environment_class, sourceHash=source_hash)
         # environment created
         self.environment = environment
+
+        self.mes_component_list.append(self.environment)
 
         ####
         # Initializing Environment
@@ -213,6 +218,8 @@ class MESContainer(Actor):
 
         new_institution = self.createActor(institution_class, sourceHash=self.source_hash)
         
+        self.mes_component_list.append(new_institution)
+
         ###
         # Insitutiton Initialization Message 1
         ###
@@ -315,6 +322,8 @@ class MESContainer(Actor):
             agent_number = i + 1
             new_agent = self.createActor(agent_class, sourceHash=self.source_hash)
             
+
+            self.mes_component_list.append(new_agent)
             ###
             # Agent Initialization Message #1
             ###
@@ -371,52 +380,64 @@ class MESContainer(Actor):
 
             self.master_address_book.add_address(agent_info["short_name"], agent_info)
 
+
+    def complete_container_shutdown(self, message):
+        # logging.info("Got anotehr child exit...")
+        # logging.info(message)
+        # logging.info(self.mes_component_list)
+        if message.childAddress in self.mes_component_list:
+            extract_index = self.mes_component_list.index(message.childAddress)
+            self.mes_component_list.pop(extract_index)
+        if len(self.mes_component_list) == 0:
+            logging.info("Message to close logger: ")
+            self.configuration_object.mark_finished()
+
+            message = Message()
+            message.set_directive("update_mes_run_information")
+            message.set_sender(self.myAddress)
+            payload = self.configuration_object
+            message.set_payload(payload)
+            self.send(self.dispatcher, message)
+
+
+
+            payload = {}
+            payload["status"] = self.configuration_object.status
+            payload["start_time"] = str(self.configuration_object.start_time)
+            payload["end_time"] = str(self.configuration_object.end_time)
+            payload["total_time"] = str(self.configuration_object.end_time - self.configuration_object.start_time)
+
+            new_message = Message()
+            new_message.set_sender(self.myAddress)
+            new_message.set_directive("update_mes_status")
+            # payload = message.get_payload()
+            new_message.set_payload(payload)
+            self.send(self.log_actor, new_message)
+            
+            self.send(self.myAddress, ActorExitRequest(recursive=True))
+            # for run in self.simulation_runs:
+            #     if run.mes_base_address == environment_address:
+            #         run.mark_finished()
+            
+            #         message = Message()
+            #         message.set_directive("update_mes_status")
+            #         message.set_sender(self.myAddress)
+            #         payload = {}
+            #         payload["status"] = run.status
+            #         payload["start_time"] = str(run.start_time)
+            #         payload["end_time"] = str(run.end_time)
+            #         payload["total_time"] = str(run.end_time - run.start_time)        
+            #         message.set_payload(payload)
+            #         self.send(environment_address, message)
+                
+            # self.send(environment_address, ActorExitRequest())
+        
         
     def shutdown_mes(self, environment_address):
+        # starting shut down process
+        for mes_component in self.mes_component_list:
+            self.send(mes_component, ActorExitRequest())        
 
-
-        logging.info("Message to close logger: ")
-        self.configuration_object.mark_finished()
-
-        message = Message()
-        message.set_directive("update_mes_run_information")
-        message.set_sender(self.myAddress)
-        payload = self.configuration_object
-        message.set_payload(payload)
-        self.send(self.dispatcher, message)
-
-
-
-        payload = {}
-        payload["status"] = self.configuration_object.status
-        payload["start_time"] = str(self.configuration_object.start_time)
-        payload["end_time"] = str(self.configuration_object.end_time)
-        payload["total_time"] = str(self.configuration_object.end_time - self.configuration_object.start_time)
-
-        new_message = Message()
-        new_message.set_sender(self.myAddress)
-        new_message.set_directive("update_mes_status")
-        # payload = message.get_payload()
-        new_message.set_payload(payload)
-        self.send(self.log_actor, new_message)
-        
-        self.send(self.myAddress, ActorExitRequest())
-        # for run in self.simulation_runs:
-        #     if run.mes_base_address == environment_address:
-        #         run.mark_finished()
-        
-        #         message = Message()
-        #         message.set_directive("update_mes_status")
-        #         message.set_sender(self.myAddress)
-        #         payload = {}
-        #         payload["status"] = run.status
-        #         payload["start_time"] = str(run.start_time)
-        #         payload["end_time"] = str(run.end_time)
-        #         payload["total_time"] = str(run.end_time - run.start_time)        
-        #         message.set_payload(payload)
-        #         self.send(environment_address, message)
-            
-        # self.send(environment_address, ActorExitRequest())
 
 
 
@@ -528,6 +549,9 @@ class MESContainer(Actor):
                     self.excepted_mes_shutdown(sender, message.get_payload())
                 elif message.get_directive() == "shutdown_mes":
                     self.shutdown_mes(sender)
+        elif isinstance(message, ChildActorExited):
+            self.complete_container_shutdown(message)
+            
 
                 
         
