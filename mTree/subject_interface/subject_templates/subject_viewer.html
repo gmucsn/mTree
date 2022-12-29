@@ -116,6 +116,7 @@
         }
 
         send_agent_action(message){
+          console.log("Sending an agent action: " + message)
           this.socket.emit('json', {command: 'agent_action', payload: message});          
         }
 

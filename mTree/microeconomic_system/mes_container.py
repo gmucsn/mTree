@@ -40,6 +40,10 @@ class MESContainer(Actor):
         self.simulation_run_id = self._mes_container_configuration.mes_configuration_payload["simulation_run_id"]
         self.source_hash = self.simulation_configuration["source_hash"]
         self.run_number = None
+
+        self.debug = self.simulation_configuration["debug"]
+        self.log_level = self.simulation_configuration["log_level"]
+
         if "run_number" in self._mes_container_configuration.mes_configuration_payload.keys():
             self.run_number = self._mes_container_configuration.mes_configuration_payload["run_number"]
 
@@ -50,6 +54,13 @@ class MESContainer(Actor):
         if "data_logging" in self._mes_container_configuration.mes_configuration_payload.keys():
             self.data_logging = self._mes_container_configuration.mes_configuration_payload["data_logging"]
         
+        if "subjects" in self._mes_container_configuration.mes_configuration_payload.keys():
+            self.subjects = self._mes_container_configuration.mes_configuration_payload["subjects"]
+        
+        logging.info("CONTAINER PREP")
+        logging.info(self._mes_container_configuration.mes_configuration_payload)
+        
+
         self.configuration_object = self._mes_container_configuration.mes_configuration_payload["configuration_object"]
 
         self.logger_setup()
@@ -241,6 +252,8 @@ class MESContainer(Actor):
         # global and then local properties
         startup_payload["container"] = self.myAddress
         startup_payload["properties"] = self.global_properties
+        startup_payload["simulation_configuration"] = self.simulation_configuration
+
 
         if "properties" in institution_configuration.keys():
             startup_payload["local_properties"] = institution_configuration["properties"]
@@ -279,7 +292,23 @@ class MESContainer(Actor):
         agent_requests = []
         for agent_d in self.simulation_configuration["agents"]:
             agent_type = agent_d["agent_name"]
-            agent_count = agent_d["number"]
+
+
+            if "number" in agent_d.keys():
+                agent_count = agent_d["number"]
+            else:
+                # if "min_subjects" in agent_d.keys():
+                #     if len(self.subjects) >= agent_d["min_subjects"]:
+                # TODO should be sensitive to min subject requirements
+                agent_count = len(self.subjects)
+                
+
+            # agents.append((agent_type, agent_count))
+            # for i in range(0, agent_count):
+            #     agents.append((agent_type, 1))
+
+            
+            # agent_count = agent_d["number"]
 
             # message.set_payload({"agent_class": agent[0], "num_agents": agent[1], "source_hash": source_hash})
             
@@ -342,6 +371,8 @@ class MESContainer(Actor):
             startup_payload["component_number"] = agent_number
             startup_payload["short_name"] = agent_short_name
             startup_payload["properties"] = self.global_properties
+            startup_payload["simulation_configuration"] = self.simulation_configuration
+
 
             if "properties" in agent_configuration.keys():
                 startup_payload["local_properties"] = agent_configuration["properties"]
@@ -354,11 +385,10 @@ class MESContainer(Actor):
             if "run_number" in dir(self):
                 startup_payload["run_number"] = self.run_number
             
-
-            # FIX
-            # if "subjects" in dir(self):
-            #     startup_payload["subject_id"] = self.subjects[i]["subject_id"]
-            #     self.subject_map[payload["subject_id"]] = new_agent
+            if "subjects" in dir(self):
+                startup_payload["subject_id"] = self.subjects[i]["subject_id"]
+                self.subject_map[self.subjects[i]["subject_id"]] = new_agent
+ 
             
             ###
             # Agent Initialization Message #2
@@ -405,8 +435,10 @@ class MESContainer(Actor):
             payload["status"] = self.configuration_object.status
             payload["start_time"] = str(self.configuration_object.start_time)
             payload["end_time"] = str(self.configuration_object.end_time)
-            payload["total_time"] = str(self.configuration_object.end_time - self.configuration_object.start_time)
-
+            try:
+                payload["total_time"] = str(self.configuration_object.end_time - self.configuration_object.start_time)
+            except:
+                payload["total_time"] = ""
             new_message = Message()
             new_message.set_sender(self.myAddress)
             new_message.set_directive("update_mes_status")
@@ -539,6 +571,17 @@ class MESContainer(Actor):
         log_configuration["simulation_configuration"] = self.simulation_configuration
         self.send(self.log_actor, LogActorConfigurationPayload(log_actor_configuration_payload=log_configuration)) 
 
+
+    def agent_action_forward(self, sender, message:Message):        
+        subject_id = message.get_payload()["subject_id"]
+        subject_agent_map = self.subject_map[subject_id]
+        new_message = Message()
+        new_message.set_directive(message.get_payload()["action"])
+        new_message.set_sender(self.myAddress)
+        new_message.set_payload(message.get_payload())
+        self.send(subject_agent_map, new_message)
+
+
     def receiveMessage(self, message, sender):
         if not isinstance(message, ActorSystemMessage):
             if isinstance(message, Message):
@@ -549,6 +592,10 @@ class MESContainer(Actor):
                     self.excepted_mes_shutdown(sender, message.get_payload())
                 elif message.get_directive() == "shutdown_mes":
                     self.shutdown_mes(sender)
+                elif message.get_directive() == "agent_action_forward":
+                    self.agent_action_forward(sender, message)
+
+
         elif isinstance(message, ChildActorExited):
             self.complete_container_shutdown(message)
             

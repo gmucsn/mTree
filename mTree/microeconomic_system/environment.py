@@ -52,8 +52,8 @@ class Environment(Actor):
         ### REPLACE WITH CONTAINER REFERENCE
         #self.dispatcher = self.initialization_dict["dispatcher"]
         self.container = self.initialization_dict["container"]
-        
-
+        self.debug = self.initialization_dict["simulation_configuration"]["debug"]
+        self.log_level = self.initialization_dict["simulation_configuration"]["log_level"]
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
@@ -359,13 +359,21 @@ class Environment(Actor):
 
         
 
-    def log_message(self, logline, target=None):
-        log_message = LogMessage(message_type="log", content=logline, target=target)
-        self.send(self.log_actor, log_message)
+    def log_message(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
 
-    def log_data(self, logline):
-        log_message = LogMessage(message_type="data", content=logline)
-        self.send(self.log_actor, log_message)
+    def log_data(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="data", content=logline, target=target)
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="data", content=logline, target=target)
+            self.send(self.log_actor, log_message)
 
 
     def record_data(self, data):

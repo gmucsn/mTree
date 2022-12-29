@@ -171,6 +171,14 @@ class Dispatcher(Actor):
         ####
         source_hash = configuration["source_hash"]
         
+        
+        ####
+        # get debug and log level information for sharing across all components
+        ####
+        debug = configuration["debug"]
+        log_level = configuration["log_level"]
+        
+        
         ####
         # Startup the MES Container that will contain this simulation
         ####
@@ -204,6 +212,9 @@ class Dispatcher(Actor):
         startup_payload["run_code"] = configuration_obect.run_code
         startup_payload["status"] = configuration_obect.status
         startup_payload["configuration_object"] = configuration_obect
+
+        startup_payload["debug"] = debug
+        startup_payload["log_level"] = log_level
 
         # payload["run_code"] = configuration_obect.run_code
         # payload["run_code"] = configuration_obect.run_code
@@ -528,7 +539,8 @@ class Dispatcher(Actor):
                 payload = message
                 new_message.set_payload(payload["payload"])
                 
-                self.send(self.environment, new_message)
+                # TODO targeting the only known human subject container...
+                self.send(self.human_subject_container, new_message)
 
 
             else:        
@@ -590,7 +602,10 @@ class Dispatcher(Actor):
 
         
 
-    def run_human_subject_experiment(self, configuration, run_number=None, configuration_obect=None):
+
+
+
+    def old_run_human_subject_experiment(self, configuration, run_number=None, configuration_obect=None):
         # self.(simulation_configuration.configuration, simulation_configuration.run_number, configuration_obect=simulation_configuration)
         
         ####
@@ -672,7 +687,14 @@ class Dispatcher(Actor):
         agents = []
         for agent_d in configuration["agents"]:
             agent_type = agent_d["agent_name"]
-            agent_count = agent_d["number"]
+            if "number" in agent_d.keys():
+                agent_count = agent_d["number"]
+            else:
+                if "min_subjects" in agent_d.keys():
+                    if len(configuration["subjects"] >= agent_d["min_subjects"]):
+                        agent_count = len(configuration["subjects"])
+                
+
             agents.append((agent_type, agent_count))
             # for i in range(0, agent_count):
             #     agents.append((agent_type, 1))
@@ -736,3 +758,107 @@ class Dispatcher(Actor):
         start_message.set_directive("start_environment")
         self.send(environment, start_message)
         logging.info('Simulation environment should have started')
+
+
+
+
+
+    def run_human_subject_experiment(self, configuration, run_number=None, configuration_obect=None):        
+        ####
+        # get the source hash for the newly loaded MES components
+        ####
+        source_hash = configuration["source_hash"]
+        
+        logging.info('Booting dispatched')
+        logging.info(configuration)
+
+        ####
+        # get debug and log level information for sharing across all components
+        ####
+        debug = configuration["debug"]
+        log_level = configuration["log_level"]
+        
+        
+        ####
+        # Startup the MES Container that will contain this simulation
+        ####
+        mes_container = self.createActor(MESContainer)
+        # TODO this only lets us run one human subject experiment at a time... BEWARE
+        self.human_subject_container = mes_container
+      
+        ####
+        # Create the environment for the new MES
+        ####
+        environment_class = configuration["environment"]
+        
+        ####
+        # Initializing Environment
+        ####
+
+        # Initialization Message 1
+        # self.send(environment, str(environment_class))
+        startup_payload = {}
+        startup_payload["simulation_configuration"] = configuration
+        startup_payload["properties"] = configuration["properties"]
+        startup_payload["dispatcher"] = self.myAddress
+        startup_payload["simulation_id"] = configuration["id"]
+        startup_payload["simulation_run_id"] = configuration["simulation_run_id"]
+        startup_payload["short_name"] = str(environment_class)
+        startup_payload["run_code"] = configuration["run_code"]
+
+        new_simulation_run = SimulationRun(configuration, 1)
+
+        startup_payload["status"] = new_simulation_run.status
+        startup_payload["configuration_object"] = new_simulation_run
+
+
+        startup_payload["subjects"] = configuration["subjects"]
+        # payload["run_code"] = configuration_obect.run_code
+        # payload["run_code"] = configuration_obect.run_code
+        if "data_logging" in configuration.keys():
+            startup_payload["data_logging"] = configuration["data_logging"]
+        startup_payload["human_subjects"] = True
+        
+
+        startup_payload["debug"] = debug
+        startup_payload["log_level"] = log_level
+
+        # payload["run_code"] = configuration_obect.run_code
+        # payload["run_code"] = configuration_obect.run_code
+        if "data_logging" in configuration.keys():
+            startup_payload["data_logging"] = configuration["data_logging"]
+        
+        
+        if run_number is not None:
+            startup_payload["run_number"] = run_number
+        
+        # Initialization Message 2
+        # self.send(environment, startup_payload)
+
+        # Initialization Message for Container
+        self.send(mes_container, MESConfigurationPayload(mes_configuration_payload=startup_payload))
+
+
+        # if "properties" in configuration.keys():
+        #     message = Message()
+        #     message.set_directive("simulation_properties")
+        #     message.set_sender(self.myAddress)
+        #     payload = {"properties": configuration["properties"],  "dispatcher":self.myAddress}
+        #     payload["simulation_id"] = configuration["id"]
+        #     payload["simulation_run_id"] = configuration["simulation_run_id"]
+            
+        #     if run_number is not None:
+        #         payload["run_number"] = run_number
+        #     message.set_payload(payload)
+            
+        #     self.send(environment, message)
+
+      
+        ### CHANGE THIS TO THE CONTAINER
+        if configuration_obect is not None:
+            configuration_obect.set_mes_base_address(mes_container)
+
+
+
+
+   

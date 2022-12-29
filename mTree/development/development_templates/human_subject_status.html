@@ -33,6 +33,30 @@
           </div>
 
           <div class="row">
+            <h3>Subject IDs available</h3>
+            <table class="table table-striped table-hover" id="subject-id-table">
+              <thead>
+                <tr>
+                  <th scope="col">Subject ID</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="subject-body">
+                {% for subject_id in subject_ids %}
+                <tr>
+                  <td class="text-center">{{subject_id}}</td>
+                  <td class="text-center"></td>
+                  <td class="text-center"></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+
+            </table>
+          </div>
+
+
+          <div class="row">
             <div class="col-xs-6 col-sm-3">
               Experiment Status: <span id="experiment_status">Not Running</span>
             </div>

@@ -91,6 +91,8 @@ class MESSimulationDescription():
         self.data_logging = None
         self.agents = []
         self.properties = {}
+        self.debug = None
+        self.log_level = None
 
         if input_json != None:
             self.import_json(input_json)
@@ -101,6 +103,7 @@ class MESSimulationDescription():
         configuration = None
         with open(filename, 'r') as f:
             configuration = json.load(f)
+        
         self.import_json(configuration)
 
     def import_json(self, input_json):
@@ -124,7 +127,6 @@ class MESSimulationDescription():
         if "description" in input_json.keys():
             self.description  = input_json["description"]
         if "environment" in input_json.keys():
-            print(input_json["environment"])
             self.environment  = input_json["environment"]
         if "institution" in input_json.keys():
             self.institutions = [{"institution_class": input_json["institution"]}]
@@ -139,6 +141,12 @@ class MESSimulationDescription():
             self.properties= input_json["properties"]
         if "data_logging" in input_json.keys():
             self.data_logging= input_json["data_logging"]
+        if "debug" in input_json.keys():
+            if input_json["debug"] == True:
+              self.debug = True
+        if "log_level" in input_json.keys():
+            self.log_level = int(input_json["log_level"])
+            
 
 
     def set_name(self, name):
@@ -184,9 +192,11 @@ class MESSimulationDescription():
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
         temp_dict["data_logging"] = self.data_logging
-        
+        temp_dict["debug"] = self.debug
+        temp_dict["log_level"] = self.log_level
+
+
         json_output = json.dumps(temp_dict)
-        print(json_output)
     
     def to_hash(self):
         temp_dict = {}
@@ -201,6 +211,8 @@ class MESSimulationDescription():
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
         temp_dict["data_logging"] = self.data_logging
+        temp_dict["debug"] = self.debug
+        temp_dict["log_level"] = self.log_level
         
         return temp_dict
         

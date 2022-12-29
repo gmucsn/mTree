@@ -11,8 +11,9 @@ from flask_apscheduler import APScheduler
 from flask_basicauth import BasicAuth
 import pkgutil
 import importlib
-
+import uuid
 import sys
+import hashlib
 
 
 import logging
@@ -244,6 +245,11 @@ class DevelopmentServer(object):
                     emit('experiment_status_message', {'response': 'status', 'payload': {'status': 'Started'}})
                     subject_directory.start_experiment()
                     configuration = payload["configuration"]
+                    # run_code_gen = str(uuid.uuid4())
+                    # run_code = run_code_gen[0:6]
+                    
+
+
                     component_registry = Registry()
                     working_dir = os.path.join(os.getcwd())
                     simulation_library = MESSimulationLibrary()
@@ -337,6 +343,7 @@ class DevelopmentServer(object):
         def mes_subject_channel():
             print("MES subject channel...")
             data = request.get_json()
+            print("---> ", data)
             command = data["command"]
             if command == "display_ui":
                 # get ui...
@@ -345,6 +352,9 @@ class DevelopmentServer(object):
                 with open(ui_file, "r") as t_file:
                     ui_content = t_file.read()
                 emit('display_ui', {'ui_content': ui_content}, namespace='/subject', to=data["subject_id"])
+            elif command == "outlet":
+                print(data)
+                emit('update_data', data["payload"], namespace='/subject', to=data["subject_id"])
             elif command == "update_data":
                 emit('update_data', data["payload"], namespace='/subject', to=data["subject_id"])
             elif command == "update_value":

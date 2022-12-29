@@ -34,10 +34,13 @@ class Agent(Actor):
         pass
 
     def invoke_prepare(self):
+        logging.info("AGENT PREPARING")
         self.initialization_dict = self._startup_payload.startup_payload
-        self._address_book = self._address_book_payload.address_book_payload
-
+        logging.info( self.initialization_dict)
         
+        self._address_book = self._address_book_payload.address_book_payload
+        self.debug = self.initialization_dict["simulation_configuration"]["debug"]
+        self.log_level = self.initialization_dict["simulation_configuration"]["log_level"]
         
         self.mtree_properties = self.initialization_dict["properties"]
 
@@ -55,7 +58,9 @@ class Agent(Actor):
         self.address_book = AddressBook(self, self._address_book)
         self.container = self.initialization_dict["container"]
 
-        if "subjects" in dir(self.initialization_dict):
+        self.outlets = {}
+        self.subject_id = None
+        if "subject_id" in self.initialization_dict.keys():
             self.subject_id = self.initialization_dict["subject_id"]
 
         try:
@@ -103,13 +108,21 @@ class Agent(Actor):
             raise Exception("Simulation property: " + str(name) + " not available")
         return self.mtree_properties[name]
 
-    def log_message(self, logline, target=None):
-        log_message = LogMessage(message_type="log", content=logline, target=target)
-        self.send(self.log_actor, log_message)
+    def log_message(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
 
-    def log_data(self, logline):
-        log_message = LogMessage(message_type="data", content=logline)
-        self.send(self.log_actor, log_message)
+    def log_data(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="data", content=logline, target=target)        
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="data", content=logline, target=target)        
+            self.send(self.log_actor, log_message)
 
     def log_sequence_event(self, message):
         sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
@@ -180,7 +193,8 @@ class Agent(Actor):
             if key in self.outlets:
                 # print("LETTING: " + str(self.user) + " -- " + str(self.outlets[key]) + " -- " + str(value))
 
-                self.response.let_user(self.user_id, self.outlets[key], value)
+                #self.response.let_user(self.user_id, self.outlets[key], value)
+                self.send_to_subject("outlet", {'property': key, 'value': value})
                 
 
     @directive_decorator("register_subject_connection")

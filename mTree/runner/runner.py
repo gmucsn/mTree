@@ -140,18 +140,15 @@ class Runner():
                 simulation_library.list_simulation_files_directory(working_dir)
                 simulation = simulation_library.get_simulation_by_filename(os.path.basename(configuration))
             except Exception as e:
-                configuration_good = False    
-                print("FIX CONFIGURATION FILE TO RUN SIMULATION")
+                print("EXCEPTION LOADING CONFIGURATIONS!")
                 print(e)
+                configuration_good = False    
                 
             if configuration_good:
-                print("Running: ", configuration)
                 actor_system = ActorSystemConnector()
                 working_dir = os.getcwd()
                 #actor_system.send_message()
-                print("TRYING TO RUN A SIM")
-                print(simulation)
-                print(configuration)
+                print("===> Starting to run: ", configuration)
                 actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
 
                 # self.examine_directory()
@@ -235,7 +232,7 @@ class Runner():
             # This is the magic line... this forces the lazyloader to kick in.
             ######
 
-            print(sys.modules[module_name])
+            #print(sys.modules[module_name])
 
             #######
             #sys.modules[module_name]

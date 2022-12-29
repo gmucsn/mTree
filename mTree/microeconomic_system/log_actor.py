@@ -32,6 +32,8 @@ class LogActor(Actor):
         self.mes_directory = self._log_actor_configuration.log_actor_configuration_payload["mes_directory"]
         self.output_type = self._log_actor_configuration.log_actor_configuration_payload["data_logging"]
         self.simulation_configuration = self._log_actor_configuration.log_actor_configuration_payload["simulation_configuration"]
+        self.debug = self.simulation_configuration["debug"]
+        self.log_level = self.simulation_configuration["log_level"]
         self.setup_log_files_folder()
         self.create_mes_status_file()
         self.targets = {}
@@ -63,26 +65,7 @@ class LogActor(Actor):
         except:
             return None
 
-    def log_data(self, message):
-        with open(os.path.join(self.tmp_data_target), "a") as file_object:
-            json_data = ""
-            try:
-                json_data = json.dumps(message.get_content())
-            except:
-                json_data = message.get_content()
-            file_object.write(str(message.get_timestamp()) + "\t" + json_data + "\n")
 
-    def log_json_data(self, message):
-        with open(os.path.join(self.tmp_data_target), "a") as file_object:
-            output_message = message.get_content()
-            #if not isinstance(output_message, dict):
-            #    raise Exception("JSON Logging requires dictionary objects")
-            if isinstance(output_message, str):
-                temp = output_message
-                output_message = {}
-                output_message["content"] = temp
-            output_message["timestamp"] = message.get_timestamp()
-            file_object.write(json.dumps(output_message) + "\n")
 
 
     def log_sequence_event(self, message):
@@ -95,6 +78,50 @@ class LogActor(Actor):
         with open(os.path.join(self.sequence_target_tmp), "a") as file_object:
             file_object.write(sequence_line + "\n")
 
+
+    def log_data(self, message):
+        if message.target is not None:  
+            data_target = self.get_data_target(message.get_target())  
+            with open(os.path.join(data_target), "a") as file_object:
+                json_data = ""
+                try:
+                    json_data = json.dumps(message.get_content())
+                except:
+                    json_data = message.get_content()
+                file_object.write(str(message.get_timestamp()) + "\t" + json_data + "\n")
+        else:
+            with open(os.path.join(self.tmp_data_target), "a") as file_object:
+                json_data = ""
+                try:
+                    json_data = json.dumps(message.get_content())
+                except:
+                    json_data = message.get_content()
+                file_object.write(str(message.get_timestamp()) + "\t" + json_data + "\n")
+
+    def log_json_data(self, message):
+        if message.target is not None:
+            data_target = self.get_data_target(message.get_target())
+            with open(os.path.join(data_target), "a") as file_object:
+                output_message = message.get_content()
+                #if not isinstance(output_message, dict):
+                #    raise Exception("JSON Logging requires dictionary objects")
+                if isinstance(output_message, str):
+                    temp = output_message
+                    output_message = {}
+                    output_message["content"] = temp
+                output_message["timestamp"] = message.get_timestamp()
+                file_object.write(json.dumps(output_message) + "\n")
+        else:
+            with open(os.path.join(self.tmp_data_target), "a") as file_object:
+                output_message = message.get_content()
+                #if not isinstance(output_message, dict):
+                #    raise Exception("JSON Logging requires dictionary objects")
+                if isinstance(output_message, str):
+                    temp = output_message
+                    output_message = {}
+                    output_message["content"] = temp
+                output_message["timestamp"] = message.get_timestamp()
+                file_object.write(json.dumps(output_message) + "\n")
 
     def log_message(self, message):
         if message.target is not None:
@@ -120,6 +147,13 @@ class LogActor(Actor):
             self.targets[target] = new_target
             
         return self.targets[target]
+
+    def get_data_target(self, target):
+        if target not in self.data_targets.keys():
+            new_target = os.path.join(self.output_log_folder, self.simulation_run_id + "-R" + str(self.run_number) + "-" + target.strip() + ".data")
+            self.data_targets[target] = new_target
+            
+        return self.data_targets[target]
             
     def setup_log_files_folder(self):
         # first check to see if the MES contains an appropriate logs directory
@@ -352,6 +386,7 @@ class LogActor(Actor):
                     self.mes_directory = message["mes_directory"]
                     self.output_type = message["data_logging"]
                     self.simulation_configuration = message["simulation_configuration"]
+                    
                     self.setup_log_files_folder()
                     self.create_mes_status_file()
 

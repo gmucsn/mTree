@@ -28,12 +28,15 @@ class MESSimulationLibrary():
                                          "description": description})
 
     def list_human_subject_files_directory(self, mes_directory):
-        for filename in glob.iglob(mes_directory + '/config/*.json', recursive=True):
+        for filename in glob.iglob('./config/*.json', recursive=True):
+        # for filename in glob.iglob(mes_directory + '/config/*.json', recursive=True):
+            print("\t\t->", filename)
             description = None
             # try:
             description = MESSimulationDescription(filename=filename)
             # except Exception as e:
             #     pass
+            print("\t\t", description.mtree_type)
             if description is not None:
                 if description.mtree_type == "mes_subject_experiment":
                     simulation_information = {
@@ -50,9 +53,8 @@ class MESSimulationLibrary():
             try:
                 description = MESSimulationDescription(filename=filename)
             except Exception as e:
-                print(f"ERROR: Configuration file {filename} has a problem!")
-                print("\t", e)
-                raise BadSimulationConfigurationFile(e)
+                pass
+                #raise BadSimulationConfigurationFile(e, source_file=filename)
             if description is not None:
                 self.simulations.append({
                                         "source": os.path.basename(filename),

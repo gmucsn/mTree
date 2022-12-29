@@ -31,6 +31,9 @@ class Institution(Actor):
     def invoke_prepare(self):
         # prepare the institution...
         self.initialization_dict = self._startup_payload.startup_payload
+        self.debug = self.initialization_dict["simulation_configuration"]["debug"]
+        self.log_level = self.initialization_dict["simulation_configuration"]["log_level"]
+
         self._address_book = self._address_book_payload.address_book_payload
         self.mtree_properties = self.initialization_dict["properties"]
         if "local_properties" in self.initialization_dict.keys():
@@ -90,13 +93,21 @@ class Institution(Actor):
         sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
         self.send(self.log_actor, sequence_event)
 
-    def log_message(self, logline, target=None):
-        log_message = LogMessage(message_type="log", content=logline, target=target)
-        self.send(self.log_actor, log_message)
+    def log_message(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
 
-    def log_data(self, logline):
-        log_message = LogMessage(message_type="data", content=logline)
-        self.send(self.log_actor, log_message)
+    def log_data(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="data", content=logline, target=target)
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="data", content=logline, target=target)
+            self.send(self.log_actor, log_message)
 
     def get_simulation_property(self, name):
         if name not in self.mtree_properties.keys():
