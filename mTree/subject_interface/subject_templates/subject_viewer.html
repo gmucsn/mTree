@@ -59,7 +59,6 @@
 
 
           this.socket.on('update_data', (message) => {
-            console.log("About to update Data");
             this.update_data(message);
           });
 
@@ -76,8 +75,6 @@
         }
        
         update_data(message){
-          console.log("Trying to update data...");
-          console.log(message);
           window.ui_manager.update_property(message.property, message.value);
         }
 
