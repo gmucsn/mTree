@@ -351,6 +351,8 @@ class DevelopmentServer(object):
                 ui_content = None
                 with open(ui_file, "r") as t_file:
                     ui_content = t_file.read()
+                print('should have figured out the display...')
+                print(ui_content)
                 emit('display_ui', {'ui_content': ui_content}, namespace='/subject', to=data["subject_id"])
             elif command == "outlet":
                 print(data)

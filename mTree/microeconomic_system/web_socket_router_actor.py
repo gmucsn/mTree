@@ -11,6 +11,8 @@ from mTree.microeconomic_system.admin_message import AdminMessage
 import json
 from thespian.initmsgs import initializing_messages
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 
 # class Wrapper_class():
@@ -138,8 +140,19 @@ class WebSocketRouterActor(Actor):
 
     def emit_subject_message(self, message):
         url = 'http://127.0.0.1:5000/mes_subject_channel'
-        
         response = requests.post(url, json=message.get_payload())
+
+
+        retry_strategy = Retry(
+        total=25,
+        backoff_factor=1
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        http = requests.Session()
+        http.mount("https://", adapter)
+        http.mount("http://", adapter)
+
+        response = http.post(url, json=message.get_payload())
 
     def emit_message(self, message):
         url = 'http://127.0.0.1:5000/mes_response_channel'
