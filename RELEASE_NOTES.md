@@ -1,6 +1,16 @@
 # Release Notes
 
 
+## Reminder
+
+To get a new Docker Image: docker pull mtree/mtree:1.2.1c
+
+## mTree - 1.2.1c - Docker Image
+
+Fixes:
+    -Updates across the packaged libraries including to socket io and flask
+
+
 
 ## Reminder
 

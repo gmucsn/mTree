@@ -74,7 +74,15 @@ class DevelopmentServer(object):
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
         thread = None
-        self.socketio = SocketIO(self.app, async_mode=self.async_mode, logger=True, engineio_logger=True)
+
+        # Configure logging for the Socket IO mechanisms
+        self.socketio = SocketIO(self.app, 
+                async_mode=self.async_mode, 
+                logger=False, 
+                engineio_logger=False)
+        ###
+        # TODO think about the log setup above
+        ###
         template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
                                                jinja2.PackageLoader('mTree', 'development/development_templates'),
                                                ])
@@ -341,9 +349,7 @@ class DevelopmentServer(object):
 
         @self.app.route('/mes_subject_channel', methods=['POST'])
         def mes_subject_channel():
-            print("MES subject channel...")
             data = request.get_json()
-            print("---> ", data)
             command = data["command"]
             if command == "display_ui":
                 # get ui...
@@ -351,11 +357,8 @@ class DevelopmentServer(object):
                 ui_content = None
                 with open(ui_file, "r") as t_file:
                     ui_content = t_file.read()
-                print('should have figured out the display...')
-                print(ui_content)
                 emit('display_ui', {'ui_content': ui_content}, namespace='/subject', to=data["subject_id"])
             elif command == "outlet":
-                print(data)
                 emit('update_data', data["payload"], namespace='/subject', to=data["subject_id"])
             elif command == "update_data":
                 emit('update_data', data["payload"], namespace='/subject', to=data["subject_id"])
@@ -453,7 +456,11 @@ class DevelopmentServer(object):
         self.examine_directory()
         self.list_rules()
         # Flask Service Launch
-        self.socketio.run(self.app, host='0.0.0.0', log_output=True, use_reloader=False)
+        # TODO think about log output here
+        self.socketio.run(self.app, 
+            host='0.0.0.0', 
+            log_output=False, # another log statement to cocnsider... 
+            use_reloader=False)
 
     def attach_experiment(self, experiment):
         self.experiment = experiment()
