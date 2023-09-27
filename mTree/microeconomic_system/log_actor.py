@@ -288,21 +288,22 @@ class LogActor(Actor):
 
 
     def complete_log_target(self, target):
-         #####
-
-        sequence_events = []
-        with open(os.path.join(target), "r") as file_object:
-            for line in file_object:
-                sequence_events.append(line.strip())
-        sorted_events = sorted(sequence_events)
-
         #####
-        logging.info("Completing Log Target File...")
+        try:
+            sequence_events = []
+            with open(os.path.join(target), "r") as file_object:
+                for line in file_object:
+                    sequence_events.append(line.strip())
+            sorted_events = sorted(sequence_events)
 
-        with open(os.path.join(self.data_target), "w") as file_object:
-            for event in sorted_events:
-                file_object.write(event + "\n")
+            #####
+            logging.info("Completing Log Target File...")
 
+            with open(os.path.join(self.data_target), "w") as file_object:
+                for event in sorted_events:
+                    file_object.write(event + "\n")
+        except:
+            pass
 
 
 
