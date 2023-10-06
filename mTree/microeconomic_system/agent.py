@@ -25,15 +25,20 @@ import inspect
 import time
 import os
 
+import setproctitle
+
+
 @initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 @directive_enabled_class
 class Agent(Actor):
+    
 
     def prepare(self):
         pass
 
     def invoke_prepare(self):
+        setproctitle.setproctitle("mTree - Agent")
         logging.info("AGENT PREPARING")
         self.initialization_dict = self._startup_payload.startup_payload
         logging.info( self.initialization_dict)

@@ -26,12 +26,18 @@ import time
 import sys
 import inspect
 
+import setproctitle
+
 
 @initializing_messages([('_mes_container_configuration', MESConfigurationPayload)],
                             initdone='prepare_mes_container')
 class MESContainer(Actor):
-    def prepare_mes_container(self):
+    
+        
 
+
+    def prepare_mes_container(self):
+        setproctitle.setproctitle("mTree - MESContainer")
         self.simulation_configuration = self._mes_container_configuration.mes_configuration_payload["simulation_configuration"]
         self.mes_directory = self.simulation_configuration["mes_directory"]
         self.global_properties = self._mes_container_configuration.mes_configuration_payload["properties"]

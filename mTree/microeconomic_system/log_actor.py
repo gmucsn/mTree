@@ -20,9 +20,16 @@ import json
 
 EXPERIMENT_DATA = 27
 
+import setproctitle
+
+
 @initializing_messages([('_log_actor_configuration', LogActorConfigurationPayload)],
                             initdone='prepare_log_actor')
 class LogActor(Actor):
+    def __init__(self):
+        setproctitle.setproctitle("mTree - LogActor")
+
+
     def prepare_log_actor(self):
         self.simulation_id = self._log_actor_configuration.log_actor_configuration_payload["simulation_id"]
         self.simulation_run_id = self._log_actor_configuration.log_actor_configuration_payload["simulation_run_id"]

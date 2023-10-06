@@ -42,6 +42,7 @@ class ComponentRequest:
 
 class SimulationRun:
     def __init__(self, configuration, run_number=None) -> None:
+        
         self.configuration = configuration
 
         self.name = configuration["name"]
@@ -93,8 +94,14 @@ class SimulationRun:
     def __repr__(self):
         return self.__str__()
 
+
+import setproctitle
+
 @initializing_messages([('starting', str)], initdone='init_done')
 class Dispatcher(Actor):
+    # def __init__(self):
+        
+
     def __str__(self):
         return "<Dispatcher: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
 
@@ -111,6 +118,7 @@ class Dispatcher(Actor):
     #     # self.agent_memory = {}
         
     def init_done(self):
+        setproctitle.setproctitle("mTree - Dispatcher")
         self.simulation_runs = []
         self.configurations_pending = []
         self.configurations_finished = []

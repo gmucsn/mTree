@@ -21,16 +21,20 @@ import json
 import os
 import sys
 
+import setproctitle
+
 
 @directive_enabled_class
 @initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 class Environment(Actor):
+    
 
     def prepare(self):
         pass
 
     def invoke_prepare(self):
+        setproctitle.setproctitle("mTree - Environment")
         # prepare the environment...
 
         # the address book will be sent from the container now

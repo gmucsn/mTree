@@ -20,10 +20,16 @@ import time
 import sys
 import os
 
+import setproctitle
+
+
 @initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 @directive_enabled_class
 class Institution(Actor):
+    def __init__(self):
+        setproctitle.setproctitle("mTree - Institution")
+
 
     def prepare(self):
         pass

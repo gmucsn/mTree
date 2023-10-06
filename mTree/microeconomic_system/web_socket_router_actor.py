@@ -54,9 +54,12 @@ from requests.packages.urllib3.util.retry import Retry
             
 #             # self.loop()
 
+import setproctitle
+
 
 @initializing_messages([('starting', str)], initdone='init_done')
 class WebSocketRouterActor(Actor):
+
     def logout(self):
         logging.info('WEBSOCKET THING AHPPEJd actor')
         
@@ -70,6 +73,8 @@ class WebSocketRouterActor(Actor):
         logging.info("Socket Status: " + str(self.sio))  
 
     def init_done(self):
+        setproctitle.setproctitle("mTree - WebSocketRouterActor")
+
         # self.sio = None
         # self.websocket_connect()
         logging.info('Cliesssnt started')

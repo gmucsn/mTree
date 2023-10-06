@@ -3,9 +3,16 @@ import logging
 from mTree.microeconomic_system.admin_message import AdminMessage
 from thespian.initmsgs import initializing_messages
 
+import setproctitle
+
+
 @initializing_messages([('starting', str)], initdone='init_done')
 class SystemStatusActor(Actor):
+        
+
+
     def init_done(self):
+        setproctitle.setproctitle("mTree - SystemStatusActor")
         logging.info("System status actor starting!")
         self.running = False
         self.sa_running = False

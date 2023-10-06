@@ -170,9 +170,15 @@ class Simulations(Static):
         #     Option("Virgon", id="vir"),
         # )
 
+import pyfiglet
+from rich import print
+
+title = pyfiglet.figlet_format('mTree Console', font='slant')
+# print(f'[magenta]{title}[/magenta]')
+
 class DashboardScreen(Screen):
     def compose(self) -> ComposeResult:
-        yield Placeholder("Dashboard Screen")
+        yield Placeholder(title)
         yield Footer()
 
 
@@ -208,23 +214,32 @@ class SimulationsScreen(Screen):
         self.query_one("#json-view",Static).update(new_json)
 
 
+####
+# check_status    force_shutdown  hello           help            kill_run        quit            run_simulation
+####
+
 class HelpScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Placeholder("Help Screen")
         yield Footer()
 
+from mTree.utilities.mtree_system_status_screen import MTreeSystemStatusScreen
+from mTree.utilities.mtree_run_simulation_screen import MTreeRunSimulationScreen
+
 class MTreeConsole(App):
     """A Textual app to manage stopwatches."""
     CSS_PATH = "option_list.tcss"
-    BINDINGS = [("q", "quit", "Quit"),
-                ("d", "switch_mode('dashboard')", "Dashboard"),  
-                ("s", "switch_mode('simulations')", "Simulations"),
-                ("h", "switch_mode('help')", "Help"),]
+    BINDINGS = [("ctrl+q", "quit", "Quit"),
+                ("ctrl+s", "switch_mode('system_status')", "System Status"),
+                ("ctrl+d", "switch_mode('dashboard')", "Dashboard"),  
+                ("ctrl+l", "switch_mode('library')", "MES Library"),
+                ("ctrl+h", "switch_mode('help')", "Help"),]
 
     MODES = {
         "dashboard": DashboardScreen,  
-        "simulations": SimulationsScreen,
+        "library": MTreeRunSimulationScreen,
         "help": HelpScreen,
+        "system_status": MTreeSystemStatusScreen
     }
 
     def on_mount(self) -> None:
