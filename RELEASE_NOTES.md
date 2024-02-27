@@ -1,10 +1,49 @@
 # Release Notes
 
+
+## Reminder
+
+To get a new Docker Image: docker pull mtree/mtree:1.2.1c
+
+## mTree - 1.2.1c - Docker Image
+
+Fixes:
+    -Updates across the packaged libraries including to socket io and flask
+
+
+
+## Reminder
+
+To get a new Docker Image: docker pull mtree/mtree:1.2.0
+
+## mTree - 1.2.0 - Docker Image
+
+Fixes:
+    -Add debug and log_level as a configuration option
+        These allow the user to specify what log level messages should be available.
+    -Debug in component classes.
+        You can now check self.debug in any mTree object and see if the experiment/simulation
+        is in debug mode. Using this, you can create conditional parts of code to help with testing
+    
+
+
+
+## Reminder
+
+To get a new Docker Image: docker pull mtree/mtree:1.1.x
+
+## mTree - 1.1.0-1.1.5 - Docker Image
+
+Fixes:
+    -Numerous enhancements to better meet experimenter needs.
+    -Log messages can now be targeted to specific log files using the target= property
+
+
 ## Reminder
 
 To get a new Docker Image: docker pull mtree/mtree:1.0.11c
 
-## mTree - 1.0.113 - Docker Image
+## mTree - 1.0.12 - Docker Image
 
 Fixes:
     -Add check_status in mTree_runner to get list of running simulations

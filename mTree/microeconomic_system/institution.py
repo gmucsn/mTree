@@ -11,33 +11,48 @@ from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.sequence_event import SequenceEvent
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.initialization_messages import *
 import logging
 import json
 import traceback
 from datetime import datetime, timedelta
 import time
 import sys
+import os
 
-@initializing_messages([('startup', str), ('initialization_dict', dict), ('address_book', AddressBook)],
+import setproctitle
+
+
+@initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 @directive_enabled_class
 class Institution(Actor):
+    def __init__(self):
+        setproctitle.setproctitle("mTree - Institution")
+
 
     def prepare(self):
         pass
 
     def invoke_prepare(self):
         # prepare the institution...
-        logging.info("Institution Starting Preparation ")
-        
+        self.initialization_dict = self._startup_payload.startup_payload
+        self.debug = self.initialization_dict["simulation_configuration"]["debug"]
+        self.log_level = self.initialization_dict["simulation_configuration"]["log_level"]
+
+        self._address_book = self._address_book_payload.address_book_payload
         self.mtree_properties = self.initialization_dict["properties"]
+        if "local_properties" in self.initialization_dict.keys():
+            self.local_properties = self.initialization_dict["local_properties"]
+
         self.simulation_id = self.initialization_dict["simulation_id"]
         self.simulation_run_id = self.initialization_dict["simulation_run_id"]
         self.short_name = self.initialization_dict["short_name"]
         self.environment = self.initialization_dict["environment"]
         self.log_actor = self.initialization_dict["log_actor"]
         self.address_type = self.initialization_dict["address_type"]
-        logging.info("Institution Completed Preparation ")
+        self.address_book = AddressBook(self, self._address_book)
+        self.container = self.initialization_dict["container"]
         
         try:
             self.prepare()
@@ -53,7 +68,7 @@ class Institution(Actor):
             error_message += "\n"
             error_message += trace_output
             #self.log_message(error_message)
-            self.log_message("Environment: PREPARATION EXCEPTION! Check exception log. ")
+            self.log_message("Institution: PREPARATION EXCEPTION! Check exception log. ")
             exception_payload = {}
             exception_payload["error_message"] = error_message
             exception_payload["error_type"]= str(error_type)
@@ -68,14 +83,14 @@ class Institution(Actor):
             self.excepted_mes(exception_payload)
 
 
-    def __init__(self):
-        self.address_book = AddressBook(self)
-        self.log_actor = None
-        self.dispatcher = None
-        self.run_number = None
-        self.agents = []
-        self.agent_ids = []
-        self.mtree_properties = {}
+    # def __init__(self):
+    #     self.address_book = AddressBook(self)
+    #     self.log_actor = None
+    #     self.dispatcher = None
+    #     self.run_number = None
+    #     self.agents = []
+    #     self.agent_ids = []
+    #     self.mtree_properties = {}
 
 
     def log_sequence_event(self, message):
@@ -84,13 +99,21 @@ class Institution(Actor):
         sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
         self.send(self.log_actor, sequence_event)
 
-    def log_message(self, logline):
-        log_message = LogMessage(message_type="log", content=logline)
-        self.send(self.log_actor, log_message)
+    def log_message(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
 
-    def log_data(self, logline):
-        log_message = LogMessage(message_type="data", content=logline)
-        self.send(self.log_actor, log_message)
+    def log_data(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="data", content=logline, target=target)
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="data", content=logline, target=target)
+            self.send(self.log_actor, log_message)
 
     def get_simulation_property(self, name):
         if name not in self.mtree_properties.keys():
@@ -126,12 +149,13 @@ class Institution(Actor):
                 self.send(agent, new_message)      
 
     def shutdown_mes(self):
+        logging.info("INST shutting down sim")
         new_message = Message()
         new_message.set_directive("shutdown_mes")
         new_message.set_sender(self.myAddress)
         payload = {}
         new_message.set_payload(payload)
-        self.send(self.environment, new_message)
+        self.send(self.container, new_message)
         
 
     def excepted_mes(self, exception_payload):
@@ -139,7 +163,7 @@ class Institution(Actor):
         new_message.set_directive("excepted_mes")
         new_message.set_sender(self.myAddress)
         new_message.set_payload(exception_payload)
-        self.send(self.environment, new_message)
+        self.send(self.container, new_message)
 
 
     @directive_decorator("external_reminder")
@@ -275,9 +299,7 @@ class Institution(Actor):
         else:
             receiver_address = self.address_book.select_addresses(
                                 {"short_name": receiver})
-            logging.info("SHOULD BE GETTING THE ADDRESS")
-            logging.info(self.address_book.addresses)
-            logging.info("---> " + str(receiver_address))
+
             self.send(receiver_address, new_message)
 
 

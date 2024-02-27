@@ -12,8 +12,12 @@ from mTree.microeconomic_system.log_actor import LogActor
 import logging
 import json
 
+import setproctitle
+
 
 class LiveDispatcher(Actor):
+        
+
     def __str__(self):
         return "<LiveDispatcher: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
 
@@ -21,6 +25,8 @@ class LiveDispatcher(Actor):
         return self.__str__()
 
     def __init__(self):
+        setproctitle.setproctitle("mTree - LiveDispatcher")
+
         #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
         self.configurations_pending = []
         self.configurations_finished = []

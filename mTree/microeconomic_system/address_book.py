@@ -1,19 +1,35 @@
 from mTree.microeconomic_system.message import Message
 import uuid
 import logging
+import json
 
 class AddressBook:
-    def __init__(self, base_component):
+    def __init__(self, base_component, address_data=None):
         self.base_component = base_component
         self.addresses = {}
         self.address_groups = {}
-        self.addresses_to_groups = {}
-        
+        self.addresses_to_groups = {}            
         self.agents = {}
         self.institutions = {}
         self.environment = None
-        
+        if address_data is not None:
+            self.addresses = address_data["addresses"]
+            self.address_groups = address_data["address_groups"]
+            self.addresses_to_groups = address_data["addresses_to_groups"]            
+            self.agents = address_data["agents"]
+            self.institutions = address_data["institutions"]
+            self.environment = address_data["environment"]
 
+    def _export_data(self):
+        output_json = {}
+        output_json["addresses"] = self.addresses
+        output_json["address_groups"] = self.address_groups
+        output_json["addresses_to_groups"] = self.addresses_to_groups
+        output_json["agents"] = self.agents
+        output_json["institutions"] = self.institutions
+        output_json["environment"] = self.environment
+        return output_json
+        
 
 
     def get_addresses(self):
@@ -109,6 +125,7 @@ class AddressBook:
         # try:
         if "short_name" in selector.keys():
             address = [entry["address"] for entry in self.addresses.values() if entry["short_name"] == selector["short_name"]]
+            
         elif "address_type" in selector.keys():
             # logging.info("SHOULD BE SELECTOR TYPE: " + str(selector))
             # logging.info("DOUBLE CHECK ADDRESS: " + str(self.addresses.values()))

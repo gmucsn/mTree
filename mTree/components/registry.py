@@ -87,7 +87,7 @@ class Registry:
                     timestamp = datetime.fromtimestamp(float(split_line[0]))
                     data_line["timestamp"] = str(timestamp)
                     raw_data = " ".join(split_line[1:]).strip()
-                    print(raw_data)
+                    # print(raw_data)
                     line_data = json.loads(raw_data)
                     data_line["message"] = json.dumps(line_data)
                 except:
@@ -137,7 +137,8 @@ class Registry:
     def get_component_class(self, mes_class):
         print("REGISTRY CLASSES AVAILABLE: ")
         for i in Registry.instance.class_list.keys():
-            print("\t", i)
+            # print("\t", i)
+            pass
         classobject = Registry.instance.class_list[mes_class]["class"]
         return classobject
 
@@ -151,7 +152,8 @@ class Registry:
 
     def list_contents(self):
         for target in Registry.instance.class_list.keys():
-            print(Registry.instance.class_list[target])
+            # print(Registry.instance.class_list[target])
+            pass
         
     def clear_contents(self):
         Registry.instance.class_list = {}
@@ -195,7 +197,7 @@ class Registry:
             sys.modules[module_name] = module
             t = sys.modules[module_name]
 
-            print(sys.modules[module_name])
+            # print(sys.modules[module_name])
 
          
         sys.modules['mes'] = ModuleType('mes')

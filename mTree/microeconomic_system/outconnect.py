@@ -2,8 +2,12 @@
 from thespian.actors import *
 import requests
 
+import setproctitle
+
+
 class OutConnect(Actor):
     def __init__(self):
+        setproctitle.setproctitle("mTree - OutConnect")
         print("SETTING UP OUCONNECT")
        
 

@@ -20,6 +20,7 @@ from mTree.server.actor_system_connector import ActorSystemConnector
 from mTree.development.mtree_configuration import MTreeConfiguration
 
 
+
 development_area = Blueprint('development_area', __name__, template_folder='templates')
 
 development_area.jinja_loader = jinja2.ChoiceLoader([
@@ -41,6 +42,7 @@ def show(page):
 
 MTree_configuration = MTreeConfiguration()
 ADMIN_PASSOWRD =  MTree_configuration.instance.admin_password
+SUBJECT_IDS = MTree_configuration.instance.subject_ids
 
 @development_area.route('/admin_login', methods = ['GET', 'POST'])
 def admin_login():
@@ -59,9 +61,11 @@ def subject_runs():
     working_dir = os.path.join(os.getcwd())
     mes_directory = working_dir
     simulation_library = MESSimulationLibrary()
+    
     simulation_library.list_human_subject_files_directory(working_dir)
     simulations = simulation_library.get_simulations()
-
+    print("Simulation Runs stuff: ")
+    print("\t\t", simulations)
     return render_template('mes_human_subject_configurations.html',  simulations=simulations, mes_directory=mes_directory, title=title) 
 
 @development_area.route('/mes_overview')
@@ -284,7 +288,8 @@ def mes_run_human_subject_experiment():
 def human_subject_status():
     configuration = request.args.get('configuration')
     title = "Human Subject Status"
-    return render_template('human_subject_status.html',  title=title, configuration=configuration)
+    return render_template('human_subject_status.html',  title=title, configuration=configuration,
+        subject_ids=SUBJECT_IDS)
     
 
 # this endpoint should probably be switched to websockets...
