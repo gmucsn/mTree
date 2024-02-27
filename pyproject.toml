@@ -6,15 +6,15 @@ build-backend = "setuptools.build_meta"
 name = "mTree"
 # version = "0.4-BETA-1"
 dependencies = [
-    'thespian==3.10.6',
-    'Flask==2.2.2',
+    'thespian==3.10.7',
+    'Flask==2.3.3',
     'Flask-SocketIO==5.3.2',
     'Flask-APScheduler==1.12.3',
     'Flask-BasicAuth==0.2.0',
     #'Flask-Bootstrap==3.3.7.1',
     'Flask-SQLAlchemy==2.5.1',
     'eventlet==0.33.3',
-    'numpy==1.22.2',
+    'numpy==1.26.0',
     'python-socketio==5.7.2',
     #   'PyYaml==5.3',
     'pyfiglet==0.8.post1',
