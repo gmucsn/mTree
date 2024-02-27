@@ -31,7 +31,7 @@ capabilities = dict([('Admin Port', 19000)])
 @atexit.register
 def goodbye():
     capabilities = dict([('Admin Port', 19000)])
-    actors = ActorSystem('multiprocTCPBase', capabilities)
+    actors = ActorSystem('multiprocTCPBase') #, capabilities)
     actors.shutdown()
     time.sleep(2)
     #print("You are now leaving mTree Runner.")
@@ -109,7 +109,7 @@ class Runner():
         #     self.configuration = self.load_multiple_mtree_config(config_file)
         #print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
         self.actor_system = ActorSystemConnector()
-
+    
 
 
     def show_configuration_menu(self):
