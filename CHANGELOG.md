@@ -1,8 +1,5 @@
-# Mtree 2.0.1 (2024-03-12)
+# Mtree 2.0.0-pre1 (2024-03-12)
 
-No significant changes.
+### Misc
 
-
-# Mtree 2.0.1 (2024-03-12)
-
-No significant changes.
+- #2
