@@ -1,20 +1,21 @@
-FROM  continuumio/miniconda3:4.10.3
+FROM  continuumio/miniconda3:23.5.2-0
 LABEL Author, S. Kunath
-LABEL version="1.1"
+LABEL version="1.4"
 
-RUN apt-get update && apt-get install -y procps vim
+# RUN apt-get update && apt-get install -y procps vim
 ENV APP_HOME /mtree
 WORKDIR $APP_HOME
 COPY . $APP_HOME
 #COPY ../mTree $APP_HOME/mTree
 
-#---------------- Prepare the envirennment
-RUN conda update --name base conda 
-RUN python /mtree/setup.py develop
+#---------------- Prepare the environment
+# RUN conda update --name base conda 
+RUN pip install -e /mtree/
+# RUN python /mtree/setup.py develop
 
 # need to fix to use correct profile as well...
 # switch here makes startup of the CLI from docker decsktop easier
-RUN mv /bin/sh /bin/osh && ln -s /bin/bash /bin/sh
+# RUN mv /bin/sh /bin/osh && ln -s /bin/bash /bin/sh
 
 # expose port 5000 for flask service
 EXPOSE 5000/tcp
@@ -24,7 +25,10 @@ WORKDIR /auctions
 ENTRYPOINT ["mTree_developer_server"]
 
 # basic build:
-# docker build -t mtree/mtree:1.1.4 .
+# docker build -t mtree/mtree:1.2.1d .
+# (M2 mac) docker buildx build --platform=linux/amd64 -t mtree/mtree:1.4.0 .
+# (Else) docker build -t mtree/mtree:1.2.1c .
+
 
 # Pulling:
 # docker pull mtree/mtree

@@ -11,8 +11,9 @@ from flask_apscheduler import APScheduler
 from flask_basicauth import BasicAuth
 import pkgutil
 import importlib
-
+import uuid
 import sys
+import hashlib
 
 
 import logging
@@ -73,7 +74,15 @@ class DevelopmentServer(object):
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
         thread = None
-        self.socketio = SocketIO(self.app, async_mode=self.async_mode, logger=True, engineio_logger=True)
+
+        # Configure logging for the Socket IO mechanisms
+        self.socketio = SocketIO(self.app, 
+                async_mode=self.async_mode, 
+                logger=False, 
+                engineio_logger=False)
+        ###
+        # TODO think about the log setup above
+        ###
         template_loader = jinja2.ChoiceLoader([self.app.jinja_loader,
                                                jinja2.PackageLoader('mTree', 'development/development_templates'),
                                                ])
@@ -244,6 +253,11 @@ class DevelopmentServer(object):
                     emit('experiment_status_message', {'response': 'status', 'payload': {'status': 'Started'}})
                     subject_directory.start_experiment()
                     configuration = payload["configuration"]
+                    # run_code_gen = str(uuid.uuid4())
+                    # run_code = run_code_gen[0:6]
+                    
+
+
                     component_registry = Registry()
                     working_dir = os.path.join(os.getcwd())
                     simulation_library = MESSimulationLibrary()
@@ -335,7 +349,6 @@ class DevelopmentServer(object):
 
         @self.app.route('/mes_subject_channel', methods=['POST'])
         def mes_subject_channel():
-            print("MES subject channel...")
             data = request.get_json()
             command = data["command"]
             if command == "display_ui":
@@ -345,6 +358,8 @@ class DevelopmentServer(object):
                 with open(ui_file, "r") as t_file:
                     ui_content = t_file.read()
                 emit('display_ui', {'ui_content': ui_content}, namespace='/subject', to=data["subject_id"])
+            elif command == "outlet":
+                emit('update_data', data["payload"], namespace='/subject', to=data["subject_id"])
             elif command == "update_data":
                 emit('update_data', data["payload"], namespace='/subject', to=data["subject_id"])
             elif command == "update_value":
@@ -441,7 +456,11 @@ class DevelopmentServer(object):
         self.examine_directory()
         self.list_rules()
         # Flask Service Launch
-        self.socketio.run(self.app, host='0.0.0.0', log_output=True, use_reloader=False)
+        # TODO think about log output here
+        self.socketio.run(self.app, 
+            host='0.0.0.0', 
+            log_output=False, # another log statement to cocnsider... 
+            use_reloader=False)
 
     def attach_experiment(self, experiment):
         self.experiment = experiment()

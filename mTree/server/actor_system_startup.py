@@ -107,8 +107,6 @@ class ActorSystemStartup:
         self.system_status_actor_address = None
         self.dispatcher_address = None
 
-        print("ACTOR SYSTEM STARTING")
-
         self.capabilities = dict([('Admin Port', 19000)])
         
         ####
@@ -127,7 +125,7 @@ class ActorSystemStartup:
         # self.actor_system.tell(self.sa, True)
         status_actor = self.actor_system.createActor(SystemStatusActor, globalName = "SystemStatusActor")
         self.system_status_actor_address = status_actor
-        print("STATUS ACTOR STARTING")
+
         logging.info("STATUS ACTOR STARTING... ")
         self.actor_system.tell(self.system_status_actor_address, "system_status_actor_initialization")
         
@@ -136,20 +134,17 @@ class ActorSystemStartup:
        
         message = AdminMessage(request="system_running")
         system_status = self.actor_system.ask(status_actor, message)
-        print("SYSTEM STASTUS")
-        print(system_status)
-        print("system status actor address: " + str(self.system_status_actor_address))
+
             
         return system_status
 
     def startup(self):
         #status_actor = self.actor_system.createActor(Actor, globalName = "SystemStatusActor")
-        print("STATUS ACTOR STARTING")        
+        
         logging.info("STATUS ACTOR STARTING... ")
         dispatcher = self.actor_system.createActor(Dispatcher, globalName = "Dispatcher")
         self.actor_system.tell(dispatcher, "dipatcher_initialization_message")
-        print("Dispatcher started...")        
-        print("dispatcher address -> " + str(dispatcher))
+        
         
         start_message = Message()
         start_message.set_sender("system")
@@ -184,13 +179,10 @@ class ActorSystemStartup:
         #print(plugin_file_paths)
         base_components = []
         for plugin_file_path in plugin_file_paths:
-            print("\t\t !--> ", plugin_file_path)
             plugin_file_name = os.path.basename(plugin_file_path)
             module_name = os.path.splitext(plugin_file_name)[0]
-            print(module_name)
             if module_name.startswith("__"):
                 continue
-            print("PLUGIN SHOULD LOAD...", plugin_file_path)
             base_components.append([plugin_file_path, plugin_file_name])
 
     

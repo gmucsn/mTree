@@ -9,6 +9,8 @@ from mTree.microeconomic_system.directive_decorators import *
 import logging
 import json
 
+import setproctitle
+
 
 @directive_enabled_class
 class AgentPool(Actor):
@@ -26,6 +28,7 @@ class AgentPool(Actor):
         return self.__str__()
 
     def __init__(self):
+        setproctitle.setproctitle("mTree - Agent Pool")
         print("AgentPool started")
         self.agents = []
 

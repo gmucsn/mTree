@@ -13,6 +13,7 @@ from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.mes_exceptions import *
 from mTree.microeconomic_system.admin_message import AdminMessage
+from mTree.microeconomic_system.initialization_messages import *
 #from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 import logging
@@ -21,19 +22,36 @@ from datetime import datetime, timedelta
 import time
 import sys
 import inspect
+import time
+import os
 
-@initializing_messages([('startup', str), ('initialization_dict', dict), ('address_book', AddressBook)],
+import setproctitle
+
+
+@initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 @directive_enabled_class
 class Agent(Actor):
+    
 
     def prepare(self):
         pass
 
     def invoke_prepare(self):
-        logging.info("Agent Starting Preparation ")
+        setproctitle.setproctitle("mTree - Agent")
+        logging.info("AGENT PREPARING")
+        self.initialization_dict = self._startup_payload.startup_payload
+        logging.info( self.initialization_dict)
+        
+        self._address_book = self._address_book_payload.address_book_payload
+        self.debug = self.initialization_dict["simulation_configuration"]["debug"]
+        self.log_level = self.initialization_dict["simulation_configuration"]["log_level"]
         
         self.mtree_properties = self.initialization_dict["properties"]
+
+        if "local_properties" in self.initialization_dict.keys():
+            self.local_properties = self.initialization_dict["local_properties"]
+
         self.simulation_id = self.initialization_dict["simulation_id"]
         self.simulation_run_id = self.initialization_dict["simulation_run_id"]
         self.short_name = self.initialization_dict["short_name"]
@@ -42,13 +60,14 @@ class Agent(Actor):
         self.address_type = self.initialization_dict["address_type"]
         # startup_payload["component_class"] = agent_class
         # startup_payload["component_number"] = agent_number
+        self.address_book = AddressBook(self, self._address_book)
+        self.container = self.initialization_dict["container"]
 
-
-        if "subjects" in dir(self.initialization_dict):
+        self.outlets = {}
+        self.subject_id = None
+        if "subject_id" in self.initialization_dict.keys():
             self.subject_id = self.initialization_dict["subject_id"]
 
-        logging.info("Agent Completed Preparation ")
-        
         try:
             self.prepare()
         except:
@@ -63,7 +82,8 @@ class Agent(Actor):
             error_message += "\n"
             error_message += trace_output
             #self.log_message(error_message)
-            self.log_message("Environment: PREPARATION EXCEPTION! Check exception log. ")
+            self.log_message("Agent: PREPARATION EXCEPTION! Check exception log. --- " + error_message)
+            self.log_message(error_message)
             exception_payload = {}
             exception_payload["error_message"] = error_message
             exception_payload["error_type"]= str(error_type)
@@ -76,14 +96,15 @@ class Agent(Actor):
             exception_payload["line"] = excepting_trace.line
             
             self.excepted_mes(exception_payload)
+        logging.info("agent prepare finished...")
 
-    def __init__(self):
-        self.address_book = AddressBook(self)
-        #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
-        self.log_actor = None
-        self.mtree_properties = {}
-        self.agent_memory = {}
-        self.outlets = {}
+    # def __init__(self):
+    #     self.address_book = AddressBook(self)
+    #     #socketIO = SocketIO('127.0.0.1', 5000, LoggingNamespace)
+    #     self.log_actor = None
+    #     self.mtree_properties = {}
+    #     self.agent_memory = {}
+    #     self.outlets = {}
 
     environment = None
 
@@ -92,13 +113,21 @@ class Agent(Actor):
             raise Exception("Simulation property: " + str(name) + " not available")
         return self.mtree_properties[name]
 
-    def log_message(self, logline):
-        log_message = LogMessage(message_type="log", content=logline)
-        self.send(self.log_actor, log_message)
+    def log_message(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="log", content=logline, target=target)
+            self.send(self.log_actor, log_message)
 
-    def log_data(self, logline):
-        log_message = LogMessage(message_type="data", content=logline)
-        self.send(self.log_actor, log_message)
+    def log_data(self, logline, target=None, level=None):
+        if self.log_level is None or level is None:
+            log_message = LogMessage(message_type="data", content=logline, target=target)        
+            self.send(self.log_actor, log_message)
+        elif self.log_level <= level:
+            log_message = LogMessage(message_type="data", content=logline, target=target)        
+            self.send(self.log_actor, log_message)
 
     def log_sequence_event(self, message):
         sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
@@ -169,7 +198,8 @@ class Agent(Actor):
             if key in self.outlets:
                 # print("LETTING: " + str(self.user) + " -- " + str(self.outlets[key]) + " -- " + str(value))
 
-                self.response.let_user(self.user_id, self.outlets[key], value)
+                #self.response.let_user(self.user_id, self.outlets[key], value)
+                self.send_to_subject("outlet", {'property': key, 'value': value})
                 
 
     @directive_decorator("register_subject_connection")
@@ -183,7 +213,7 @@ class Agent(Actor):
         new_message.set_sender(self.myAddress)
         new_message.set_directive("store_agent_memory")
         new_message.set_payload({"agent_memory": self.agent_memory})
-        self.send(self.dispatcher, new_message)
+        self.send(self.container, new_message)
 
 
     def send_to_subject(self, command, payload):
@@ -242,7 +272,7 @@ class Agent(Actor):
         new_message.set_directive("excepted_mes")
         new_message.set_sender(self.myAddress)
         new_message.set_payload(exception_payload)
-        self.send(self.environment, new_message)
+        self.send(self.container, new_message)
 
     def send_message(self, directive, receiver, payload=None):
         """Send message

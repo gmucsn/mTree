@@ -134,21 +134,28 @@ class Runner():
         for configuration in configurations:
             working_dir = os.getcwd()
             #actor_system.send_message()
-            print("Running: ", configuration)
-            simulation_library = MESSimulationLibrary()
-            simulation_library.list_simulation_files_directory(working_dir)
-            
-            simulation = simulation_library.get_simulation_by_filename(os.path.basename(configuration))
-            actor_system = ActorSystemConnector()
-            working_dir = os.getcwd()
-            #actor_system.send_message()
-            actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
+            configuration_good = True
+            try:
+                simulation_library = MESSimulationLibrary()
+                simulation_library.list_simulation_files_directory(working_dir)
+                simulation = simulation_library.get_simulation_by_filename(os.path.basename(configuration))
+            except Exception as e:
+                print("EXCEPTION LOADING CONFIGURATIONS!")
+                print(e)
+                configuration_good = False    
+                
+            if configuration_good:
+                actor_system = ActorSystemConnector()
+                working_dir = os.getcwd()
+                #actor_system.send_message()
+                print("===> Starting to run: ", configuration)
+                actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
 
-            # self.examine_directory()
-            # if self.multi_simulation is False:
-            #     self.launch_multi_simulations()
-            # else:
-            #     self.launch_multi_simulations()
+                # self.examine_directory()
+                # if self.multi_simulation is False:
+                #     self.launch_multi_simulations()
+                # else:
+                #     self.launch_multi_simulations()
 
     def load_mtree_config(self, config_file):
         configuration = None
@@ -225,7 +232,7 @@ class Runner():
             # This is the magic line... this forces the lazyloader to kick in.
             ######
 
-            print(sys.modules[module_name])
+            #print(sys.modules[module_name])
 
             #######
             #sys.modules[module_name]

@@ -8,6 +8,7 @@ import datetime
 import importlib
 import importlib.util
 import time
+import uuid
 
 from thespian.actors import *
 
@@ -125,7 +126,6 @@ class ActorSystemConnector():
         # print(json.dumps(run_configuration))
 
         source_hash = self.load_base_mes(mes_base_dir)
-        print(source_hash)
         # if self.instance.container is None:
         #     self.instance.container = SimulationContainer()
         # self.instance.container.create_dispatcher()
@@ -140,6 +140,7 @@ class ActorSystemConnector():
         #     ActorSystem().tell(dispatcher, ActorExitRequest())
 
         dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Actor, globalName = "Dispatcher") # ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        # ActorSystemConnector.__instance.actor_system.tell(dispatcher, "START DISPATCHER")
         self.__instance.dispatchers.append(dispatcher)
         #outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
 
@@ -169,9 +170,7 @@ class ActorSystemConnector():
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
         configuration_message.set_payload(run_configuration)
-        print("SHOULD BE SENDING TO DISPATCHER")
         ActorSystemConnector.__instance.actor_system.tell(dispatcher, configuration_message) #createActor(Dispatcher, globalName = "Dispatcher")
-        print("dispatcher request -> " + str(configuration_message))
         # ActorSystem("multiprocTCPBase", self.capabilities).tell(dispatcher, configuration_message)
 
     def get_status(self):
@@ -258,10 +257,14 @@ class ActorSystemConnector():
         # Simulation Run ID setup
         nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
         simulation_run_id = config_base_name + "-" + nowtime_filename #str(nowtime).split(".")[0]
+        run_code_gen = str(uuid.uuid4())
+        run_code = run_code_gen[0:6]
+                    
         run_configuration["simulation_run_id"] = simulation_run_id
         run_configuration["mes_directory"] = mes_base_dir
         run_configuration["subjects"] = subjects
         run_configuration["properties"] = run_configuration["properties"]
+        run_configuration["run_code"] = run_code
         configuration_message.set_payload(run_configuration)
         print("RUN CONFIG --> ", run_configuration)
 

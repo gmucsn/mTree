@@ -13,6 +13,8 @@ from mTree.microeconomic_system.outconnect import OutConnect
 import logging
 import json
 
+import setproctitle
+
 
 class StatusActor(Actor):
     def __str__(self):
@@ -22,6 +24,7 @@ class StatusActor(Actor):
         return self.__str__()
 
     def __init__(self):
+        setproctitle.setproctitle("mTree - StatusActor")
         self.configurations_pending = []
         self.configurations_finished = []
         self.agent_memory = {}
