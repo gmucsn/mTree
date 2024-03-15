@@ -1,8 +1,8 @@
-FROM  continuumio/miniconda3:23.5.2-0
+FROM continuumio/miniconda3:24.1.2-0
 LABEL Author, S. Kunath
 LABEL version="1.4"
 
-# RUN apt-get update && apt-get install -y procps vim
+RUN apt-get update && apt-get install -y build-essential
 ENV APP_HOME /mtree
 WORKDIR $APP_HOME
 COPY . $APP_HOME
