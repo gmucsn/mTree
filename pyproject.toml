@@ -62,9 +62,9 @@ mTree_developer_server = "mTree.scripts.mTree_developer_server:main"
 mTree_console = "mTree.utilities.mtree_console:main"
 
 [tool.towncrier]
-package = "mTree"
+# package = "mTree"
+directory = "changes"
 filename = "CHANGELOG.md"
-package_dir = "mTree"
 
 [tool.bumpversion]
 current_version = "2.0.0-pre1"
