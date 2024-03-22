@@ -68,3 +68,25 @@ kill all python processes in powershell:
 Stop-Process -Name "python" -Force
 
 Docker dom
+
+## Build instructions
+
+
+# basic build:
+# docker build -t mtree/mtree:1.2.1d .
+# (M2 mac) docker buildx build --platform=linux/amd64 -t mtree/mtree:1.4.0 .
+# (Else) docker build -t mtree/mtree:1.2.1c .
+
+
+# Pulling:
+# docker pull mtree/mtree
+
+# running
+# docker run -p 5000:5000 -v /Users/Shared/repos/mTree/mTree_learning_exercises/basic_auctions:/auctions -t -i mtree/mtree:1.0.11e
+# docker run -p 5000:5000 -v /Users/Shared/repos/mTree/mTree_learning_exercises/basic_auctions:/auctions -it mtree/mtree:1.0.11e
+# docker run -p 5000:5000 -v /Users/Shared/repos/mTree/mTree_learning_exercises/basic_auctions:/auctions -it -d mtree/mtree:1.0.11e bash
+# docker run -v /Users/Shared/repos/mTree_auction_examples:/auctions -t -i mtree/mtree:latest
+
+# docker run -p 5000:5000 -v /Users/Shared/repos/mTree/mTree_learning_exercises/basic_auctions:/auctions --network host -it mtree/mtree:1.0.11e
+# cd /auctions/sealed_bid_common_value_auction
+# mTree_runner -i ./config/basic_simulation.json

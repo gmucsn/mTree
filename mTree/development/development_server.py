@@ -1,5 +1,7 @@
 import eventlet
-eventlet.monkey_patch()
+# eventlet.monkey_patch()
+
+# from gevent.pywsgi import WSGIServer
 
 from flask import Flask, render_template, render_template_string, session, request, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
@@ -23,7 +25,7 @@ from inspect import getframeinfo, stack
 import jinja2
 from jinja2 import Environment, FileSystemLoader
 
-from flask_sqlalchemy import SQLAlchemy
+# from flask_sqlalchemy import SQLAlchemy
 import os
 
 from mTree.server.actor_system_connector import ActorSystemConnector
@@ -70,14 +72,14 @@ class DevelopmentServer(object):
     app = None
 
     def __init__(self):
-        self.async_mode = 'eventlet' # None
+        # self.async_mode = 'eventlet' # None
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'secret!'
         thread = None
 
         # Configure logging for the Socket IO mechanisms
         self.socketio = SocketIO(self.app, 
-                async_mode=self.async_mode, 
+                # async_mode=self.async_mode, 
                 logger=False, 
                 engineio_logger=False)
         ###

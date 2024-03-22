@@ -92,11 +92,11 @@ from mTree.server.log_config import logcfg
 capabilities = dict([('Admin Port', 19000)])
 
 
-# os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
-# os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
-
-os.environ['THESPLOG_THRESHOLD'] =  'WARNING'
+os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
 os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
+
+# os.environ['THESPLOG_THRESHOLD'] =  'WARNING'
+# os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
 
 
 class ActorSystemStartup:
@@ -112,8 +112,9 @@ class ActorSystemStartup:
         ####
         # !!! Should be initial startup of Thespian System !!!
         ####
-        # self.actor_system = ActorSystem('multiprocTCPBase', capabilities=self.capabilities, logDefs=logcfg)
-        self.actor_system = ActorSystem('multiprocTCPBase', logDefs=logcfg)
+        self.actor_system = ActorSystem('multiprocTCPBase', capabilities=self.capabilities, logDefs=logcfg)
+        print("ABOUT TO START....")
+        # self.actor_system = ActorSystem('multiprocTCPBase', logDefs=logcfg)
 
         logging.info('Checking System Status...')
         if not self.existing_system():
@@ -152,20 +153,20 @@ class ActorSystemStartup:
         self.actor_system.tell(dispatcher, start_message)
 
 
-        if self.websocket:
-            # try the websocket actor
-            web_socket_router_actor = self.actor_system.createActor(WebSocketRouterActor, globalName = "WebSocketRouterActor")
-            self.actor_system.tell(web_socket_router_actor, "web_socket_router_initializing")
-            print("Websocket actor address: " + str(web_socket_router_actor))
+        # if self.websocket:
+        #     # try the websocket actor
+        #     web_socket_router_actor = self.actor_system.createActor(WebSocketRouterActor, globalName = "WebSocketRouterActor")
+        #     self.actor_system.tell(web_socket_router_actor, "web_socket_router_initializing")
+        #     print("Websocket actor address: " + str(web_socket_router_actor))
 
-            #self.websocket_router = WebsocketRouter()
+        #     #self.websocket_router = WebsocketRouter()
 
-            # start_message = Message()
-            # start_message.set_sender("websocketrouter")
-            # start_message.set_directive("register_websocket_router")
+        #     # start_message = Message()
+        #     # start_message.set_sender("websocketrouter")
+        #     # start_message.set_directive("register_websocket_router")
             
-            #self.actor_system.tell(dispatcher, start_message)
-            # self.actor_system.tell(web_socket_router_actor, start_message)
+        #     #self.actor_system.tell(dispatcher, start_message)
+        #     # self.actor_system.tell(web_socket_router_actor, start_message)
 
 
     def load_base_mes(self):
@@ -193,3 +194,4 @@ class ActorSystemStartup:
         capabilities = dict([('Admin Port', 19000)])
 
         ActorSystem('multiprocTCPBase', capabilities).shutdown()
+        # ActorSystem('multiprocTCPBase').shutdown()
