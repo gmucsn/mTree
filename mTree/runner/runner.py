@@ -26,26 +26,29 @@ import atexit
 from thespian.actors import *
 
 
-capabilities = dict([('Admin Port', 19000)])
+capabilities = dict([("Admin Port", 19000)])
+
 
 @atexit.register
 def goodbye():
-    capabilities = dict([('Admin Port', 19000)])
-    actors = ActorSystem('multiprocTCPBase') #, capabilities)
+    capabilities = dict([("Admin Port", 19000)])
+    actors = ActorSystem("multiprocTCPBase")  # , capabilities)
     actors.shutdown()
     time.sleep(2)
-    #print("You are now leaving mTree Runner.")
+    # print("You are now leaving mTree Runner.")
+
 
 class MTreePrompt(Cmd):
     def __init__(self, runner):
         self.runner = runner
         Cmd.__init__(self)
-        
-    def emptyline(self): pass  # do nothing
+
+    def emptyline(self):
+        pass  # do nothing
 
     def do_run_simulation(self, args):
         """Runs the loaded simulation."""
-        #self.runner.run_simulation()
+        # self.runner.run_simulation()
         self.runner.show_configuration_menu()
 
     def do_check_status(self, args):
@@ -55,40 +58,32 @@ class MTreePrompt(Cmd):
     def do_force_shutdown(self, args):
         """Forces an exit on all MES components"""
         print("Forcing system shutdown")
-        capabilities = dict([('Admin Port', 19000)])
-        actors = ActorSystem('multiprocTCPBase', capabilities)
+        capabilities = dict([("Admin Port", 19000)])
+        actors = ActorSystem("multiprocTCPBase", capabilities)
         actors.shutdown()
 
     def do_kill_run(self, run_id):
         """Force a running MES to shutdown"""
         self.runner.kill_run_by_id(run_id)
 
-
-
-
     def do_hello(self, args):
         """Says hello. If you provide a name, it will greet you with it."""
         if len(args) == 0:
-            name = 'stranger'
+            name = "stranger"
         else:
             name = args
-        print( "Hello, %s" % name)
-
-    
-
+        print("Hello, %s" % name)
 
     def do_quit(self, args):
         """Quits the program."""
         self.runner.shutdown()
-        print("Quitting.")  
-        
+        print("Quitting.")
+
         raise SystemExit
 
 
-
-
-class Runner():
-    def __init__(self, running_directory): #, multi_simulation=False):
+class Runner:
+    def __init__(self, running_directory):  # , multi_simulation=False):
         self.container = None
         self.running_directory = running_directory
         self.config_directory = os.path.join(running_directory, "config")
@@ -96,24 +91,24 @@ class Runner():
             print("!!! Config directory doesn't exist !!!")
             print("!!! Make sure you are running inside an MES !!!")
             exit()
-            
+
         # self.component_registry = registry.Registry()
-        
+
         # self.component_registry.register_server(self)
         # self.multi_simulation = multi_simulation
         # self.container = None
-        #self.configuration = config_file
+        # self.configuration = config_file
         # if self.multi_simulation is not True:
         #     self.configuration = self.load_mtree_config(config_file)
         # else:
         #     self.configuration = self.load_multiple_mtree_config(config_file)
-        #print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
+        # print("Current Configuration: ", json.dumps(self.configuration, indent=4, sort_keys=True))
         self.actor_system = ActorSystemConnector()
-    
-
 
     def show_configuration_menu(self):
-        config_files = [file for file in os.listdir(self.config_directory) if file.endswith('.json')]
+        config_files = [
+            file for file in os.listdir(self.config_directory) if file.endswith(".json")
+        ]
 
         terminal_menu = TerminalMenu(
             config_files,
@@ -129,27 +124,30 @@ class Runner():
 
         self.run_simulation_from_configurations(selected_configs)
 
-
     def run_simulation_from_configurations(self, configurations):
         for configuration in configurations:
             working_dir = os.getcwd()
-            #actor_system.send_message()
+            # actor_system.send_message()
             configuration_good = True
             try:
                 simulation_library = MESSimulationLibrary()
                 simulation_library.list_simulation_files_directory(working_dir)
-                simulation = simulation_library.get_simulation_by_filename(os.path.basename(configuration))
+                simulation = simulation_library.get_simulation_by_filename(
+                    os.path.basename(configuration)
+                )
             except Exception as e:
                 print("EXCEPTION LOADING CONFIGURATIONS!")
                 print(e)
-                configuration_good = False    
-                
+                configuration_good = False
+
             if configuration_good:
                 actor_system = ActorSystemConnector()
                 working_dir = os.getcwd()
-                #actor_system.send_message()
+                # actor_system.send_message()
                 print("===> Starting to run: ", configuration)
-                actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
+                actor_system.run_simulation(
+                    working_dir, configuration, simulation["description"].to_hash()
+                )
 
                 # self.examine_directory()
                 # if self.multi_simulation is False:
@@ -181,46 +179,45 @@ class Runner():
 
         return configurations
 
-
-
     def examine_directory(self):
         import importlib
         from importlib import import_module
+
         module = importlib.import_module("mTree.components")
 
         import glob
         import sys
         from types import ModuleType
         import os
+
         cwd = os.getcwd()
         sys.path.append(cwd)
 
-        base_module = ModuleType('mTree.components')
+        base_module = ModuleType("mTree.components")
 
-        #base_module = ModuleType('cva_mes')
-        #sys.modules['cva_mes'] = ModuleType('cva_mes')
-        #sys.modules['cva_mes.cva_environment'] = ModuleType('cva_mes.cva_environment')
-        #"cva_mes."
-        #globals()[module_name] = foo
+        # base_module = ModuleType('cva_mes')
+        # sys.modules['cva_mes'] = ModuleType('cva_mes')
+        # sys.modules['cva_mes.cva_environment'] = ModuleType('cva_mes.cva_environment')
+        # "cva_mes."
+        # globals()[module_name] = foo
 
         modules_imported = []
         module_names = []
-        
+
         ### updare for MES/mes naming
         ### create errors here
-        
-        for filename in glob.iglob('./mes/*.py', recursive=True):
+
+        for filename in glob.iglob("./mes/*.py", recursive=True):
             import_name = os.path.splitext(os.path.basename(filename))[0]
-            module_name = "mes." + import_name.partition('.')[0]
+            module_name = "mes." + import_name.partition(".")[0]
             import importlib.util
 
-
-            #try:
+            # try:
             #    return sys.modules[fullname]
-            #except KeyError:
+            # except KeyError:
             spec = importlib.util.spec_from_file_location(module_name, filename)
-            #spec = importlib.util.find_spec(fullname)
-            #sys.modules[module_name] = ModuleType(module_name)
+            # spec = importlib.util.find_spec(fullname)
+            # sys.modules[module_name] = ModuleType(module_name)
             module = importlib.util.module_from_spec(spec)
             loader = importlib.util.LazyLoader(spec.loader)
             # Make module with proper locking and get it inserted into sys.modules.
@@ -232,38 +229,38 @@ class Runner():
             # This is the magic line... this forces the lazyloader to kick in.
             ######
 
-            #print(sys.modules[module_name])
+            # print(sys.modules[module_name])
 
             #######
-            #sys.modules[module_name]
-            #return module
+            # sys.modules[module_name]
+            # return module
 
-            #foo = importlib.util.module_from_spec(spec)
-            #loader = importlib.util.LazyLoader(spec.loader)
+            # foo = importlib.util.module_from_spec(spec)
+            # loader = importlib.util.LazyLoader(spec.loader)
 
-            #globals()[module_name] = module
-            #print(module)
-            #modules_imported.append((module, spec))
-            #module_names.append(module)
-            #print(foo)
-            #base_module
-
-
-            #spec.loader.exec_module(foo)
-            #sys.modules[module_name] = module
+            # globals()[module_name] = module
+            # print(module)
+            # modules_imported.append((module, spec))
+            # module_names.append(module)
             # print(foo)
-            #foo.MyClass()
+            # base_module
+
+            # spec.loader.exec_module(foo)
+            # sys.modules[module_name] = module
+            # print(foo)
+            # foo.MyClass()
             # module_path = module
             #
             # module_name = os.path.basename(filename)
             # new_module = __import__(module_name, fromlist=[filename])
             # print(new_module)
             # globals()[module_name] = new_module
-        #all_my_base_classes = {cls.__name__: cls for cls in base._MyBase.__subclasses__()}
+        # all_my_base_classes = {cls.__name__: cls for cls in base._MyBase.__subclasses__()}
 
-        sys.modules['mes'] = ModuleType('mes')
+        sys.modules["mes"] = ModuleType("mes")
 
         import inspect
+
         target_class = None
         for name, obj in inspect.getmembers(sys.modules["mTree.server"]):
             if inspect.isclass(obj):
@@ -283,18 +280,20 @@ class Runner():
         #         print(e)
         #         print("<<<<<<<<")
         # print(test)
-        #spec.loader.exec_module(test)
+        # spec.loader.exec_module(test)
 
     def run_simulation(self):
         working_dir = os.getcwd()
-        #actor_system.send_message()
+        # actor_system.send_message()
         simulation_library = MESSimulationLibrary()
         simulation_library.list_simulation_files_directory(working_dir)
-        
-        simulation = simulation_library.get_simulation_by_filename(os.path.basename(self.configuration))
+
+        simulation = simulation_library.get_simulation_by_filename(
+            os.path.basename(self.configuration)
+        )
         actor_system = ActorSystemConnector()
         working_dir = os.getcwd()
-        #actor_system.send_message()
+        # actor_system.send_message()
         actor_system.run_simulation(working_dir, simulation["description"].to_hash())
 
         # self.examine_directory()
@@ -305,7 +304,7 @@ class Runner():
 
     def check_status(self):
         table_data = [
-            ['Run Code', 'Configuration', 'Run Number', 'Status', 'Total Time'],
+            ["Run Code", "Configuration", "Run Number", "Status", "Total Time"],
         ]
         actor_system = ActorSystemConnector()
         statuses = actor_system.get_status()
@@ -323,16 +322,15 @@ class Runner():
         actor_system.kill_run_by_id(run_id)
         print("Kill command sent")
 
-
     def runner(self):
         prompt = MTreePrompt(self)
-        prompt.prompt = 'mTree> '
-        prompt.cmdloop('Starting prompt...')
+        prompt.prompt = "mTree> "
+        prompt.cmdloop("Starting prompt...")
 
-        #self.examine_directory()
-        #if self.multi_simulation is False:
+        # self.examine_directory()
+        # if self.multi_simulation is False:
         #    self.launch_multi_simulations()
-        #else:
+        # else:
         #    self.launch_multi_simulations()
 
     def shutdown(self):
@@ -346,12 +344,16 @@ class Runner():
         self.container.send_dispatcher_simulation_configurations(self.configuration)
 
     def launch_simulation(self):
-        """ DEPRECATED """
-        
+        """DEPRECATED"""
+
         component_registry = registry.Registry()
 
-        environment = component_registry.get_component_class(self.configuration["environment"])
-        institution = component_registry.get_component_class(self.configuration["institution"])
+        environment = component_registry.get_component_class(
+            self.configuration["environment"]
+        )
+        institution = component_registry.get_component_class(
+            self.configuration["institution"]
+        )
         agents = []
         for agent_d in self.configuration["agents"]:
             agent_class = component_registry.get_component_class(agent_d["agent_name"])
@@ -373,4 +375,4 @@ class Runner():
         container.send_root_environment_message(start_message)
 
         # create Collateal Game Environment
-        #self.container.create_root_environment(self.configuration["environment"])
+        # self.container.create_root_environment(self.configuration["environment"])

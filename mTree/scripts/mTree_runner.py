@@ -21,47 +21,57 @@ import argparse
 
 
 ######
-# Description: 
+# Description:
 #
 #
 #
 ######
 
 
-
 @atexit.register
 def goodbye():
-    #print("Shutting down mTree Actor land now...")
-    #ActorSystemStartup.shutdown()
-    capabilities = dict([('Admin Port', 19000)])
-    actors = ActorSystem('multiprocTCPBase') #, capabilities)
+    # print("Shutting down mTree Actor land now...")
+    # ActorSystemStartup.shutdown()
+    capabilities = dict([("Admin Port", 19000)])
+    actors = ActorSystem("multiprocTCPBase")  # , capabilities)
     time.sleep(2)
     actors.shutdown()
-    
-    #print("mTree finished shutting down")
+
+    # print("mTree finished shutting down")
 
 
 def main():
     # Set Thespian log file location so we can track issues...
-    os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
+    os.environ["THESPLOG_FILE"] = os.path.join(os.getcwd(), "thespian.log")
     # TODO Fix and make this selectable from the command line
-    os.environ['THESPLOG_THRESHOLD'] =  "DEBUG"
+    os.environ["THESPLOG_THRESHOLD"] = "DEBUG"
 
-    background_actor_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "server", "background_actor_system.py")
-    
-    #with open(os.devnull, 'w') as DEVNULL:
+    background_actor_py = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "server",
+        "background_actor_system.py",
+    )
+
+    # with open(os.devnull, 'w') as DEVNULL:
     import subprocess
+
     # creationflags=subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.HIGH_PRIORITY_CLASS
-    process = Popen([sys.executable, background_actor_py], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
-    #process = subprocess.run([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
+    process = Popen(
+        [sys.executable, background_actor_py],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )  # , stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) #, stdout=PIPE, stderr=PIPE)
+    # process = subprocess.run([sys.executable, background_actor_py], stdout=DEVNULL, stderr=DEVNULL) #, stdout=PIPE, stderr=PIPE)
     time.sleep(3)
-    launch() #sys.argv[1:])
+    launch()  # sys.argv[1:])
+
 
 def launch():
     ascii_banner = pyfiglet.figlet_format("mTree  - Runner")
     print(ascii_banner)
-    inputfile = ''
-    outputfile = ''
+    inputfile = ""
+    outputfile = ""
     # try:
     #     opts, args = getopt.getopt(argv,"hi:m:o:",["ifile=","ofile="])
     # except getopt.GetoptError:
@@ -78,8 +88,7 @@ def launch():
     #         list_simulation = True
     #         inputfile = arg
 
-
-    #print("mTree Runner")
+    # print("mTree Runner")
 
     # actor_system = ActorSystemStartup()
     # actor_system.startup()
@@ -88,16 +97,14 @@ def launch():
     mtree_runner.runner()
 
 
-
-
 if __name__ == "__main__":
-    os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
-    os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
+    os.environ["THESPLOG_THRESHOLD"] = "DEBUG"
+    os.environ["THESPLOG_FILE"] = os.path.join(os.getcwd(), "thespian.log")
 
-    parser = argparse.ArgumentParser(description='mTree Runner')
+    parser = argparse.ArgumentParser(description="mTree Runner")
     args = parser.parse_args()
 
-    main() #sys.argv[1:])
+    main()  # sys.argv[1:])
 
 #     print("ALSFJKHASKLJFHALKSJDFLKAJS")
 #     os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
@@ -107,10 +114,10 @@ if __name__ == "__main__":
 #     parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
 #                     help='Show information on mTree Runner.')
 #     args = parser.parse_args()
-    
+
 #     print(args)
 #     print(args.accumulate(args.integers))
 #     print("^^^^^")
-    
+
 
 #     #main(sys.argv[1:])

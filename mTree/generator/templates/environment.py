@@ -6,6 +6,7 @@ import random
 
 EXPERIMENT = 25
 
+
 @directive_enabled_class
 class BasicEnvironment(Environment):
     def __init__(self):

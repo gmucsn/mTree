@@ -6,82 +6,50 @@ from mTree.microeconomic_system.institution import Institution
 from mTree.microeconomic_system.agent import Agent
 
 simulation_description_schema = {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "object",
-  "properties": {
-    "mtree_type": {
-      "type": "string"
-    },
-    "name": {
-      "type": "string"
-    },
-    "id": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "number_of_runs": {
-      "type": "integer"
-    },
-    "environment": {
-      "type": "string"
-    },
-    "institution": {
-      "type": "string"
-    },
-    "agents": {
-      "type": "array",
-      "items": [
-        {
-          "type": "object",
-          "properties": {
-            "agent_name": {
-              "type": "string"
-            },
-            "number": {
-              "type": "integer"
-            }
-          },
-          "required": [
-            "agent_name",
-            "number"
-          ]
-        }
-      ]
-    },
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
     "properties": {
-      "type": "array",
-      "items": [
-        {
-          "type": "object",
-          "properties": {
-            "property_name": {
-              "type": "string"
-            },
-            "value": {
-              "type": "integer"
-            }
-          },
-          "required": [
-            "property_name",
-            "value"
-          ]
-        }
-      ]
-    }
-  },
-  "required": [
-    "mtree_type",
-    "environment",
-    "institution",
-    "agents"
-  ]
+        "mtree_type": {"type": "string"},
+        "name": {"type": "string"},
+        "id": {"type": "string"},
+        "description": {"type": "string"},
+        "number_of_runs": {"type": "integer"},
+        "environment": {"type": "string"},
+        "institution": {"type": "string"},
+        "agents": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "agent_name": {"type": "string"},
+                        "number": {"type": "integer"},
+                    },
+                    "required": ["agent_name", "number"],
+                }
+            ],
+        },
+        "properties": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "property_name": {"type": "string"},
+                        "value": {"type": "integer"},
+                    },
+                    "required": ["property_name", "value"],
+                }
+            ],
+        },
+    },
+    "required": ["mtree_type", "environment", "institution", "agents"],
 }
 
-class MESSimulationDescription():
+
+class MESSimulationDescription:
     def __init__(self, input_json=None, filename=None):
-        self.mtree_type = None #"mes_simulation_description"
+        self.mtree_type = None  # "mes_simulation_description"
         self.name = None
         self.id = str(uuid.uuid1())
         self.description = None
@@ -101,16 +69,16 @@ class MESSimulationDescription():
 
     def load_and_import_json(self, filename):
         configuration = None
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             configuration = json.load(f)
-        
+
         self.import_json(configuration)
 
     def import_json(self, input_json):
         # try:
-            # TODO Fix configuration schema validation
-            # currently there is an issue on the properties setup...
-            #validate(instance=input_json, schema=simulation_description_schema)
+        # TODO Fix configuration schema validation
+        # currently there is an issue on the properties setup...
+        # validate(instance=input_json, schema=simulation_description_schema)
         self.configure_from_json(input_json)
         # except Exception as e:
         #     print(e)
@@ -125,29 +93,27 @@ class MESSimulationDescription():
         if "id" in input_json.keys():
             self.id = input_json["id"]
         if "description" in input_json.keys():
-            self.description  = input_json["description"]
+            self.description = input_json["description"]
         if "environment" in input_json.keys():
-            self.environment  = input_json["environment"]
+            self.environment = input_json["environment"]
         if "institution" in input_json.keys():
             self.institutions = [{"institution_class": input_json["institution"]}]
         if "institutions" in input_json.keys():
-          if isinstance(input_json["institutions"], str):
-            self.institutions = [{"institution_class": input_json["institutions"]}]
-          else:
-            self.institutions = input_json["institutions"]
+            if isinstance(input_json["institutions"], str):
+                self.institutions = [{"institution_class": input_json["institutions"]}]
+            else:
+                self.institutions = input_json["institutions"]
         if "agents" in input_json.keys():
             self.agents = input_json["agents"]
         if "properties" in input_json.keys():
-            self.properties= input_json["properties"]
+            self.properties = input_json["properties"]
         if "data_logging" in input_json.keys():
-            self.data_logging= input_json["data_logging"]
+            self.data_logging = input_json["data_logging"]
         if "debug" in input_json.keys():
             if input_json["debug"] == True:
-              self.debug = True
+                self.debug = True
         if "log_level" in input_json.keys():
             self.log_level = int(input_json["log_level"])
-            
-
 
     def set_name(self, name):
         self.name = name
@@ -157,7 +123,6 @@ class MESSimulationDescription():
 
     def set_description(self, description):
         self.description = description
-
 
     def set_environment(self, environment_class):
         environment_name = environment_class
@@ -187,7 +152,7 @@ class MESSimulationDescription():
         temp_dict["number_of_runs"] = self.number_of_runs
 
         temp_dict["environment"] = self.environment
-        #temp_dict["institution"] = self.institution
+        # temp_dict["institution"] = self.institution
         temp_dict["institutions"] = self.institutions
         temp_dict["agents"] = self.agents
         temp_dict["properties"] = self.properties
@@ -195,9 +160,8 @@ class MESSimulationDescription():
         temp_dict["debug"] = self.debug
         temp_dict["log_level"] = self.log_level
 
-
         json_output = json.dumps(temp_dict)
-    
+
     def to_hash(self):
         temp_dict = {}
         temp_dict["mtree_type"] = self.mtree_type
@@ -205,7 +169,7 @@ class MESSimulationDescription():
         temp_dict["id"] = self.id
         temp_dict["description"] = self.description
         temp_dict["environment"] = self.environment
-        #temp_dict["institution"] = self.institution
+        # temp_dict["institution"] = self.institution
         temp_dict["institutions"] = self.institutions
         temp_dict["number_of_runs"] = self.number_of_runs
         temp_dict["agents"] = self.agents
@@ -213,8 +177,5 @@ class MESSimulationDescription():
         temp_dict["data_logging"] = self.data_logging
         temp_dict["debug"] = self.debug
         temp_dict["log_level"] = self.log_level
-        
+
         return temp_dict
-        
-
-

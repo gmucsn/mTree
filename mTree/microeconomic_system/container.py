@@ -12,10 +12,12 @@ from mTree.components import registry
 
 class actorLogFilter(logging.Filter):
     def filter(self, logrecord):
-        return 'actorAddress' in logrecord.__dict__
+        return "actorAddress" in logrecord.__dict__
+
+
 class notActorLogFilter(logging.Filter):
     def filter(self, logrecord):
-        return 'actorAddress' not in logrecord.__dict__
+        return "actorAddress" not in logrecord.__dict__
 
 
 class Container:
@@ -29,24 +31,34 @@ class Container:
         atexit.register(self.actor_system_cleanup)
 
     def create_actor_system(self):
-        logcfg = {'version': 1,
-                  'formatters': {
-                      'normal': {'format': '%(levelname)-8s %(message)s'},
-                      'actor': {'format': '%(levelname)-8s %(actorAddress)s => %(message)s'}},
-                  'filters': {'isActorLog': {'()': actorLogFilter},
-                              'notActorLog': {'()': notActorLogFilter}},
-                  'handlers': {'h1': {'class': 'logging.FileHandler',
-                                      'filename': 'experiment_data.json',
-                                      'formatter': jsonlogger.JsonFormatter(),
-                                      'filters': ['notActorLog'],
-                                      'level': logging.INFO},
-                               'h2': {'class': 'logging.FileHandler',
-                                      'filename': 'experiment_data.json',
-                                      'formatter': jsonlogger.JsonFormatter(),
-                                      'filters': ['isActorLog'],
-                                      'level': logging.INFO}, },
-                  'loggers': {'': {'handlers': ['h1', 'h2'], 'level': logging.DEBUG}}
-                  }
+        logcfg = {
+            "version": 1,
+            "formatters": {
+                "normal": {"format": "%(levelname)-8s %(message)s"},
+                "actor": {"format": "%(levelname)-8s %(actorAddress)s => %(message)s"},
+            },
+            "filters": {
+                "isActorLog": {"()": actorLogFilter},
+                "notActorLog": {"()": notActorLogFilter},
+            },
+            "handlers": {
+                "h1": {
+                    "class": "logging.FileHandler",
+                    "filename": "experiment_data.json",
+                    "formatter": jsonlogger.JsonFormatter(),
+                    "filters": ["notActorLog"],
+                    "level": logging.INFO,
+                },
+                "h2": {
+                    "class": "logging.FileHandler",
+                    "filename": "experiment_data.json",
+                    "formatter": jsonlogger.JsonFormatter(),
+                    "filters": ["isActorLog"],
+                    "level": logging.INFO,
+                },
+            },
+            "loggers": {"": {"handlers": ["h1", "h2"], "level": logging.DEBUG}},
+        }
 
         self.actor_system = ActorSystem(None, logDefs=logcfg)
 
@@ -54,7 +66,6 @@ class Container:
         print("EXPERIMENT SHUTTING DOWN")
         self.actor_system.shutdown()
         print("ACTOR SYSTEM SHOULD HAVE SHUTDOWN")
-
 
     def create_root_environment(self, environment_class, properties=None):
         print("CREATING AN ENVIRONMENT")
@@ -66,9 +77,8 @@ class Container:
             message.set_payload({"properties": properties})
             self.actor_system.tell(self.environment, message)
 
-
-    def setup_environment_agents(self, agent_class, num_agents = 1):
-        #logging.info("AGENTS BEING SETUP FROM ENV")
+    def setup_environment_agents(self, agent_class, num_agents=1):
+        # logging.info("AGENTS BEING SETUP FROM ENV")
         message = Message()
         message.set_directive("setup_agents")
         message.set_payload({"agent_class": agent_class, "num_agents": num_agents})
@@ -87,4 +97,3 @@ class Container:
 if __name__ == "__main__":  # This is what should be moved to the mTree level...
     container = Container()
     container.create_actor_system()
-

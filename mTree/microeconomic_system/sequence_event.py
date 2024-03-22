@@ -8,12 +8,11 @@ class SequenceEvent(object):
         self.sender = sender
         self.receiver = receiver
         self.directive = directive
-        
+
     def __str__(self):
-        return "<SequenceEvent Timestamp: {}, Sender: {}, Receiver: {}, Directive: {}>".format(self.timestamp, 
-                                                            self.sender,
-                                                            self.receiver,
-                                                            self.directive)
+        return "<SequenceEvent Timestamp: {}, Sender: {}, Receiver: {}, Directive: {}>".format(
+            self.timestamp, self.sender, self.receiver, self.directive
+        )
 
     def set_message_type(self, message_type):
         self.message_type = message_type

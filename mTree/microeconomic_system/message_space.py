@@ -1,5 +1,6 @@
 from mTree.microeconomic_system.message import Message
 
+
 class MessageSpace(object):
     def __init__(self, message_type):
         self.message_type = message_type
@@ -26,13 +27,17 @@ class MessageSpace(object):
 
     @classmethod
     def pass_agent_list(cls, agent_list):
-        message = Message(sender="Environment", recipients="Institution", directive="agent_list")
+        message = Message(
+            sender="Environment", recipients="Institution", directive="agent_list"
+        )
         message.set_payload(agent_list)  # TODO include the payoad in the message init
         return message
 
     @classmethod
     def get_wealths(cls):
-        message = Message(sender="Environment", recipients="Agents", directive="get_wealth")  # quicker creation through init
+        message = Message(
+            sender="Environment", recipients="Agents", directive="get_wealth"
+        )  # quicker creation through init
         return message
 
     def message_type(self):
@@ -52,8 +57,3 @@ class MessageSpace(object):
         message.set_directive("create_agent")
         message.set_payload(agent_class)
         return message
-
-
-
-
-

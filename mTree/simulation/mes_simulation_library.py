@@ -8,12 +8,13 @@ from mTree.microeconomic_system.mes_exceptions import *
 
 from mTree.simulation.mes_simulation_description import MESSimulationDescription
 
-class MESSimulationLibrary():
+
+class MESSimulationLibrary:
     def __init__(self):
         self.simulations = []
 
     def list_simulation_files(self):
-        for filename in glob.iglob('./config/*.json', recursive=True):
+        for filename in glob.iglob("./config/*.json", recursive=True):
             description = None
             # try:
             description = MESSimulationDescription(filename=filename)
@@ -23,13 +24,17 @@ class MESSimulationLibrary():
             #     pass
 
             if description is not None:
-                self.simulations.append({"name":description.name,
-                                         "json":description.to_json(),
-                                         "description": description})
+                self.simulations.append(
+                    {
+                        "name": description.name,
+                        "json": description.to_json(),
+                        "description": description,
+                    }
+                )
 
     def list_human_subject_files_directory(self, mes_directory):
-        for filename in glob.iglob('./config/*.json', recursive=True):
-        # for filename in glob.iglob(mes_directory + '/config/*.json', recursive=True):
+        for filename in glob.iglob("./config/*.json", recursive=True):
+            # for filename in glob.iglob(mes_directory + '/config/*.json', recursive=True):
             print("\t\t->", filename)
             description = None
             # try:
@@ -40,29 +45,32 @@ class MESSimulationLibrary():
             if description is not None:
                 if description.mtree_type == "mes_subject_experiment":
                     simulation_information = {
-                                            "source": os.path.basename(filename),
-                                            "source_file": filename,
-                                            "name":description.name,
-                                            "json": description.to_json(),
-                                            "description": description}
+                        "source": os.path.basename(filename),
+                        "source_file": filename,
+                        "name": description.name,
+                        "json": description.to_json(),
+                        "description": description,
+                    }
                     self.simulations.append(simulation_information)
 
     def list_simulation_files_directory(self, mes_directory):
-        for filename in glob.iglob(mes_directory + '/config/*.json', recursive=True):
+        for filename in glob.iglob(mes_directory + "/config/*.json", recursive=True):
             description = None
             try:
                 description = MESSimulationDescription(filename=filename)
             except Exception as e:
                 pass
-                #raise BadSimulationConfigurationFile(e, source_file=filename)
+                # raise BadSimulationConfigurationFile(e, source_file=filename)
             if description is not None:
-                self.simulations.append({
-                                        "source": os.path.basename(filename),
-                                        "source_file": filename,
-                                        "name":description.name,
-                                         "json":description.to_json(),
-                                         "description": description})
-
+                self.simulations.append(
+                    {
+                        "source": os.path.basename(filename),
+                        "source_file": filename,
+                        "name": description.name,
+                        "json": description.to_json(),
+                        "description": description,
+                    }
+                )
 
     def get_simulations(self):
         return self.simulations

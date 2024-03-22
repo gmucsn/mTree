@@ -44,7 +44,9 @@ class Session:  # TODO(@messiest) There needs to be a way to set the number of p
         print(self.periods)
         if self.periods:  # periods still remain
             period = self.periods.pop(0)  # retrieve first period
-            self.current_period = self.total_periods - len(self.periods)  # gives the difference between total and current
+            self.current_period = self.total_periods - len(
+                self.periods
+            )  # gives the difference between total and current
             print("about to start")
             period.start()
         elif not self.periods:
@@ -55,7 +57,8 @@ class Session:  # TODO(@messiest) There needs to be a way to set the number of p
         pass
 
     def end_session(self, debug=False):
-        if debug: print("SESSION ENDED")
+        if debug:
+            print("SESSION ENDED")
         for subject in self.subjects.values():
             subject.user.close_user()
         pass

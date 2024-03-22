@@ -1,8 +1,6 @@
-
-
 class UserState:
     def __init__(self):
-        self.users = {}     # dictionary of users, key: user_id, value: User()
+        self.users = {}  # dictionary of users, key: user_id, value: User()
         self.sid_dict = {}  # dictionary of sids, key: sid, value: user_id
 
     def add_user(self, user):

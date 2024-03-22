@@ -2,7 +2,9 @@ class Environment:
     def __init__(self, period):
         self.period = period
         self.recorder = self.period.recorder
-        self.experiment = self.period.session.experiment  # the experiment in which the environment is initiated
+        self.experiment = (
+            self.period.session.experiment
+        )  # the experiment in which the environment is initiated
         self.subjects = self.period.subjects
 
         #  self.recorder("ENVIRONMENT", self.__class__.__name__)
@@ -10,11 +12,13 @@ class Environment:
 
         # TODO(@messiest) Fix below to reflect design changes
         users = self.experiment.user_objects  # dictionary of user objects
-        self.users = users                    # list of user ids
+        self.users = users  # list of user ids
 
         ################################################################
         # Match-making variables
-        self.match_making = self.get_subjects()  # list of user ids waiting to be matched
+        self.match_making = (
+            self.get_subjects()
+        )  # list of user ids waiting to be matched
         self.pairings = {}  # dictionary of paired user objects
         self.pairing_ids = {}  # dictionary of paired user ids
         # self.subject_pairing()  # match all the subjects
@@ -37,7 +41,6 @@ class Environment:
 
     def run_institution(self):
         pass
-
 
     def get_subjects(self):
         """

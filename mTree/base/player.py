@@ -1,14 +1,14 @@
 class Player:
     def __init__(self, subject, institution, player_type=None):
-        self.controller = None                     # controller used in the institution
-        self.subject = subject                     # subject object for the user
+        self.controller = None  # controller used in the institution
+        self.subject = subject  # subject object for the user
         self.experiment = self.subject.experiment  #
-        self.recorder = self.experiment.recorder   #
-        self.user = self.subject.user              # idk if this will work...
-        self.id = self.user.user_id                # idk if this will work...
-        self.institution = institution             # the institution the player is associated with
-        self.points = 0.                           # points earned in the institution.
-        self.player_type = player_type             # player type for the associated institution
+        self.recorder = self.experiment.recorder  #
+        self.user = self.subject.user  # idk if this will work...
+        self.id = self.user.user_id  # idk if this will work...
+        self.institution = institution  # the institution the player is associated with
+        self.points = 0.0  # points earned in the institution.
+        self.player_type = player_type  # player type for the associated institution
 
         self.initializer()
 

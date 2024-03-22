@@ -13,8 +13,9 @@ class LogMessage(object):
         self.level = level
 
     def __str__(self):
-        return "<LogMessage Timestamp: {}, Type: {}, Content: {}>".format(self.timestamp, self.message_type,
-                                                                self.content)
+        return "<LogMessage Timestamp: {}, Type: {}, Content: {}>".format(
+            self.timestamp, self.message_type, self.content
+        )
 
     def set_message_type(self, message_type):
         self.message_type = message_type

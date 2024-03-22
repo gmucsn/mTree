@@ -1,29 +1,31 @@
 from mTree.base.period import Period
 
+
 class MesPeriod(Period):
     def __init__(self, session):  # environment/institutions set up in file
-        self.session = session    # session the period is a part of
+        self.session = session  # session the period is a part of
         self.recorder = self.session.recorder
-        #self.environment = None   # environment attached to the period
-        #self.institutions = []    # list of institutions for the period
+        # self.environment = None   # environment attached to the period
+        # self.institutions = []    # list of institutions for the period
         self.subjects = self.session.subjects
         # self.recorder("PERIOD", self.__class__.__name__)
         self.initializer()
 
     def initializer(self):
-            print("initializing...")
+        print("initializing...")
 
     def set_environment(self, environment):
         self.environment = environment
 
     def start_period(self):
         print("starting to run the MES Period")
-        #self.run_institutions()
-        #institution = self.institutions.pop()
-        #institution.start_institution()
+        # self.run_institutions()
+        # institution = self.institutions.pop()
+        # institution.start_institution()
 
     def end_period(self, debug=False):
-        if debug: print("ENDING PERIOD")
+        if debug:
+            print("ENDING PERIOD")
         self.session.run_period()  # run the next period
         pass
 

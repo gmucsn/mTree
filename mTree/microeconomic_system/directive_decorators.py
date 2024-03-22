@@ -4,7 +4,6 @@ from jsonschema import validate
 from mTree.components import registry
 
 
-
 def directive_state_monitor(state_properties=None):
     def real_decorator(func):
         if state_properties is None:
@@ -12,37 +11,46 @@ def directive_state_monitor(state_properties=None):
         else:
             func.state_properties = state_properties
         return func
+
     return real_decorator
 
 
-def directive_decorator(directive_name, message_schema=None, message_callback=None, ui_callback=None):
+def directive_decorator(
+    directive_name, message_schema=None, message_callback=None, ui_callback=None
+):
     def real_decorator(func):
         func.message_directive = directive_name
         if message_schema is not None:
             func.message_schema = message_schema
         return func
+
     return real_decorator
+
 
 def message_source(message_name):
     def real_decorator(func):
         func.message_source = message_name
         return func
-    return real_decorator
 
+    return real_decorator
 
 
 from functools import wraps
 
-def dec(msg='default'):
+
+def dec(msg="default"):
     def decorator(klass):
         old_foo = klass.foo
+
         @wraps(klass.foo)
-        def decorated_foo(self, *args ,**kwargs):
-            print('@decorator pre %s' % msg)
+        def decorated_foo(self, *args, **kwargs):
+            print("@decorator pre %s" % msg)
             old_foo(self, *args, **kwargs)
-            print('@decorator post %s' % msg)
+            print("@decorator post %s" % msg)
+
         klass.foo = decorated_foo
         return klass
+
     return decorator
 
 
@@ -59,25 +67,39 @@ def directive_enabled_class(cls):
     for func in functions:
         if getattr(func, "message_directive", False):
             cls._enabled_directives[getattr(func, "message_directive")] = func
-            cls._enabled_functions_to_directives[func.__name__] = getattr(func, "message_directive")
+            cls._enabled_functions_to_directives[func.__name__] = getattr(
+                func, "message_directive"
+            )
         if getattr(func, "state_properties", False):
-            cls._enabled_directives_state_monitors[func.__name__] = getattr(func, "state_properties")
+            cls._enabled_directives_state_monitors[func.__name__] = getattr(
+                func, "state_properties"
+            )
         if getattr(func, "message_source", False):
-            cls._message_sources[getattr(func, "message_source")] = getattr(func, "mtree_properties")
+            cls._message_sources[getattr(func, "message_source")] = getattr(
+                func, "mtree_properties"
+            )
         if getattr(func, "mtree_properties", False):
             for property_name in getattr(func, "mtree_properties").keys():
-                cls._mtree_properties[property_name] = getattr(func, "mtree_properties")[property_name]
+                cls._mtree_properties[property_name] = getattr(
+                    func, "mtree_properties"
+                )[property_name]
         if getattr(func, "schema", False):
-            cls._enabled_directives_schemas[getattr(func, "message_directive")] = getattr(func, "schema")
+            cls._enabled_directives_schemas[getattr(func, "message_directive")] = (
+                getattr(func, "schema")
+            )
 
     # now we register directives from the base class
     for base in cls.__bases__:
-        functions = [attr for attr in vars(base).values() if isinstance(attr, FunctionType)]
+        functions = [
+            attr for attr in vars(base).values() if isinstance(attr, FunctionType)
+        ]
         for func in functions:
             if getattr(func, "message_directive", False):
                 cls._enabled_directives[getattr(func, "message_directive")] = func
             if getattr(func, "schema", False):
-                cls._enabled_directives_schemas[getattr(func, "message_directive")] = getattr(func, "schema")
+                cls._enabled_directives_schemas[getattr(func, "message_directive")] = (
+                    getattr(func, "schema")
+                )
     component_registry.add_class(cls)
 
     return cls
