@@ -3,3 +3,4 @@ LABEL version="MTREE-DEV-CONTAINER-1"
 
 RUN apt-get update && apt-get install -y build-essential
 
+# RUN /opt/conda/bin/pip install -e /workspaces/mTree

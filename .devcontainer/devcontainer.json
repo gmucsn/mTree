@@ -1,6 +1,6 @@
 {
     "build": { "dockerfile": "Dockerfile" },
-  
+    "onCreateCommand": "pip install -e /workspaces/mTree",
     "customizations": {
       "vscode": {
         "extensions": ["dbaeumer.vscode-eslint"]
