@@ -28,7 +28,7 @@ import sys
 import inspect
 
 import setproctitle
-
+from mTree.core_actors.admin_message import AdminMessage
 
 @initializing_messages(
     [("_mes_container_configuration", MESConfigurationPayload)],
@@ -38,6 +38,15 @@ class MESContainer(Actor):
 
     def prepare_mes_container(self):
         setproctitle.setproctitle("mTree - MESContainer")
+
+        # Report pid to the system status actor
+        system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
+        pid = os.getpid()
+        message = AdminMessage(directive="register_pid",
+                                payload=pid)
+        self.send(system_status_actor, message)
+        
+
         self.simulation_configuration = (
             self._mes_container_configuration.mes_configuration_payload[
                 "simulation_configuration"

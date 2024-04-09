@@ -4,8 +4,8 @@ import sys
 import pyfiglet
 
 # from mTree.runner.runner import Runner
-from mTree.server.actor_system_startup import ActorSystemStartup
-from mTree.server.actor_system_connector import ActorSystemConnector
+# from mTree.server.actor_system_startup import ActorSystemStartup
+# from mTree.server.actor_system_connector import ActorSystemConnector
 
 # from thespian.actors import *
 import time
@@ -55,8 +55,9 @@ from textual.app import App, ComposeResult
 from textual.widgets import DataTable
 from textual.timer import Timer
 from textual.widgets import Tree, SelectionList
-from mTree.server.actor_system_connector import ActorSystemConnector
-from mTree.simulation.mes_simulation_library import MESSimulationLibrary
+
+from mTree.system.actor_system_connector import ActorSystemConnector
+from mTree.system.mes_simulation_library import MESSimulationLibrary
 
 
 def run_simulation_from_configurations(config_dir, configurations):
@@ -64,17 +65,19 @@ def run_simulation_from_configurations(config_dir, configurations):
         working_dir = config_dir
         # actor_system.send_message()
         configuration_good = True
-        try:
-            simulation_library = MESSimulationLibrary()
-            simulation_library.list_simulation_files_directory(working_dir)
-            list_simulations = simulation_library.simulations
-            configuration_name = os.path.basename(configuration)
-            simulation = simulation_library.get_simulation_by_filename(
-                configuration_name
-            )
-
-        except Exception as e:
-            configuration_good = False
+        # try:
+        simulation_library = MESSimulationLibrary()
+        simulation_library.list_simulation_files_directory(working_dir)
+        list_simulations = simulation_library.simulations
+        configuration_name = os.path.basename(configuration)
+        
+        simulation = simulation_library.get_simulation_by_filename(
+            os.path.join(config_dir, configuration_name)
+        )
+        t = simulation_library.get_simulations()
+        t = os.path.join(config_dir, configuration_name)
+        # except Exception as e:
+        #     configuration_good = False
 
         if configuration_good:
             actor_system = ActorSystemConnector()
@@ -171,7 +174,7 @@ class MTreeRunSimulationSetupScreen(Screen):
         # self.app.push_screen(MTreeRunSimulationSetupScreen(mes_location=self._selected_location))
 
 
-class MTreeRunSimulationScreen(Screen):
+class MESLibrary(Screen):
     _refresh_timer: Timer | None
     _selected_location: str | None
 

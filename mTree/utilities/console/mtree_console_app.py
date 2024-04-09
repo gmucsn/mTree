@@ -29,6 +29,7 @@ from rich.text import Text
 
 from mTree.utilities.console.dashboard_screen import DashboardScreen
 from mTree.utilities.console.system_status_screen import SystemStatusScreen
+from mTree.utilities.console.mes_library import MESLibrary
 
 
 
@@ -46,7 +47,7 @@ class MTreeConsoleApp(App):
 
     MODES = {
         "dashboard": DashboardScreen,
-        # "library": MTreeRunSimulationScreen,
+        "library": MESLibrary,
         # "help": HelpScreen,
         "system_status": SystemStatusScreen,
     }
