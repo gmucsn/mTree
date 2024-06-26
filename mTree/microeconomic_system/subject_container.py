@@ -1,6 +1,7 @@
 from thespian.actors import *
-#import logging
-#from mTree.microeconomic_system.logging import logcfg
+
+# import logging
+# from mTree.microeconomic_system.logging import logcfg
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.message import Message
 import sys
@@ -8,7 +9,8 @@ from datetime import timedelta
 import logging
 import atexit
 
-class SubjectContainer():
+
+class SubjectContainer:
 
     __instance = None
 
@@ -26,12 +28,15 @@ class SubjectContainer():
         def container_cleanup(self):
             print("CONTAINER SHUTTING DOWN")
 
-
         def create_actor_system(self):
             if self.logcfg != None:
-                self.actor_system = ActorSystem("multiprocQueueBase", logDefs=self.logcfg)
+                self.actor_system = ActorSystem(
+                    "multiprocQueueBase", logDefs=self.logcfg
+                )
             else:
-                self.actor_system = ActorSystem("multiprocQueueBase") #, logDefs=logcfg)
+                self.actor_system = ActorSystem(
+                    "multiprocQueueBase"
+                )  # , logDefs=logcfg)
 
         def create_environment(self, environment_class, environment_name):
             print("CREATING AN ENVIRONMENT")
@@ -39,9 +44,10 @@ class SubjectContainer():
             print(environment_class.__name__)
             print("!@!@!@!@!@")
             t = environment_class()
-            #print(t)
+            # print(t)
             print(sorted(sys.modules))
             import inspect
+
             print(inspect.getmodule(environment_class))
             for name, obj in inspect.getmembers(sys.modules["cva_mes.cva_environment"]):
                 print("lkjlkjlk")
@@ -60,20 +66,23 @@ class SubjectContainer():
             logging.info("ENVIRONMENT STARTED")
             return environment_address
 
-
         def setup_environment_agents(self, environment_name, agent_class, num_agents=1):
             message = Message()
             message.set_directive("setup_agents")
-            message.set_payload({"agent_class": agent_class,
-                                 "num_agents": num_agents,
-                                 "subject_id": environment_name})
+            message.set_payload(
+                {
+                    "agent_class": agent_class,
+                    "num_agents": num_agents,
+                    "subject_id": environment_name,
+                }
+            )
             self.actor_system.tell(self.environments[environment_name], message)
 
         def setup_environment_institution(self, environment_address, institution_class):
             classname = institution_class.__module__ + "." + institution_class.__name__
             message = Message()
             message.set_directive("setup_institution")
-            message.set_payload({"institution_class": institution_class })
+            message.set_payload({"institution_class": institution_class})
             self.actor_system.tell(self.environments[environment_address], message)
             logging.info("INSTITUTION STARTED")
 
@@ -93,6 +102,3 @@ class SubjectContainer():
         if SubjectContainer.__instance is None:
             SubjectContainer.__instance = SubjectContainer.__SubjectContainer(logcfg)
         return SubjectContainer.__instance
-
-
-

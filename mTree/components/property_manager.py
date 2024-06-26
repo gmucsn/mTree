@@ -1,6 +1,7 @@
 from mTree.components.admin_message import AdminMessage
 import json
 
+
 class PropertyManager:
     class __PropertyManager:
         def __init__(self):
@@ -9,10 +10,9 @@ class PropertyManager:
             self.agent_list = []
             self.institution_list = []
             self.environment_list = []
+
         def __str__(self):
             return repr(self)
-
-
 
     instance = None
 
@@ -41,11 +41,20 @@ class PropertyManager:
     def get_mes_component_details(self, mes_class):
         mes_component_type = None
         directives_schemas = []
-        directives = Registry.instance.class_list[mes_class]["class"]._enabled_directives.keys()
+        directives = Registry.instance.class_list[mes_class][
+            "class"
+        ]._enabled_directives.keys()
         for directive in directives:
             schema = None
-            if directive in Registry.instance.class_list[mes_class]["class"]._enabled_directives_schemas.keys():
-                schema =  Registry.instance.class_list[mes_class]["class"]._enabled_directives_schemas[directive]
+            if (
+                directive
+                in Registry.instance.class_list[mes_class][
+                    "class"
+                ]._enabled_directives_schemas.keys()
+            ):
+                schema = Registry.instance.class_list[mes_class][
+                    "class"
+                ]._enabled_directives_schemas[directive]
             directives_schemas.append((directive, schema))
         return directives_schemas
 
@@ -68,9 +77,3 @@ class PropertyManager:
         new_message = AdminMessage(message)
         if new_message.request() == "component_list":
             return json.dumps(self.agent_list())
-
-
-
-
-
-

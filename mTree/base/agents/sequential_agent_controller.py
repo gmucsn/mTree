@@ -2,7 +2,7 @@ import mTree.base.response as willow
 import uuid
 
 
-class SequentialAgentController():
+class SequentialAgentController:
     def __init__(self, experiment, user=None, data=None):
         self.user = user
         if self.user is None:

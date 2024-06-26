@@ -11,4 +11,3 @@ from .templates import *
 from .generator import *
 
 from .version import __version__
-

@@ -1,0 +1,9 @@
+{"mtree_type": "mes_simulation_description",
+  "name":"Basic Trust Game Run",
+  "id": "1",
+  "environment": "basic_trust_environment.TrustEnvironment",
+  "institution": "basic_trust_institution.TrustInstitution",
+  "number_of_runs": 1,
+  "agents": [{"agent_name": "basic_trust_agent.TrustAgent", "number": 10}],
+  "properties": {}
+}

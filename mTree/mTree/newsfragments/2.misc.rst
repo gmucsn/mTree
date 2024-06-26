@@ -1,5 +1,0 @@
-
-Updated version numbering system.
-Installed changelog management utility.
-Bumped version to 2.0.0-p1
-

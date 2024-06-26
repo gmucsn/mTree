@@ -1,5 +1,4 @@
-
-class AdminResponse():
+class AdminResponse:
     def __init__(self, json_data):
         self._data = json_data
 
@@ -8,4 +7,3 @@ class AdminResponse():
 
     def get(self, name):
         return self._data[name]
-

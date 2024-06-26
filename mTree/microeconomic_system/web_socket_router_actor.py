@@ -20,13 +20,13 @@ from requests.packages.urllib3.util.retry import Retry
 
 #         def __init__(self, actor_system):
 #             self.actor_system = actor_system
-            
+
 #         async def setup(self):
 #             self.call_backs()
 #             # await self.sio.connect('http://localhost:5000', wait_timeout = 10)
 #             await self.sio.connect('http://127.0.0.1:5000', wait_timeout=10, namespaces=['/developer'])
 
-#         def loop(self): 
+#         def loop(self):
 #             self.sio.wait()
 
 #         def call_backs(self):
@@ -34,7 +34,7 @@ from requests.packages.urllib3.util.retry import Retry
 #             def connect():
 #                 #self.sio.emit('get_system_status','admin', namespace="/admin")
 #                 print('connection established')
-                
+
 #             @self.sio.on("docs")
 #             def raw_data(data):
 #                 print(f"Data Received {data}")
@@ -51,33 +51,37 @@ from requests.packages.urllib3.util.retry import Retry
 
 #         def run(self):
 #             asyncio.run(self.setup())
-            
+
 #             # self.loop()
 
 import setproctitle
 
 
-@initializing_messages([('starting', str)], initdone='init_done')
+@initializing_messages([("starting", str)], initdone="init_done")
 class WebSocketRouterActor(Actor):
 
     def logout(self):
-        logging.info('WEBSOCKET THING AHPPEJd actor')
-        
+        logging.info("WEBSOCKET THING AHPPEJd actor")
 
     def websocket_connect(self):
         try:
             self.sio = socketio.Client(reconnection=True)
-            self.sio.connect('http://localhost:5000', namespaces='/developer', wait=True, wait_timeout=10)
+            self.sio.connect(
+                "http://localhost:5000",
+                namespaces="/developer",
+                wait=True,
+                wait_timeout=10,
+            )
         except:
             self.sio = None
-        logging.info("Socket Status: " + str(self.sio))  
+        logging.info("Socket Status: " + str(self.sio))
 
     def init_done(self):
         setproctitle.setproctitle("mTree - WebSocketRouterActor")
 
         # self.sio = None
         # self.websocket_connect()
-        logging.info('Cliesssnt started')
+        logging.info("Cliesssnt started")
 
     # def __init__(self) -> None:
     #     # self.sio.on("message", handler=self.logout, namespace="/developer")
@@ -87,10 +91,10 @@ class WebSocketRouterActor(Actor):
     #     # self.sio = socketio.Client()
     #     # #self.sio.connect('http://localhost:5000')
     #     # self.sio.connect('http://localhost:5000', namespaces='/developer', wait=False)
-        
+
     #     #self.sio = socketsio.AsyncClient()
     #     logging.info('Cliesssnt started')
-        
+
     #     # # print("ALKJFLASKJF")
     #     # #@self.sio.event
     #     # @self.sio.on('get_system_status', namespace='/developer')
@@ -113,7 +117,7 @@ class WebSocketRouterActor(Actor):
     #     #     self.sio.emit('my response', {'response': 'my response'})
     #     #     logging.info('received from server')
     #     #     self.handle(data)
-            
+
     #     #     logging.info("stuff configured")
     #     #     # @self.sio.on('my message')
     #     #     # def on_message(data):
@@ -122,36 +126,27 @@ class WebSocketRouterActor(Actor):
     def call_backs(self):
         @self.sio.event
         def connect():
-            #self.sio.emit('get_system_status','admin', namespace="/admin")
-            print('connection established')
-            logging.info('websocket CONNECNET')
+            # self.sio.emit('get_system_status','admin', namespace="/admin")
+            print("connection established")
+            logging.info("websocket CONNECNET")
 
-            
         @self.sio.on("docs")
         def raw_data(data):
-            logging.info('websocket DOCS')
-
-
+            logging.info("websocket DOCS")
 
         @self.sio.event
         def auth(data):
-            logging.info('websocket DATA')
-
+            logging.info("websocket DATA")
 
         @self.sio.event
         def disconnect():
-            logging.info('websocket DISCONNECT')
-        
+            logging.info("websocket DISCONNECT")
 
     def emit_subject_message(self, message):
-        url = 'http://127.0.0.1:5000/mes_subject_channel'
+        url = "http://127.0.0.1:5000/mes_subject_channel"
         response = requests.post(url, json=message.get_payload())
 
-
-        retry_strategy = Retry(
-        total=25,
-        backoff_factor=1
-        )
+        retry_strategy = Retry(total=25, backoff_factor=1)
         adapter = HTTPAdapter(max_retries=retry_strategy)
         http = requests.Session()
         http.mount("https://", adapter)
@@ -160,10 +155,8 @@ class WebSocketRouterActor(Actor):
         response = http.post(url, json=message.get_payload())
 
     def emit_message(self, message):
-        url = 'http://127.0.0.1:5000/mes_response_channel'
-        data = {
-            "message": message
-            }
+        url = "http://127.0.0.1:5000/mes_response_channel"
+        data = {"message": message}
 
         response_dict = {}
         try:
@@ -176,9 +169,9 @@ class WebSocketRouterActor(Actor):
         except:
             pass
         response = requests.post(url, json=response_dict)
-        #print("RESPONSE", response)
-        #self.sio.emit('log_message_display') #, message, namespace='/log_messages')
-        #logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
+        # print("RESPONSE", response)
+        # self.sio.emit('log_message_display') #, message, namespace='/log_messages')
+        # logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
         # if not isinstance(message, ActorSystemMessage):
         #     if message.get_directive() == "simulation_configurations":
         #         self.configurations_pending = message.get_payload()
@@ -191,23 +184,22 @@ class WebSocketRouterActor(Actor):
         #             self.agents_to_wait -= 1
         #             self.agent_memory.append(message.get_payload()["agent_memory"])
         #             self.send(sender, ActorExitRequest())
-        
+
         #         else:
         #             self.agent_memory.append(message.get_payload()["agent_memory"])
         #             self.agents_to_wait -= 1
         #             self.agent_memory_prepared = True
-        
+
         #             self.send(sender, ActorExitRequest())
-        
+
         #             self.end_round()
         #             self.next_run()
 
-
     def emit_message_ws(self, message):
-        logging.info('WSA Emit a message')
-            
+        logging.info("WSA Emit a message")
+
         if self.sio is None:
-            logging.info('WSA Connection does not exist... create one...')
+            logging.info("WSA Connection does not exist... create one...")
             self.websocket_connect()
         response_dict = {}
         try:
@@ -220,18 +212,17 @@ class WebSocketRouterActor(Actor):
         except:
             pass
 
-        self.sio.emit('admin_mes_response',response_dict, namespace="/developer" )
-
+        self.sio.emit("admin_mes_response", response_dict, namespace="/developer")
 
     def receiveMessage(self, message, sender):
         logging.info("Websocket Output: " + str(message))
-        if not isinstance(message, ActorSystemMessage): 
+        if not isinstance(message, ActorSystemMessage):
             if isinstance(message, AdminMessage):
                 if message.get_response() == "system_status":
                     self.emit_message(message)
                 elif message.get_response() == "send_to_subject":
                     self.emit_subject_message(message)
-                
+
                 # if message.get_directive() == "system_status":
                 #     logging.info('Status message about to be sent out')
                 #     # self.sio.send({'status': message.get_payload()["status"]}, namespace="/developer" )
@@ -239,14 +230,16 @@ class WebSocketRouterActor(Actor):
                 # else:
             else:
                 # self.sio.emit('a', data={'response': 'ACTOR INTERNAL'},namespace="/developer" )
-                #this.socket.emit("get_system_status", {data: "asfkl;jalskfjlkascvklj znlkjhnds"});
-                logging.info('websocket actor received an internal message froim the system ')
+                # this.socket.emit("get_system_status", {data: "asfkl;jalskfjlkascvklj znlkjhnds"});
+                logging.info(
+                    "websocket actor received an internal message froim the system "
+                )
                 logging.info(message)
-                
+
                 # self.emit_message(message)
                 # self.send(sender, "tests.,dmgf.sk,dmg")
-                # self.wakeupAfter( 5, payload=message)    
+                # self.wakeupAfter( 5, payload=message)
 
     def handle(self, stuff):
-        logging.info('Internal receive')
+        logging.info("Internal receive")
         logging.info(stuff)

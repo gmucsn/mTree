@@ -27,13 +27,13 @@ import json
 
 #         def __init__(self, actor_system):
 #             self.actor_system = actor_system
-            
+
 #         async def setup(self):
 #             self.call_backs()
 #             # await self.sio.connect('http://localhost:5000', wait_timeout = 10)
 #             await self.sio.connect('http://127.0.0.1:5000', wait_timeout=10, namespaces=['/developer'])
 
-#         def loop(self): 
+#         def loop(self):
 #             self.sio.wait()
 
 #         def call_backs(self):
@@ -41,7 +41,7 @@ import json
 #             def connect():
 #                 #self.sio.emit('get_system_status','admin', namespace="/admin")
 #                 print('connection established')
-                
+
 #             @self.sio.on("docs")
 #             def raw_data(data):
 #                 print(f"Data Received {data}")
@@ -58,42 +58,36 @@ import json
 
 #         def run(self):
 #             asyncio.run(self.setup())
-            
+
 #             # self.loop()
 
 
-
-
-class WebsocketRouter():
+class WebsocketRouter:
     __instance = None
-    
+
     def __init__(self):
         if WebsocketRouter.__instance is None:
-            
-            
 
-            capabilities = dict([('Admin Port', 19000)])
+            capabilities = dict([("Admin Port", 19000)])
             self.actor_system = ActorSystem("multiprocTCPBase", capabilities)
             # self.wrapper = Wrapper_class(self.actor_system)
             # self.wrapper.run()
-# self.sio = socketio.AsyncClient()
+            # self.sio = socketio.AsyncClient()
             # self.sio.connect('http://localhost:5000', namespaces=['/admin'])
             # self.sio.on('message',handler=self.message_handler, namespace="/admin")
 
             # self.loop = asyncio.get_event_loop()
             # self.loop.run_until_complete(self.system_listen())
-            
+
             # self.dispatcher = ActorSystem("multiprocTCPBase", capabilities).createActor(Dispatcher, globalName = "Dispatcher")
-            
+
             WebsocketRouter.__instance = self
 
-
-
     def message_handler(self, msg):
-        print('Received message: ', msg)
-        self.sio.send( 'response')
+        print("Received message: ", msg)
+        self.sio.send("response")
         self.sio.emit("get_system_status", {"data": "reacting on the message handler"})
-        
+
     # @sio.on('message', namespace='/admin')
     # def message(data):
     #     print("WEBSOCKET GOT A MESSAGE FROM THE WEB APP")
@@ -101,7 +95,7 @@ class WebsocketRouter():
     #     # configuration_message = Message()
     #     # configuration_message.set_directive("check_status")
     #     # response = self.send(dispatcher, configuration_message)
-        
+
     #     # return response
 
     # @self.sio.event
@@ -112,12 +106,11 @@ class WebsocketRouter():
     # def my_message(data):
     #     print('message received with ', data)
     #     self.sio.emit('my response', {'response': 'my response'})
-        
+
     #     # @self.sio.on('my message')
     #     # def on_message(data):
     #     #     print('I received a message!')
 
-        
     async def system_listen(self):
         r = True
         while r:
