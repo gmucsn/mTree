@@ -135,14 +135,14 @@ class ActorSystemConnector:
 
 
         source_hash = None
-        try:
-            # asys = (
-            #     ActorSystemConnector.__instance.actor_system
-            # )  
-            source_hash = actor_system.loadActorSource("temp_components.zip")
-            os.remove("temp_components.zip")
-        except:
-            pass
+        # try:
+        # asys = (
+        #     ActorSystemConnector.__instance.actor_system
+        # )  
+        source_hash = actor_system.loadActorSource("temp_components.zip")
+        os.remove("temp_components.zip")
+        # except:
+        #     pass
         return source_hash
 
     @staticmethod

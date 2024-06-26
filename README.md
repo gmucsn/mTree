@@ -81,6 +81,8 @@ Docker dom
 docker buildx build --platform=linux/amd64 -t mtree/mtree:2.0.0-pre2 .
 
 
+docker buildx build --platform=linux/amd64 -t mtree/mtree:2.0.1e .
+
 # Pulling:
 # docker pull mtree/mtree
 

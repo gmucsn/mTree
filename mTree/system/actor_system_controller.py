@@ -11,8 +11,6 @@ from mTree.server.log_config import logcfg
 
 from thespian.actors import *
 
-os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
-os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "THESPIAN_OUT.LOG")
     
 class ActorSystemController:
     actor_system_base = "multiprocTCPBase"
@@ -21,8 +19,12 @@ class ActorSystemController:
 
     @staticmethod
     def startup():
+        os.environ['THESPLOG_THRESHOLD'] =  'DEBUG'
+        os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "THESPIAN_OUT.LOG")
+
         actor_system = ActorSystem(systemBase=ActorSystemController.actor_system_base,
-            capabilities=ActorSystemController.actor_system_capabilities)
+            capabilities=ActorSystemController.actor_system_capabilities,
+            logDefs=logcfg)
 
         # The System Status Actor should be the first actor started.
         # This actor will maintain a list of all known actors and what have you

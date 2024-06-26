@@ -15,7 +15,6 @@ class AuctionEnvironment(Environment):
 
     @directive_decorator("start_environment")
     def start_environment(self, message:Message):
-        logging.info("SHOULD BE STARTING AN ENVIRONMENT")
         self.institution_address = self.address_book.select_addresses({"address_type": "institution"})
         self.log_message(self.institution_address)
         self.log_message("env forward")

@@ -14,10 +14,13 @@ class ActorProcessDescriptor:
     child_process: str = None
 
     def human_readable_memory(self):
-        suffix="B"
-        num = self.memory_usage
-        for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
-            if abs(num) < 1024.0:
-                return f"{num:3.1f}{unit}{suffix}"
-            num /= 1024.0
-        return f"{num:.1f}Yi{suffix}"
+        try:
+            suffix="B"
+            num = self.memory_usage
+            for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
+                if abs(num) < 1024.0:
+                    return f"{num:3.1f}{unit}{suffix}"
+                num /= 1024.0
+            return f"{num:.1f}Yi{suffix}"
+        except:
+            return f"Ukn"

@@ -28,6 +28,7 @@ class SystemStatusActor(Actor):
         #     print("Motto is there")
         # if not self.sa_running:
         self.registerSourceAuthority()
+        logging.info("STARTING STATUS ACTOR")
         self.sa_running = True
 
     def register_pid(self, msg):
@@ -73,6 +74,8 @@ class SystemStatusActor(Actor):
         self.send(sender, self.processes)
 
     def receiveMessage(self, msg, sender):
+        logging.info("STARTING STATUS ACTOR")
+        logging.info("A MESSAGE -> ", msg)
         match msg:
             case AdminMessage():
                 match msg.directive:
@@ -80,6 +83,11 @@ class SystemStatusActor(Actor):
                         self.generate_status_report(sender)
                     case "register_pid":
                         self.register_pid(msg)
+            case ValidateSource():
+                logging.info("A VALIDATION REQUEST HAS BEEN RECEIVED....")
+                self.send(
+                    sender, ValidatedSource(msg.sourceHash, msg.sourceData, msg.sourceInfo)
+                )
 
 
         # if not isinstance(msg, ActorSystemMessage):

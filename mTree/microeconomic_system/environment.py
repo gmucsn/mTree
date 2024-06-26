@@ -13,6 +13,7 @@ from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.mes_exceptions import *
 from mTree.microeconomic_system.sequence_event import SequenceEvent
 from mTree.microeconomic_system.initialization_messages import *
+from mTree.core_actors.admin_message import AdminMessage
 
 import time
 
@@ -24,22 +25,30 @@ import sys
 import setproctitle
 
 
-@directive_enabled_class
+
 @initializing_messages(
     [
         ("startup", str),
         ("_startup_payload", StartupPayload),
         ("_address_book_payload", AddressBookPayload),
     ],
-    initdone="invoke_prepare",
+    initdone="invoke_prepare"
 )
+@directive_enabled_class
 class Environment(Actor):
-
     def prepare(self):
-        pass
+        logging.info("Environment prepare invoke")
 
     def invoke_prepare(self):
+        logging.info("Environment invoke")
         setproctitle.setproctitle("mTree - Environment")
+        # Report pid to the system status actor
+        system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
+        pid = os.getpid()
+        message = AdminMessage(directive="register_pid",
+                                payload=pid)
+        self.send(system_status_actor, message)
+        logging.info("environment setup....")
         # prepare the environment...
 
         # the address book will be sent from the container now
@@ -69,35 +78,36 @@ class Environment(Actor):
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
 
-        # # prepping log actor
-        # self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
+        # prepping log actor
+        self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
 
-        # log_basis = {}
-        # log_basis["message_type"] = "setup"
+        log_basis = {}
+        log_basis["message_type"] = "setup"
 
-        # # setting short name for environment
-        # #self.short_name = message.get_payload()["short_name"]
-        # logging.info("ENVIRONMENT logger prepared")
+        # setting short name for environment
+        #self.short_name = message.get_payload()["short_name"]
+        logging.info("ENVIRONMENT logger prepared")
 
-        # self.short_name = self.config_payload["short_name"]
-        # # self.short_name = "environment"
+        self.short_name = self.initialization_dict["short_name"]
+        # self.short_name = "environment"
 
-        # # if "address_book" not in dir(self):
-        # #     self.address_book = AddressBook(self)
+        # if "address_book" not in dir(self):
+        #     self.address_book = AddressBook(self)
 
-        # # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
+        # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
 
-        # log_basis["simulation_run_id"] = self.config_payload["simulation_run_id"]
-        # log_basis["simulation_id"] = self.config_payload["simulation_id"]
-        # log_basis["run_number"] = self.config_payload["simulation_run_number"]
-        # log_basis["run_code"] = self.config_payload["run_code"]
-        # log_basis["status"] = self.config_payload["status"]
-        # log_basis["mes_directory"] = self.config_payload["mes_directory"]
-        # log_basis["data_logging"] = self.config_payload["data_logging"]
-        # log_basis["simulation_configuration"] = self.config_payload["simulation_configuration"]
-        # self.send(self.log_actor, log_basis)
+        log_basis["simulation_run_id"] = self.initialization_dict["simulation_run_id"]
+        log_basis["simulation_id"] = self.initialization_dict["simulation_id"]
+        log_basis["run_number"] = 1 #self.initialization_dict["simulation_run_number"]
+        # TODO Fix references
+        # log_basis["run_code"] = self.initialization_dict["run_code"]
+        # log_basis["status"] = self.initialization_dict["status"]
+        # log_basis["mes_directory"] = self.initialization_dict["mes_directory"]
+        # log_basis["data_logging"] = self.initialization_dict["data_logging"]
+        # log_basis["simulation_configuration"] = self.initialization_dict["simulation_configuration"]
+        self.send(self.log_actor, log_basis)
 
-        # logging.info("ENVIRONMENT sent logger configuration")
+        logging.info("ENVIRONMENT sent logger configuration")
 
         # prepare for actor startup....
         try:
@@ -210,6 +220,7 @@ class Environment(Actor):
             self.send(agent, message)
 
     def receiveMessage(self, message, sender):
+        logging.info("ENV received a message")
         # self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
         if not isinstance(message, ActorSystemMessage):
             try:
@@ -692,31 +703,31 @@ class Environment(Actor):
 
         #     self.send(receiver_address, new_message)
 
-    def send(self, targetAddress, message):
-        if hasattr(self, "short_name") and type(message) is Message:
-            try:
-                message.set_short_name(self.short_name)
-            except:
-                message.set_short_name(self.__class__.__name__)
-        elif type(message) is Message:
-            try:
-                message.set_short_name(self.__class__.__name__)
-            except:
-                pass
+    # def send(self, targetAddress, message):
+    #     if hasattr(self, "short_name") and type(message) is Message:
+    #         try:
+    #             message.set_short_name(self.short_name)
+    #         except:
+    #             message.set_short_name(self.__class__.__name__)
+    #     elif type(message) is Message:
+    #         try:
+    #             message.set_short_name(self.__class__.__name__)
+    #         except:
+    #             pass
 
-        if isinstance(message, Message):
-            self.log_message(
-                "Environment: sending to " + " directive: " + message.get_directive()
-            )
+    #     if isinstance(message, Message):
+    #         self.log_message(
+    #             "Environment: sending to " + " directive: " + message.get_directive()
+    #         )
 
-        if type(targetAddress) is list:
-            if len(targetAddress) == 0:
-                raise Exception("Trying to send to an empty list of addresses.")
-            for address in targetAddress:
-                super().send(address, message)
-        else:
-            if targetAddress is not None:
-                super().send(targetAddress, message)
+    #     if type(targetAddress) is list:
+    #         if len(targetAddress) == 0:
+    #             raise Exception("Trying to send to an empty list of addresses.")
+    #         for address in targetAddress:
+    #             super().send(address, message)
+    #     else:
+    #         if targetAddress is not None:
+    #             super().send(targetAddress, message)
 
     def list_agents(self):
         message = MessageSpace.list_agents()

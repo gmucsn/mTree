@@ -63,13 +63,9 @@ class Container:
         self.actor_system = ActorSystem(None, logDefs=logcfg)
 
     def actor_system_cleanup(self):
-        print("EXPERIMENT SHUTTING DOWN")
         self.actor_system.shutdown()
-        print("ACTOR SYSTEM SHOULD HAVE SHUTDOWN")
-
+        
     def create_root_environment(self, environment_class, properties=None):
-        print("CREATING AN ENVIRONMENT")
-        print(properties)
         self.environment = self.actor_system.createActor(environment_class)
         if properties is not None:
             message = Message()

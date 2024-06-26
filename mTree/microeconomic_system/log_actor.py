@@ -10,7 +10,7 @@ from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.outconnect import OutConnect
 from mTree.microeconomic_system.sequence_event import SequenceEvent
 from mTree.microeconomic_system.initialization_messages import *
-
+from mTree.core_actors.admin_message import AdminMessage
 # from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 
@@ -29,10 +29,21 @@ import setproctitle
     initdone="prepare_log_actor",
 )
 class LogActor(Actor):
-    def __init__(self):
-        setproctitle.setproctitle("mTree - LogActor")
+    # def __init__(self):
+    #     setproctitle.setproctitle("mTree - LogActor")
 
     def prepare_log_actor(self):
+        logging.info("SHOULD BE Starting insider logger 1")
+
+        setproctitle.setproctitle("mTree - LogActor")
+        system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
+        pid = os.getpid()
+        message = AdminMessage(directive="register_pid",
+                                payload=pid)
+        self.send(system_status_actor, message)
+
+        logging.info("SHOULD BE Starting insider logger 2")
+
         self.simulation_id = (
             self._log_actor_configuration.log_actor_configuration_payload[
                 "simulation_id"
@@ -462,8 +473,11 @@ class LogActor(Actor):
             pass
 
         if len(list(self.targets.keys())) > 0:
-            for target in self.targets.keys():
-                self.complete_log_target(target)
+            try:
+                for target in self.targets.keys():
+                    self.complete_log_target(target)
+            except:
+                logging.info("ISSUE ON CLOSING LOGS")
 
     def receiveMessage(self, message, sender):
         # outconnect = self.createActor(OutConnect, globalName = "OutConnect")

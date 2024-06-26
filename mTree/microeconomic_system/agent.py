@@ -12,8 +12,9 @@ from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.mes_exceptions import *
-from mTree.microeconomic_system.admin_message import AdminMessage
+# from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.initialization_messages import *
+from mTree.core_actors.admin_message import AdminMessage
 
 # from socketIO_client import SocketIO, LoggingNamespace
 import traceback
@@ -45,6 +46,13 @@ class Agent(Actor):
 
     def invoke_prepare(self):
         setproctitle.setproctitle("mTree - Agent")
+        system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
+        pid = os.getpid()
+        message = AdminMessage(directive="register_pid",
+                                payload=pid)
+        self.send(system_status_actor, message)
+
+
         logging.info("AGENT PREPARING")
         self.initialization_dict = self._startup_payload.startup_payload
         logging.info(self.initialization_dict)
@@ -342,23 +350,23 @@ class Agent(Actor):
 
             self.send(receiver_address, new_message)
 
-    def send(self, targetAddress, message):
-        if hasattr(self, "short_name") and type(message) is Message:
-            try:
-                message.set_short_name(self.short_name)
-            except:
-                message.set_short_name(self.__class__.__name__)
+    # def send(self, targetAddress, message):
+    #     if hasattr(self, "short_name") and type(message) is Message:
+    #         try:
+    #             message.set_short_name(self.short_name)
+    #         except:
+    #             message.set_short_name(self.__class__.__name__)
 
-        if isinstance(message, Message):
-            self.log_message(
-                "Agent ("
-                + self.short_name
-                + ") : sending to "
-                + " directive: "
-                + message.get_directive()
-            )
+    #     if isinstance(message, Message):
+    #         self.log_message(
+    #             "Agent ("
+    #             + self.short_name
+    #             + ") : sending to "
+    #             + " directive: "
+    #             + message.get_directive()
+    #         )
 
-        super().send(targetAddress, message)
+    #     super().send(targetAddress, message)
 
     def receiveMessage(self, message, sender):
         # print("AGENT GOT MESSAGE: ", message) # + message)
