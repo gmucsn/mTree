@@ -14,7 +14,11 @@ class Treatments(object):
             self.treatments[treatment.name] = treatment
 
     def set_assignment_method(self, method="balanced"):
-        methods = [method for method in dir(Treatments) if isinstance(getattr(Treatments, method), types.FunctionType)]
+        methods = [
+            method
+            for method in dir(Treatments)
+            if isinstance(getattr(Treatments, method), types.FunctionType)
+        ]
         if method in methods:  # checks against a list of class methods
             self.treatment_assignment = self.__getattribute__(method)
         else:
@@ -46,20 +50,22 @@ class Treatment:
 
 
 def demo(method="balanced", debug=False):  # Stub code for instantiating treatments
-    treatment_a = Treatment('A')
-    treatment_b = Treatment('B')
-    treatment_c = Treatment('C')
+    treatment_a = Treatment("A")
+    treatment_b = Treatment("B")
+    treatment_c = Treatment("C")
 
     t_cntrl = Treatments()
     t_cntrl.add_treatments([treatment_a, treatment_b, treatment_c])
     t_cntrl.set_assignment_method(method)
 
-    assignment_counts ={}
+    assignment_counts = {}
     for i in range(10):
         x = t_cntrl.treatment_assignment()
         y = t_cntrl.treatment_assignment()
         z = t_cntrl.treatment_assignment()
-        if debug: print("Subject 1: {}, Subject 2: {}, Subject 3: {}".format(x, y, z))
+        if debug:
+            print("Subject 1: {}, Subject 2: {}, Subject 3: {}".format(x, y, z))
+
 
 if __name__ == "__main__":
     demo(method="balanced", debug=True)

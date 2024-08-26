@@ -11,7 +11,7 @@ from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.mes_exceptions import *
-from mTree.microeconomic_system.admin_message import AdminMessage
+# from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.probe_messages import ProbeMessage
 from mTree.core_actors.admin_message import AdminMessage
@@ -71,13 +71,15 @@ class Agent(MESComponentBase):
 
         logging.info("AGENT PREPARING")
         self.initialization_dict = self._startup_payload.startup_payload
-        logging.info( self.initialization_dict)
-        
+        logging.info(self.initialization_dict)
+
         self._address_book = self._address_book_payload.address_book_payload
         
         self.debug = self.initialization_dict["simulation_configuration"]["debug"]
-        self.log_level = self.initialization_dict["simulation_configuration"]["log_level"]
-        
+        self.log_level = self.initialization_dict["simulation_configuration"][
+            "log_level"
+        ]
+
         self.mtree_properties = self.initialization_dict["properties"]
 
         if "local_properties" in self.initialization_dict.keys():
@@ -112,20 +114,23 @@ class Agent(MESComponentBase):
                 trace_output += "\t" + trace_line + "\n"
             error_message += "\n"
             error_message += trace_output
-            #self.log_message(error_message)
-            self.log_message("Agent: PREPARATION EXCEPTION! Check exception log. --- " + error_message)
+            # self.log_message(error_message)
+            self.log_message(
+                "Agent: PREPARATION EXCEPTION! Check exception log. --- "
+                + error_message
+            )
             self.log_message(error_message)
             exception_payload = {}
             exception_payload["error_message"] = error_message
-            exception_payload["error_type"]= str(error_type)
-            exception_payload["error"]= str(error)
+            exception_payload["error_type"] = str(error_type)
+            exception_payload["error"] = str(error)
 
-            excepting_trace = traces[0] 
+            excepting_trace = traces[0]
             exception_payload["filename"] = excepting_trace.filename
             exception_payload["lineno"] = excepting_trace.lineno
             exception_payload["name"] = excepting_trace.name
             exception_payload["line"] = excepting_trace.line
-            
+
             self.excepted_mes(exception_payload)
         logging.info("agent prepare finished...")
 
@@ -202,7 +207,7 @@ class Agent(MESComponentBase):
     #             self.send(agent, new_message)
 
     @directive_decorator("external_reminder")
-    def external_reminder(self, message:Message):
+    def external_reminder(self, message: Message):
         reminder_message = message.get_payload()["reminder_message"]
         seconds_to_reminder = message.get_payload()["seconds_to_reminder"]
         self.reminder(seconds_to_reminder, reminder_message)
@@ -270,37 +275,40 @@ class Agent(MESComponentBase):
 
     @directive_decorator("register_subject_connection")
     def register_subject_connection(self, message: Message):
-        self.subject_id = "TEST!" #message.get_payload()["subject_id"]
+        self.subject_id = "TEST!"  # message.get_payload()["subject_id"]
 
     @directive_decorator("store_agent_memory")
     def store_agent_memory(self, message: Message):
-        self.subject_id = "TEST!" #message.get_payload()["subject_id"]
+        self.subject_id = "TEST!"  # message.get_payload()["subject_id"]
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("store_agent_memory")
         new_message.set_payload({"agent_memory": self.agent_memory})
         self.send(self.container, new_message)
 
-
     def send_to_subject(self, command, payload):
-        web_socket_router_actor = self.createActor(Actor, globalName = "WebSocketRouterActor")
-        message_payload = {"command": command, "subject_id": self.subject_id, "payload": payload }
+        web_socket_router_actor = self.createActor(
+            Actor, globalName="WebSocketRouterActor"
+        )
+        message_payload = {
+            "command": command,
+            "subject_id": self.subject_id,
+            "payload": payload,
+        }
         message = AdminMessage(response="send_to_subject", payload=message_payload)
-        
-        self.send(web_socket_router_actor, message)
 
+        self.send(web_socket_router_actor, message)
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
         self.address_book = AddressBook(self)
-        
+
         self.environment = message.get_sender()
         self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
         # if "agent_memory" not in dir(self):
         #     self.agent_memory = {}
-        
 
         if "properties" in message.get_payload().keys():
             self.mtree_properties = message.get_payload()["properties"]
@@ -312,11 +320,10 @@ class Agent(MESComponentBase):
         if "subject_id" in message.get_payload().keys():
             self.subject_id = message.get_payload()["subject_id"]
 
+        # self.log_actor = message.get_payload()["log_actor"]
+        # self.dispatcher = message.get_payload()["dispatcher"]
+        # self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
 
-        #self.log_actor = message.get_payload()["log_actor"]
-        #self.dispatcher = message.get_payload()["dispatcher"]
-        #self.dispatcher = self.createActor("Dispatcher", globalName="dispatcher")
-        
         # if "agent_memory" in message.get_payload().keys():
         #     print("setting my memory to... ", message.get_payload()["agent_memory"])
         #     self.agent_memory = message.get_payload()["agent_memory"]
@@ -329,7 +336,9 @@ class Agent(MESComponentBase):
     #     except:
     #         return None
 
-    def register_outlet(self, _property, target):  # _property used due to builtin use of property
+    def register_outlet(
+        self, _property, target
+    ):  # _property used due to builtin use of property
         self.outlets[_property] = target
 
     # def excepted_mes(self, exception_payload):
@@ -358,17 +367,23 @@ class Agent(MESComponentBase):
 
     #         self.send(receiver_address, new_message)
 
-    def send(self, targetAddress, message):
-        if hasattr(self, 'short_name') and type(message) is Message:
-            try:
-                message.set_short_name(self.short_name)
-            except:
-                message.set_short_name(self.__class__.__name__)
-        
-        if isinstance(message, Message):
-            self.log_message("Agent (" + self.short_name + ") : sending to " +  " directive: " + message.get_directive())
-        
-        super().send(targetAddress, message)
+    # def send(self, targetAddress, message):
+    #     if hasattr(self, "short_name") and type(message) is Message:
+    #         try:
+    #             message.set_short_name(self.short_name)
+    #         except:
+    #             message.set_short_name(self.__class__.__name__)
+
+    #     if isinstance(message, Message):
+    #         self.log_message(
+    #             "Agent ("
+    #             + self.short_name
+    #             + ") : sending to "
+    #             + " directive: "
+    #             + message.get_directive()
+    #         )
+
+    #     super().send(targetAddress, message)
 
     # def receiveMessage(self, message, sender):
     #     # print("AGENT GOT MESSAGE: ", message) # + message)

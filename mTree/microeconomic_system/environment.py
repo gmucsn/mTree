@@ -1,7 +1,7 @@
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 from datetime import datetime, timedelta
-  
+
 import logging
 
 from mTree.microeconomic_system.message_space import MessageSpace
@@ -26,17 +26,34 @@ import sys
 import setproctitle
 
 
+
+@initializing_messages(
+    [
+        ("startup", str),
+        ("_startup_payload", StartupPayload),
+        ("_address_book_payload", AddressBookPayload),
+    ],
+    initdone="invoke_prepare"
+)
 @directive_enabled_class
 class Environment(MESComponentBase):
     def prepare(self):
-        pass
+        logging.info("Environment prepare invoke")
 
     def invoke_prepare(self):
+        logging.info("Environment invoke")
         setproctitle.setproctitle("mTree - Environment")
+        # Report pid to the system status actor
+        system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
+        pid = os.getpid()
+        message = AdminMessage(directive="register_pid",
+                                payload=pid)
+        self.send(system_status_actor, message)
+        logging.info("environment setup....")
         # prepare the environment...
 
         # the address book will be sent from the container now
-        # self.address_book = AddressBook(self)        
+        # self.address_book = AddressBook(self)
 
         self._address_book = self._address_book_payload.address_book_payload
         self.initialization_dict = self._startup_payload.startup_payload
@@ -52,44 +69,47 @@ class Environment(MESComponentBase):
         logging.info("Should have configured address book")
         logging.info(self.address_book)
         ### REPLACE WITH CONTAINER REFERENCE
-        #self.dispatcher = self.initialization_dict["dispatcher"]
+        # self.dispatcher = self.initialization_dict["dispatcher"]
         self.container = self.initialization_dict["container"]
         self.debug = self.initialization_dict["simulation_configuration"]["debug"]
-        self.log_level = self.initialization_dict["simulation_configuration"]["log_level"]
+        self.log_level = self.initialization_dict["simulation_configuration"][
+            "log_level"
+        ]
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
-        
-        # # prepping log actor
-        # self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
-        
-        # log_basis = {}
-        # log_basis["message_type"] = "setup"
 
-        # # setting short name for environment
-        # #self.short_name = message.get_payload()["short_name"]
-        # logging.info("ENVIRONMENT logger prepared")
-        
-        # self.short_name = self.config_payload["short_name"]
-        # # self.short_name = "environment"
+        # prepping log actor
+        self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
 
-        # # if "address_book" not in dir(self):
-        # #     self.address_book = AddressBook(self)        
+        log_basis = {}
+        log_basis["message_type"] = "setup"
 
-        # # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
-        
-        # log_basis["simulation_run_id"] = self.config_payload["simulation_run_id"]
-        # log_basis["simulation_id"] = self.config_payload["simulation_id"]
-        # log_basis["run_number"] = self.config_payload["simulation_run_number"]
-        # log_basis["run_code"] = self.config_payload["run_code"]
-        # log_basis["status"] = self.config_payload["status"]
-        # log_basis["mes_directory"] = self.config_payload["mes_directory"]
-        # log_basis["data_logging"] = self.config_payload["data_logging"]
-        # log_basis["simulation_configuration"] = self.config_payload["simulation_configuration"]
-        # self.send(self.log_actor, log_basis) 
+        # setting short name for environment
+        #self.short_name = message.get_payload()["short_name"]
+        logging.info("ENVIRONMENT logger prepared")
 
-        # logging.info("ENVIRONMENT sent logger configuration")
-        
+        self.short_name = self.initialization_dict["short_name"]
+        # self.short_name = "environment"
+
+        # if "address_book" not in dir(self):
+        #     self.address_book = AddressBook(self)
+
+        # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
+
+        log_basis["simulation_run_id"] = self.initialization_dict["simulation_run_id"]
+        log_basis["simulation_id"] = self.initialization_dict["simulation_id"]
+        log_basis["run_number"] = 1 #self.initialization_dict["simulation_run_number"]
+        # TODO Fix references
+        # log_basis["run_code"] = self.initialization_dict["run_code"]
+        # log_basis["status"] = self.initialization_dict["status"]
+        # log_basis["mes_directory"] = self.initialization_dict["mes_directory"]
+        # log_basis["data_logging"] = self.initialization_dict["data_logging"]
+        # log_basis["simulation_configuration"] = self.initialization_dict["simulation_configuration"]
+        self.send(self.log_actor, log_basis)
+
+        logging.info("ENVIRONMENT sent logger configuration")
+
         # prepare for actor startup....
         try:
             self.prepare()
@@ -105,21 +125,22 @@ class Environment(MESComponentBase):
                 trace_output += "\t" + trace_line + "\n"
             error_message += "\n"
             error_message += trace_output
-            #self.log_message(error_message)
-            self.log_message("Environment: PREPARATION EXCEPTION! Check exception log. ")
+            # self.log_message(error_message)
+            self.log_message(
+                "Environment: PREPARATION EXCEPTION! Check exception log. "
+            )
             exception_payload = {}
             exception_payload["error_message"] = error_message
-            exception_payload["error_type"]= str(error_type)
-            exception_payload["error"]= str(error)
+            exception_payload["error_type"] = str(error_type)
+            exception_payload["error"] = str(error)
 
-            excepting_trace = traces[0] 
+            excepting_trace = traces[0]
             exception_payload["filename"] = excepting_trace.filename
             exception_payload["lineno"] = excepting_trace.lineno
             exception_payload["name"] = excepting_trace.name
             exception_payload["line"] = excepting_trace.line
-            
-            self.excepted_mes(exception_payload)
 
+            self.excepted_mes(exception_payload)
 
     # def __init__(self):
     #     self.address_book = AddressBook(self)
@@ -145,17 +166,16 @@ class Environment(MESComponentBase):
     #     return self.__str__()
 
     @directive_decorator("update_mes_status")
-    def update_mes_status(self, message:Message=None):
+    def update_mes_status(self, message: Message = None):
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("update_mes_status")
         payload = message.get_payload()
         new_message.set_payload(payload)
         self.send(self.log_actor, new_message)
-                
 
     @directive_decorator("shutdown_mes")
-    def shutdown_mes(self, message:Message=None):
+    def shutdown_mes(self, message: Message = None):
         logging.info("ENV shutting down sim")
         new_message = Message()
         new_message.set_sender(self.myAddress)
@@ -165,7 +185,7 @@ class Environment(MESComponentBase):
         self.send(self.container, new_message)
 
     @directive_decorator("excepted_mes")
-    def excepted_mes(self, message:Message):
+    def excepted_mes(self, message: Message):
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("excepted_mes")
@@ -175,10 +195,8 @@ class Environment(MESComponentBase):
         new_message.set_payload(message)
         self.send(self.container, new_message)
 
-
-
     def close_environment(self):
-        #asys.shutdown()
+        # asys.shutdown()
         pass
 
     # def get_simulation_property(self, name):
@@ -321,40 +339,39 @@ class Environment(MESComponentBase):
     #             self.send(agent, new_message)
 
     @directive_decorator("external_reminder")
-    def external_reminder(self, message:Message):
+    def external_reminder(self, message: Message):
         reminder_message = message.get_payload()["reminder_message"]
         seconds_to_reminder = message.get_payload()["seconds_to_reminder"]
         self.reminder(seconds_to_reminder, reminder_message)
 
     @directive_decorator("initialize_log_actor")
-    def initialize_log_actor(self, message:Message):
+    def initialize_log_actor(self, message: Message):
         # self.log_actor = self.createActor("log_actor.LogActor")
         log_basis = {}
         log_basis["message_type"] = "setup"
         log_basis["simulation_id"] = self.simulation_id
-        if hasattr(self, 'run_number'):
+        if hasattr(self, "run_number"):
             log_basis["run_number"] = self.run_number
-        self.send(self.log_actor, log_basis)        
+        self.send(self.log_actor, log_basis)
 
     @directive_decorator("logger_setup")
-    def logger_setup(self, message:Message):
+    def logger_setup(self, message: Message):
         # self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
-        
+
         log_basis = {}
         log_basis["message_type"] = "setup"
 
         # setting short name for environment
-        #self.short_name = message.get_payload()["short_name"]
-        
-        
+        # self.short_name = message.get_payload()["short_name"]
+
         short_name = message.get_payload()["short_name"]
         # self.short_name = "environment"
 
         # if "address_book" not in dir(self):
-        #     self.address_book = AddressBook(self)        
+        #     self.address_book = AddressBook(self)
 
         # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
-        
+
         log_basis["simulation_run_id"] = message.get_payload()["simulation_run_id"]
         log_basis["simulation_id"] = message.get_payload()["simulation_id"]
         log_basis["run_number"] = message.get_payload()["simulation_run_number"]
@@ -402,7 +419,7 @@ class Environment(MESComponentBase):
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):
         self.dispatcher = message.get_sender()
-        #self.log_actor = message.get_payload()["log_actor"]
+        # self.log_actor = message.get_payload()["log_actor"]
         if "mtree_properties" not in dir(self):
             self.mtree_properties = {}
 
@@ -411,7 +428,7 @@ class Environment(MESComponentBase):
         self.simulation_run_id = message.get_payload()["simulation_run_id"]
         if "subjects" in message.get_payload().keys():
             self.subjects = message.get_payload()["subjects"]
-            
+
         # if "subjects" in message.get_payload()["properties"].keys():
         #     self.subjects = message.get_payload()["properties"]["subjects"]
         #     logging.info("Subjects list available...")
@@ -419,11 +436,10 @@ class Environment(MESComponentBase):
         if "run_number" in message.get_payload().keys():
             self.run_number = message.get_payload()["run_number"]
 
-
     # @directive_decorator("setup_agent_requests")
     # def setup_agent_requests(self, message:Message):
     #     # if "address_book" not in dir(self):
-    #     #     self.address_book = AddressBook(self)        
+    #     #     self.address_book = AddressBook(self)
 
     #     if "agents" not in dir(self):
     #         self.agents = []
@@ -432,10 +448,10 @@ class Environment(MESComponentBase):
     #     #message = MessageSpace.create_agent(agent_class)
     #     num_agents = message.get_payload().number
     #     agent_class = message.get_payload().source_class
-        
+
     #     # need to check source hash for simulation
     #     source_hash = message.get_payload().source_hash
-        
+
     #     # memory = False
     #     # agent_memory = None
     #     # if "agent_memory" in message.get_payload().keys():
@@ -451,7 +467,7 @@ class Environment(MESComponentBase):
     #         self.send(new_agent, agent_class + " " + str(agent_number) )
     #         self.agent_addresses.append(new_agent)
     #         self.agents.append([new_agent, agent_class])
-            
+
     #         agent_info = {}
     #         agent_info["address_type"] = "agent"
     #         agent_info["address"] = new_agent
@@ -474,7 +490,7 @@ class Environment(MESComponentBase):
     #         if "subjects" in dir(self):
     #             payload["subject_id"] = self.subjects[i]["subject_id"]
     #             self.subject_map[payload["subject_id"]] = new_agent
-            
+
     #         # if memory:
     #         #     payload["agent_memory"] = agent_memory
     #         new_message.set_payload(payload)
@@ -484,7 +500,7 @@ class Environment(MESComponentBase):
     # def distribute_address_book(self, message:Message):
     #     logging.info("Address book to distribute:")
     #     logging.info(self.address_book._export_data())
-    
+
     #     logging.info("Distributing address book for setup...")
     #     for agent in self.agent_addresses:
     #         super().send(agent, AddressBookPayload(address_book_payload=self.address_book._export_data()))
@@ -503,10 +519,10 @@ class Environment(MESComponentBase):
     #     #message = MessageSpace.create_agent(agent_class)
     #     num_agents = message.get_payload()["num_agents"]
     #     agent_class = message.get_payload()["agent_class"]
-        
+
     #     # need to check source hash for simulation
     #     source_hash = message.get_payload()["source_hash"]
-        
+
     #     # memory = False
     #     # agent_memory = None
     #     # if "agent_memory" in message.get_payload().keys():
@@ -524,7 +540,7 @@ class Environment(MESComponentBase):
     #         ###
     #         super().send(new_agent, agent_class + " " + str(agent_number))
 
-    #         ###            
+    #         ###
     #         # Agent Initialization Message #2
     #         ###
     #         startup_payload = {}
@@ -532,7 +548,7 @@ class Environment(MESComponentBase):
     #         startup_payload["address"] = new_agent
     #         startup_payload["component_class"] = agent_class
     #         startup_payload["component_number"] = agent_number
-    #         startup_payload["short_name"] = agent_class + " " + str(agent_number) 
+    #         startup_payload["short_name"] = agent_class + " " + str(agent_number)
     #         startup_payload["properties"] = self.mtree_properties
 
     #         startup_payload["environment"] = self.myAddress
@@ -541,7 +557,6 @@ class Environment(MESComponentBase):
     #         startup_payload["log_actor"] = self.log_actor
     #         if "run_number" in dir(self):
     #             startup_payload["run_number"] = self.run_number
-            
 
     #         if "subjects" in dir(self):
     #             startup_payload["subject_id"] = self.subjects[i]["subject_id"]
@@ -549,14 +564,14 @@ class Environment(MESComponentBase):
     #         ###
     #         # Agent Initialization Message #2
     #         ###
-            
+
     #         super().send(new_agent, StartupPayload(startup_payload=startup_payload))
 
     #         ###
-            
+
     #         self.agent_addresses.append(new_agent)
     #         self.agents.append([new_agent, agent_class])
-            
+
     #         agent_info = {}
     #         agent_info["address_type"] = "agent"
     #         agent_info["address"] = new_agent
@@ -579,15 +594,14 @@ class Environment(MESComponentBase):
     #         if "subjects" in dir(self):
     #             payload["subject_id"] = self.subjects[i]["subject_id"]
     #             self.subject_map[payload["subject_id"]] = new_agent
-            
+
     #         # if memory:
     #         #     payload["agent_memory"] = agent_memory
     #         new_message.set_payload(payload)
     #         #self.send(new_agent, new_message)
 
-
     @directive_decorator("agent_action_forward")
-    def agent_action_forward(self, message:Message):        
+    def agent_action_forward(self, message: Message):
         subject_id = message.get_payload()["subject_id"]
         subject_agent_map = self.subject_map[subject_id]
         new_message = Message()
@@ -606,12 +620,12 @@ class Environment(MESComponentBase):
     #     institution_order = message.get_payload()["order"]
 
     #     new_institution = self.createActor(institution_class, sourceHash=source_hash)
-        
+
     #     ###
     #     # Insitutiton Initialization Message 1
     #     ###
     #     super().send(new_institution, institution_class + " " + str(institution_order))
-        
+
     #     startup_payload = {}
     #     startup_payload["address_type"] = "institution"
     #     startup_payload["address"] = new_institution
@@ -626,12 +640,12 @@ class Environment(MESComponentBase):
     #     startup_payload["log_actor"] = self.log_actor
     #     if "run_number" in dir(self):
     #         startup_payload["run_number"] = self.run_number
-        
+
     #     ###
     #     # Insitutiton Initialization Message 2
     #     ###
     #     super().send(new_institution, StartupPayload(startup_payload=startup_payload))
-        
+
     #     institution_info = {}
     #     institution_info["address_type"] = "institution"
     #     institution_info["address"] = new_institution
@@ -640,13 +654,11 @@ class Environment(MESComponentBase):
     #     institution_info["short_name"] = institution_class + " " + str(institution_order)
     #     self.address_book.add_address(institution_info["short_name"], institution_info)
 
-
     #     new_message = Message()
     #     #new_message.set_sender(self.myAddress)
     #     new_message.set_directive("simulation_properties")
     #     payload = {}
 
-        
     #     #if "mtree_properties" not in dir(self):
     #     #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
     #     payload["environment"] = self.myAddress
@@ -718,9 +730,9 @@ class Environment(MESComponentBase):
 
     def list_agents(self):
         message = MessageSpace.list_agents()
-        #return asys.ask(self.institutions, message, timedelta(seconds=1.5))
+        # return asys.ask(self.institutions, message, timedelta(seconds=1.5))
 
     def get_agents_wealth(self):
         message = MessageSpace.get_wealths()
         print("Message: {}".format(message))
-        #return asys.ask(self.institutions, message, timedelta(seconds=1.5))
+        # return asys.ask(self.institutions, message, timedelta(seconds=1.5))

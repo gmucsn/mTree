@@ -4,8 +4,12 @@ import os
 import glob
 
 
-def import_plugins(plugins_package_directory_path, base_class=None, create_instance=True, filter_abstract=True):
-
+def import_plugins(
+    plugins_package_directory_path,
+    base_class=None,
+    create_instance=True,
+    filter_abstract=True,
+):
 
     print("ATTEMPTING TO LOOK AT THINGS...")
     plugins_package_name = os.path.basename(plugins_package_directory_path)
@@ -26,7 +30,9 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
         # -----------------------------
         # Import python file
 
-        module = importlib.import_module("." + module_name, package=plugins_package_name)
+        module = importlib.import_module(
+            "." + module_name, package=plugins_package_name
+        )
 
         # -----------------------------
         # Iterate items inside imported python file

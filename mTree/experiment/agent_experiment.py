@@ -13,12 +13,17 @@ from mTree.base.recorder import Recorder
 class AgentExperiment:
     def __init__(self, debug=False):
         self.debug = debug
-        if self.debug: print("Initialized")
+        if self.debug:
+            print("Initialized")
         self.willow_response = None
-        self.experiment_running = False  # TODO: This needs to have various possible states
+        self.experiment_running = (
+            False  # TODO: This needs to have various possible states
+        )
         self.experiment_state = None
 
-        self.sessions = {}  # TODO(@messiest) Think of how this can be used with multiple sessions
+        self.sessions = (
+            {}
+        )  # TODO(@messiest) Think of how this can be used with multiple sessions
         self.session = None
 
         self.subjects = {}  # subjects is now the experiment level object for users...
@@ -40,9 +45,8 @@ class AgentExperiment:
         # for mechanical turk purposes
         self.task_preview = None
 
-
         path = os.path.realpath(sys.modules[self.__module__].__file__)
-        self.template_location = os.path.join(os.path.dirname(path), 'html/')
+        self.template_location = os.path.join(os.path.dirname(path), "html/")
 
         self.recorder = Recorder
 
@@ -68,12 +72,11 @@ class AgentExperiment:
         self.scheduler = scheduler
 
     def response(self, debug=False):
-        if debug: print("Attempting Reponse")
-        return response.Response(self.emitter,
-                                 self.app,
-                                 self.db,
-                                 "/subject",
-                                 self.template_location)
+        if debug:
+            print("Attempting Reponse")
+        return response.Response(
+            self.emitter, self.app, self.db, "/subject", self.template_location
+        )
 
     def set_static_file_location(self, location):
         self.static_file_location = location
@@ -93,11 +96,11 @@ class AgentExperiment:
     def get_task_preview(self):
         return self.task_preview
 
-    def load_config(self,filename):
+    def load_config(self, filename):
         temp_store = yaml.load(open(filename))
         self.update(temp_store)
 
-    def create_user(self, sid): # initiates new users
+    def create_user(self, sid):  # initiates new users
         # first must create a uuid for the user
         """Method to create a new user
 
@@ -111,15 +114,15 @@ class AgentExperiment:
         self.user_state[user_id] = {}
         self.user_state[user_id]["running"] = False
         self.user_state[user_id]["current"] = "Start Screen"
-        self.user_state[user_id]["join_time"] = datetime.datetime.now()  # adds the user's start time to the data
+        self.user_state[user_id][
+            "join_time"
+        ] = datetime.datetime.now()  # adds the user's start time to the data
         self.user_state[user_id]["sid"] = sid
         self.user_state[user_id]["total_earnings"] = None
 
         # creating a new user object to handle users throughout the system...
         new_user = User(sid, self)
         new_user.set_user_id(user_id)
-
-
 
         #####
         self.response().set_user_id(user_id)
@@ -136,7 +139,7 @@ class AgentExperiment:
         self.sid_dict[sid] = user_id
 
         # TODO What other things do we need for the user_state variables?
-        #self.response.update_admin_status(msg_data)
+        # self.response.update_admin_status(msg_data)
         return user_id
 
     def add_user_property(self, user_id, property, value):
@@ -155,9 +158,12 @@ class AgentExperiment:
         del self.users[self.users.index(user)]
 
     def event_handler(self, event):
-        if self.debug: print("\n" + str(event) + "\n")
+        if self.debug:
+            print("\n" + str(event) + "\n")
         if event["controllerAction"] != "":
-            self.user_objects[event['user_id']].controller.action(event["controllerAction"], event)
+            self.user_objects[event["user_id"]].controller.action(
+                event["controllerAction"], event
+            )
 
     def get_template_location(self):
         return self.template_location

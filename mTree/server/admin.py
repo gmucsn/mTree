@@ -3,15 +3,26 @@ from jinja2 import TemplateNotFound
 import jinja2
 from flask import session
 from flask_socketio import emit, join_room, leave_room
-#from .. import socketio
-from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
+
+# from .. import socketio
+from flask_socketio import (
+    SocketIO,
+    emit,
+    join_room,
+    leave_room,
+    close_room,
+    rooms,
+    disconnect,
+)
 
 import json
 
 
 from mTree.components import registry
 
-admin_area = Blueprint('admin_area', __name__, static_folder='build', static_url_path='/')
+admin_area = Blueprint(
+    "admin_area", __name__, static_folder="build", static_url_path="/"
+)
 
 # admin_area.jinja_loader = jinja2.ChoiceLoader([
 #     admin_area.jinja_loader,
@@ -20,10 +31,10 @@ admin_area = Blueprint('admin_area', __name__, static_folder='build', static_url
 # ])
 
 
-@admin_area.route('/')
+@admin_area.route("/")
 def index():
     print("ADMIN LOADING")
-    return admin_area.send_static_file('index.html')
+    return admin_area.send_static_file("index.html")
 
 
 # @admin_area.route('/', defaults={'page': 'index'})
@@ -42,9 +53,10 @@ def index():
 #     print('received json: ' + str(json))
 #     emit('chat', json)
 
-@admin_area.route('/component_view')
-def components(page):
-    #try:
-        component_registry = registry.Registry()
 
-        return render_template('component_view.html', registry=component_registry)
+@admin_area.route("/component_view")
+def components(page):
+    # try:
+    component_registry = registry.Registry()
+
+    return render_template("component_view.html", registry=component_registry)

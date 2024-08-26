@@ -10,12 +10,12 @@ class AdminMessage(object):
         self.timestamp = unixtime2
         self.request = request
         self.payload = payload
-        
+
         self.response = response
 
     def get_response(self):
         return self.response
-    
+
     def get_request(self):
         return self.request
 
@@ -26,6 +26,6 @@ class AdminMessage(object):
         self.payload = payload
 
     def __str__(self):
-        return "<AdminMessage Request: {}, Response: {}, Payload: {}>".format(self.request, self.response, self.payload)
-
-    
+        return "<AdminMessage Request: {}, Response: {}, Payload: {}>".format(
+            self.request, self.response, self.payload
+        )

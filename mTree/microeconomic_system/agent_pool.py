@@ -19,9 +19,10 @@ class AgentPool(Actor):
     def experiment_log(self, log_message):
         self.mTree_logger().log(25, log_message)
 
-
     def __str__(self):
-        return "<AgentPool: " + self.__class__.__name__+ ' @ ' + str(self.myAddress) + ">"
+        return (
+            "<AgentPool: " + self.__class__.__name__ + " @ " + str(self.myAddress) + ">"
+        )
 
     def __repr__(self):
         return self.__str__()
@@ -31,9 +32,8 @@ class AgentPool(Actor):
         print("AgentPool started")
         self.agents = []
 
-
     def receiveMessage(self, message, sender):
-        self.mTree_logger().info('%s got: %s', self, message)
+        self.mTree_logger().info("%s got: %s", self, message)
         directive_handler = self._enabled_directives.get(message.get_directive())
         directive_handler(self, message)
 

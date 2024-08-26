@@ -5,13 +5,16 @@ class Recorder:
     """
     Singleton Recorder object
     """
+
     instance = None
 
     class __Recorder:
         def __init__(self, args):
             self.file = None  # TODO(@messiest) use class method to set this...
             self.path = "data/"  # TODO(@messiest) think of how this can be set...
-            self.logger = open(self.path + "experiment_log.csv", "a")  # TODO(@messiest) How are file names going to be handled?
+            self.logger = open(
+                self.path + "experiment_log.csv", "a"
+            )  # TODO(@messiest) How are file names going to be handled?
             self.logger.flush()
             self.write(args)
 

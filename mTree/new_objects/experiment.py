@@ -12,9 +12,12 @@ class Experiment:
     treatments = []  # list to store different experiment treatments
 
     def __init__(self, name, debug=False):
-        if debug: print("Initialized")
+        if debug:
+            print("Initialized")
         self.name = name
-        self.experiment_running = False  # TODO: This needs to have various possible states
+        self.experiment_running = (
+            False  # TODO: This needs to have various possible states
+        )
         self.experiment_state = None
         self.treatment_assignment = None
 
@@ -22,7 +25,9 @@ class Experiment:
         self.users = {}  # TODO(@messiest) change users to subjects IN the environment
         self.user_state = None
 
-        self.experiment_running = False  # TODO: This needs to have various possible states
+        self.experiment_running = (
+            False  # TODO: This needs to have various possible states
+        )
 
         self.willow_response = None
 
@@ -35,7 +40,9 @@ class Experiment:
         self.db = None
         self.scheduler = None
 
-        self.logger = open("{}.csv".format(self.name), 'a')  # need to come up with stable naming
+        self.logger = open(
+            "{}.csv".format(self.name), "a"
+        )  # need to come up with stable naming
         self.logger.flush()
 
     def add_treatments(self, treatments):
@@ -43,7 +50,11 @@ class Experiment:
             self.treatments[treatment.name] = treatment
 
     def set_assignment_method(self, method="balanced_treatments"):
-        methods = [method for method in dir(Experiment) if isinstance(getattr(Experiment, method), types.FunctionType)]
+        methods = [
+            method
+            for method in dir(Experiment)
+            if isinstance(getattr(Experiment, method), types.FunctionType)
+        ]
         if method in methods:
             self.treatment_assignment = self.__getattribute__(method)
         else:
@@ -70,16 +81,21 @@ class Experiment:
     def create_user(self, sid, debug=False):
         user_id = str(uuid.uuid1())
 
-        if debug: print(user_id)
+        if debug:
+            print(user_id)
         # self.user_state[user_id]["running"] = False
         # self.users.append(user_id)
         # self.user_state[user_id] = {}
         self.current = "start_screen"
-        self.join_time = datetime.datetime.now()  # adds the user's start time to the data
+        self.join_time = (
+            datetime.datetime.now()
+        )  # adds the user's start time to the data
         self.sid = sid
         # self.response = response.Response().set_user_id(user_id)
 
-    def remove_user(self, sid): # TODO(@messiest) remove print statements after completion
+    def remove_user(
+        self, sid
+    ):  # TODO(@messiest) remove print statements after completion
 
         # print("\nBefore: %s" % str(self.users))
 
@@ -90,4 +106,3 @@ class Experiment:
         del self.users[self.users.index(user)]
 
         # print("After: %s\n" % str(self.users))
-

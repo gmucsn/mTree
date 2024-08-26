@@ -1,11 +1,19 @@
-from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect,  Namespace
+from flask_socketio import (
+    SocketIO,
+    emit,
+    join_room,
+    leave_room,
+    close_room,
+    rooms,
+    disconnect,
+    Namespace,
+)
 import json
+
 
 class Subject:
     def __init__(self, sid):
         self.sid = sid
-
-
 
 
 class SubjectPool:
@@ -13,7 +21,7 @@ class SubjectPool:
         def __init__(self):
             self.subject_pool = {}
             self.flask_outlet = None
-            
+
         def __str__(self):
             return repr(self)
 
@@ -41,8 +49,7 @@ class SubjectPool:
 
     def emit(self, message, data):
         response = {"message": message, "data": data}
-        SubjectPool.instance.flask_outlet.emit('response', response , namespace='/admin')
-
+        SubjectPool.instance.flask_outlet.emit("response", response, namespace="/admin")
 
     def update_subject_pool_emit(self):
         print("SHOULD EMIT FROM SUBJECT POOL UPDATE")

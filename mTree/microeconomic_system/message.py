@@ -22,17 +22,17 @@ class Message(object):
         except:
             pass
 
-        return "<Message Sender: {}, Recipients: {}, Directive: {}, Content: {}>".format(sender,
-                                                                                         self.recipients,
-                                                                                         self.directive,
-                                                                                         self.content)
+        return (
+            "<Message Sender: {}, Recipients: {}, Directive: {}, Content: {}>".format(
+                sender, self.recipients, self.directive, self.content
+            )
+        )
 
     def set_short_name(self, short_name):
         self.short_name = short_name
 
     def get_short_name(self):
         return self.short_name
-
 
     def set_sender(self, sender):
         self.sender = sender
@@ -63,7 +63,6 @@ class Message(object):
 
     def get_payload_property(self, payload_field):
         return self.content[payload_field]
-
 
     def get_payload(self):
         return self.content

@@ -1,0 +1,19 @@
+{"mtree_type": "mes_simulation_description",
+  "name":"Basic Auction Run",
+
+
+
+
+
+  "id": "1",
+  "debug": true,
+  "log_level": 2,
+
+
+  "environment": "basic_auction_environment.AuctionEnvironment",
+  "institution": "basic_auction_institution.AuctionInstitution",
+  "number_of_runs": 1,
+  "agents": [{"agent_name": "basic_auction_agent.AuctionAgent", "properties": { "strategy": "reasonable" }, "number": 4}, 
+    {"agent_name": "basic_auction_agent.AuctionAgent", "properties": { "strategy": "aggressive"}, "number": 4}],
+  "properties": {}
+}

@@ -4,9 +4,8 @@ import sys
 from thespian.actors import *
 import time
 
-os.environ['THESPLOG_THRESHOLD'] =  'WARNING'
-os.environ['THESPLOG_FILE'] =  os.path.join(os.getcwd(), "thespian.log")
-
+os.environ["THESPLOG_THRESHOLD"] = "WARNING"
+os.environ["THESPLOG_FILE"] = os.path.join(os.getcwd(), "thespian.log")
 
 
 def main():
@@ -14,8 +13,8 @@ def main():
         actor_system = ActorSystemStartup(True)
     else:
         actor_system = ActorSystemStartup()
-    #actor_system.startup()
-    
+    # actor_system.startup()
+
 
 if __name__ == "__main__":
     main()

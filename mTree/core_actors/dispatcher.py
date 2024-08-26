@@ -4,7 +4,7 @@ from mTree.microeconomic_system.initialization_messages import MESConfigurationP
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 import os
-
+import numpy as np
 
 from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace
