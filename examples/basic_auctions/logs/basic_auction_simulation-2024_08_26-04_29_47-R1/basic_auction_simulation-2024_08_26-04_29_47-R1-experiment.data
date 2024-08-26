@@ -1,0 +1,5 @@
+1724646587.7952228	Institution (second_price_auction_institution.SecondPriceAuctionInstitution) : About to enter directive: address_book_update
+1724646587.7990143	Institution (second_price_auction_institution.SecondPriceAuctionInstitution) : Exited directive: address_book_update
+1724646587.7992766	Institution (second_price_auction_institution.SecondPriceAuctionInstitution) : About to enter directive: start_auction
+1724646587.79938	Starting auction...10
+1724646587.8005264	Institution (second_price_auction_institution.SecondPriceAuctionInstitution) : Exited directive: start_auction

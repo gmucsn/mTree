@@ -14,6 +14,15 @@ Once installed, mTree is imported in the standard fashion.
 import mTree
 ```
 
+## Developer Documentation
+
+mTree makes use of pdoc to document the code inside this repository. Assuming you have mTree installed you should be able to type `pdoc mTree` and the pdoc webserver will start and be available at http://localhost:8080
+
+# Extra Commands
+
+
+ps aux  |  grep -i Actor  |  awk '{print $2}'  |  xargs sudo kill -9
+
 # Development
 
 Running the set up:

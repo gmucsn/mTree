@@ -1,5 +1,4 @@
 from thespian.actors import *
-import numpy as np
 
 from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.message_space import MessageSpace

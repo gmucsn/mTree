@@ -22,11 +22,17 @@ import os
 
 import setproctitle
 
+from mTree.microeconomic_system.mes_component_base import MESComponentBase
+
+
+from mTree.microeconomic_system.mes_component_base import MESComponentBase
+
+
 
 @initializing_messages([('startup', str), ('_startup_payload', StartupPayload), ('_address_book_payload', AddressBookPayload)],
                             initdone='invoke_prepare')
 @directive_enabled_class
-class Institution(Actor):
+class Institution(MESComponentBase):
     def __init__(self):
         setproctitle.setproctitle("mTree - Institution")
 
@@ -93,60 +99,75 @@ class Institution(Actor):
     #     self.mtree_properties = {}
 
 
-    def log_sequence_event(self, message):
-        # logging.info("Institution should be sequence logging")
-        # logging.info("ISL: " + str(message))
-        sequence_event = SequenceEvent(message.timestamp, message.get_short_name(), self.short_name, message.get_directive())
-        self.send(self.log_actor, sequence_event)
+    # def log_sequence_event(self, message):
+    #     # logging.info("Institution should be sequence logging")
+    #     # logging.info("ISL: " + str(message))
+    #     sequence_event = SequenceEvent(
+    #         message.timestamp,
+    #         message.get_short_name(),
+    #         self.short_name,
+    #         message.get_directive(),
+    #     )
+    #     self.send(self.log_actor, sequence_event)
 
-    def log_message(self, logline, target=None, level=None):
-        if self.log_level is None or level is None:
-            log_message = LogMessage(message_type="log", content=logline, target=target)
-            self.send(self.log_actor, log_message)
-        elif self.log_level <= level:
-            log_message = LogMessage(message_type="log", content=logline, target=target)
-            self.send(self.log_actor, log_message)
+    # def log_message(self, logline, target=None, level=None):
+    #     if self.log_level is None or level is None:
+    #         log_message = LogMessage(message_type="log", content=logline, target=target)
+    #         self.send(self.log_actor, log_message)
+    #     elif self.log_level <= level:
+    #         log_message = LogMessage(message_type="log", content=logline, target=target)
+    #         self.send(self.log_actor, log_message)
 
-    def log_data(self, logline, target=None, level=None):
-        if self.log_level is None or level is None:
-            log_message = LogMessage(message_type="data", content=logline, target=target)
-            self.send(self.log_actor, log_message)
-        elif self.log_level <= level:
-            log_message = LogMessage(message_type="data", content=logline, target=target)
-            self.send(self.log_actor, log_message)
+    # def log_data(self, logline, target=None, level=None):
+    #     if self.log_level is None or level is None:
+    #         log_message = LogMessage(
+    #             message_type="data", content=logline, target=target
+    #         )
+    #         self.send(self.log_actor, log_message)
+    #     elif self.log_level <= level:
+    #         log_message = LogMessage(
+    #             message_type="data", content=logline, target=target
+    #         )
+    #         self.send(self.log_actor, log_message)
 
-    def get_simulation_property(self, name):
-        if name not in self.mtree_properties.keys():
-            raise Exception("Simulation property: " + str(name) + " not available")
-        return self.mtree_properties[name]
+    # def get_simulation_property(self, name):
+    #     if name not in self.mtree_properties.keys():
+    #         raise Exception("Simulation property: " + str(name) + " not available")
+    #     return self.mtree_properties[name]
 
+    # def __str__(self):
+    #     return (
+    #         "<Institution: "
+    #         + self.__class__.__name__
+    #         + " @ "
+    #         + str(self.myAddress)
+    #         + ">"
+    #     )
 
-    def __str__(self):
-        return "<Institution: " + self.__class__.__name__ + ' @ ' + str(self.myAddress) + ">"
+    # def __repr__(self):
+    #     return self.__str__()
 
-    def __repr__(self):
-        return self.__str__()
+    # def reminder(self, seconds_to_reminder, message, addresses=None):
+    #     if addresses is None:
+    #         if type(seconds_to_reminder) is timedelta:
+    #             self.wakeupAfter(seconds_to_reminder, payload=message)
+    #         else:
+    #             # TODO if not seconds then reject
+    #             self.wakeupAfter(
+    #                 timedelta(seconds=seconds_to_reminder), payload=message
+    #             )
 
-    
-    def reminder(self, seconds_to_reminder, message, addresses=None):
-        if addresses is None:
-            if type(seconds_to_reminder) is timedelta:
-                self.wakeupAfter( seconds_to_reminder, payload=message)    
-            else:
-                # TODO if not seconds then reject
-                self.wakeupAfter( timedelta(seconds=seconds_to_reminder), payload=message)
+    #     else:
+    #         new_message = Message()
+    #         new_message.set_directive("external_reminder")
+    #         new_message.set_sender(self.myAddress)
+    #         payload = {}
+    #         payload["reminder_message"] = message
+    #         payload["seconds_to_reminder"] = seconds_to_reminder
+    #         new_message.set_payload(payload)
 
-        else:
-            new_message = Message()
-            new_message.set_directive("external_reminder")
-            new_message.set_sender(self.myAddress)
-            payload = {}
-            payload["reminder_message"] = message
-            payload["seconds_to_reminder"] = seconds_to_reminder
-            new_message.set_payload(payload)
-
-            for agent in addresses:
-                self.send(agent, new_message)      
+    #         for agent in addresses:
+    #             self.send(agent, new_message)
 
     def shutdown_mes(self):
         logging.info("INST shutting down sim")
@@ -156,15 +177,13 @@ class Institution(Actor):
         payload = {}
         new_message.set_payload(payload)
         self.send(self.container, new_message)
-        
 
-    def excepted_mes(self, exception_payload):
-        new_message = Message()
-        new_message.set_directive("excepted_mes")
-        new_message.set_sender(self.myAddress)
-        new_message.set_payload(exception_payload)
-        self.send(self.container, new_message)
-
+    # def excepted_mes(self, exception_payload):
+    #     new_message = Message()
+    #     new_message.set_directive("excepted_mes")
+    #     new_message.set_sender(self.myAddress)
+    #     new_message.set_payload(exception_payload)
+    #     self.send(self.container, new_message)
 
     @directive_decorator("external_reminder")
     def external_reminder(self, message:Message):
@@ -172,86 +191,101 @@ class Institution(Actor):
         seconds_to_reminder = message.get_payload()["seconds_to_reminder"]
         self.reminder(seconds_to_reminder, reminder_message)
 
-    def receiveMessage(self, message, sender):
-        #self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
-        if not isinstance(message, ActorSystemMessage):
-            try:
-                if message.get_directive() not in self._enabled_directives.keys():
-                    raise UndefinedDirectiveException(message.get_directive())
-                directive_handler = self._enabled_directives.get(message.get_directive())
-                try:
-                    self.log_message("Institution (" + self.short_name + ") : About to enter directive: " + message.get_directive())
-                except:
-                    pass
-                
-                try:
-                    self.log_sequence_event(message)
-                except Exception as e:
-                    error_type, error, tb = sys.exc_info()
-                    error_message = "MES INSITUTION CRASHING - WHILE LOGGING - EXCEPTION FOLLOWS \n"
-                    error_message += "\tSource Message: " + str(message) + "\n"
-                    error_message += "\tError Type: " + str(error_type) + "\n"
-                    error_message += "\tError: " + str(error) + "\n"
-                    logging.info("AN EXCEPTED INSTITUTION LOG")
-                    logging.info("EIL: " + str(error_message))
-                
-                
-                directive_handler(self, message)
-                try:
-                    self.log_message("Institution (" + self.short_name + ") : Exited directive: " + message.get_directive())
-                except:
-                    pass
-            except Exception as e:
-                error_type, error, tb = sys.exc_info()
-                error_message = "MES INSITUTION CRASHING - EXCEPTION FOLLOWS \n"
-                error_message += "\tSource Message: " + str(message) + "\n"
-                error_message += "\tError Type: " + str(error_type) + "\n"
-                error_message += "\tError: " + str(error) + "\n"
-                
-                traces = traceback.extract_tb(tb)
-                trace_output = "\tTrace Output: \n"
-                for trace_line in traceback.format_list(traces):
-                    trace_output += "\t" + trace_line + "\n"
-                error_message += "\n"
-                error_message += trace_output
-                #self.log_message(error_message)
-                self.log_message("INSITUTION: EXCEPTION! Check exception log. ")
-                self.log_message(error_message)
-                exception_payload = {}
-                exception_payload["error_message"] = error_message
-                exception_payload["source_message"]= str(message)
-                exception_payload["error_type"]= str(error_type)
-                exception_payload["error"]= str(error)
+    # def receiveMessage(self, message, sender):
+    #     # self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
+    #     if not isinstance(message, ActorSystemMessage):
+    #         try:
+    #             if message.get_directive() not in self._enabled_directives.keys():
+    #                 raise UndefinedDirectiveException(message.get_directive())
+    #             directive_handler = self._enabled_directives.get(
+    #                 message.get_directive()
+    #             )
+    #             try:
+    #                 self.log_message(
+    #                     "Institution ("
+    #                     + self.short_name
+    #                     + ") : About to enter directive: "
+    #                     + message.get_directive()
+    #                 )
+    #             except:
+    #                 pass
 
-                excepting_trace = traces[0] 
-                exception_payload["filename"] = excepting_trace.filename
-                exception_payload["lineno"] = excepting_trace.lineno
-                exception_payload["name"] = excepting_trace.name
-                exception_payload["line"] = excepting_trace.line
-                
-                self.excepted_mes(exception_payload)
+    #             try:
+    #                 self.log_sequence_event(message)
+    #             except Exception as e:
+    #                 error_type, error, tb = sys.exc_info()
+    #                 error_message = (
+    #                     "MES INSITUTION CRASHING - WHILE LOGGING - EXCEPTION FOLLOWS \n"
+    #                 )
+    #                 error_message += "\tSource Message: " + str(message) + "\n"
+    #                 error_message += "\tError Type: " + str(error_type) + "\n"
+    #                 error_message += "\tError: " + str(error) + "\n"
+    #                 logging.info("AN EXCEPTED INSTITUTION LOG")
+    #                 logging.info("EIL: " + str(error_message))
 
-        elif isinstance(message, WakeupMessage):
-            try:
-                wakeup_message = message.payload
-                directive_handler = self._enabled_directives.get(wakeup_message.get_directive())
-                directive_handler(self, wakeup_message)
-            except Exception as e:
-                self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
-                self.log_message("\tSource Message: " + str(message))
-                
-                self.log_message(traceback.format_exc())
-                self.actorSystemShutdown()
-        
-    def get_property(self, property_name):
-        try:
-            return self.mtree_properties[property_name]
-        except:
-            return None
+    #             directive_handler(self, message)
+    #             try:
+    #                 self.log_message(
+    #                     "Institution ("
+    #                     + self.short_name
+    #                     + ") : Exited directive: "
+    #                     + message.get_directive()
+    #                 )
+    #             except:
+    #                 pass
+    #         except Exception as e:
+    #             error_type, error, tb = sys.exc_info()
+    #             error_message = "MES INSITUTION CRASHING - EXCEPTION FOLLOWS \n"
+    #             error_message += "\tSource Message: " + str(message) + "\n"
+    #             error_message += "\tError Type: " + str(error_type) + "\n"
+    #             error_message += "\tError: " + str(error) + "\n"
 
-    def log_experiment_data(self, data):
-        #self.log_actor = self.createActor(LogActor, globalName="log_actor")
-        self.send(self.log_actor, data)
+    #             traces = traceback.extract_tb(tb)
+    #             trace_output = "\tTrace Output: \n"
+    #             for trace_line in traceback.format_list(traces):
+    #                 trace_output += "\t" + trace_line + "\n"
+    #             error_message += "\n"
+    #             error_message += trace_output
+    #             # self.log_message(error_message)
+    #             self.log_message("INSITUTION: EXCEPTION! Check exception log. ")
+    #             self.log_message(error_message)
+    #             exception_payload = {}
+    #             exception_payload["error_message"] = error_message
+    #             exception_payload["source_message"] = str(message)
+    #             exception_payload["error_type"] = str(error_type)
+    #             exception_payload["error"] = str(error)
+
+    #             excepting_trace = traces[0]
+    #             exception_payload["filename"] = excepting_trace.filename
+    #             exception_payload["lineno"] = excepting_trace.lineno
+    #             exception_payload["name"] = excepting_trace.name
+    #             exception_payload["line"] = excepting_trace.line
+
+    #             self.excepted_mes(exception_payload)
+
+    #     elif isinstance(message, WakeupMessage):
+    #         try:
+    #             wakeup_message = message.payload
+    #             directive_handler = self._enabled_directives.get(
+    #                 wakeup_message.get_directive()
+    #             )
+    #             directive_handler(self, wakeup_message)
+    #         except Exception as e:
+    #             self.log_message("MES CRASHING - EXCEPTION FOLLOWS")
+    #             self.log_message("\tSource Message: " + str(message))
+
+    #             self.log_message(traceback.format_exc())
+    #             self.actorSystemShutdown()
+
+    # def get_property(self, property_name):
+    #     try:
+    #         return self.mtree_properties[property_name]
+    #     except:
+    #         return None
+
+    # def log_experiment_data(self, data):
+    #     # self.log_actor = self.createActor(LogActor, globalName="log_actor")
+    #     self.send(self.log_actor, data)
 
     @directive_decorator("address_book_update")
     def address_book_update(self, message: Message):
@@ -284,31 +318,31 @@ class Institution(Actor):
         
         self.environment = message.get_payload()["environment"]
 
-    def send_message(self, directive, receiver, payload=None):
-        """Send message
-           Constructs and sends a message inside the system """
-        new_message = Message()
-        new_message.set_sender(self.myAddress)
-        new_message.set_directive(directive)
-        if payload is not None:
-            new_message.set_payload(payload)
-    
-        if isinstance(receiver, list):
-            for target_address in receiver:
-                self.send(target_address, new_message)
-        else:
-            receiver_address = self.address_book.select_addresses(
-                                {"short_name": receiver})
+    # def send_message(self, directive, receiver, payload=None):
+    #     """Send message
+    #     Constructs and sends a message inside the system"""
+    #     new_message = Message()
+    #     new_message.set_sender(self.myAddress)
+    #     new_message.set_directive(directive)
+    #     if payload is not None:
+    #         new_message.set_payload(payload)
 
-            self.send(receiver_address, new_message)
+    #     if isinstance(receiver, list):
+    #         for target_address in receiver:
+    #             self.send(target_address, new_message)
+    #     else:
+    #         receiver_address = self.address_book.select_addresses(
+    #             {"short_name": receiver}
+    #         )
 
+    #         self.send(receiver_address, new_message)
 
-    def send(self, targetAddress, message):
-        if hasattr(self, 'short_name') and type(message) is Message:
-            try:
-                message.set_short_name(self.short_name)
-            except:
-                message.set_short_name(self.__class__.__name__)
+    # def send(self, targetAddress, message):
+    #     if hasattr(self, "short_name") and type(message) is Message:
+    #         try:
+    #             message.set_short_name(self.short_name)
+    #         except:
+    #             message.set_short_name(self.__class__.__name__)
 
         if isinstance(message, Message):
             self.log_message("Institution (" + self.short_name + ") : sending to "  + " directive: " + message.get_directive())

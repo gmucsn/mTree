@@ -1,4 +1,3 @@
-from numpy import broadcast
 from thespian import *
 from thespian.actors import *
 from thespian.system.messages.status import *

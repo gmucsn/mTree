@@ -1,0 +1,11 @@
+{
+    "build": { "dockerfile": "Dockerfile" },
+    "onCreateCommand": "pip install -e /workspaces/mTree",
+    "customizations": {
+      "vscode": {
+        "extensions": ["dbaeumer.vscode-eslint"]
+      }
+    },
+
+    "forwardPorts": [3000, 8080]
+  }

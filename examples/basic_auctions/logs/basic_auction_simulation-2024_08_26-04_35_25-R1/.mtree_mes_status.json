@@ -1,0 +1,10 @@
+{
+    "simulation_id": "1",
+    "simulation_run_id": "basic_auction_simulation-2024_08_26-04_35_25",
+    "run_number": 1,
+    "run_code": "67ddb7",
+    "mes_directory": "/workspaces/mTree/examples/basic_auctions",
+    "mes_log_directory": "/workspaces/mTree/examples/basic_auctions/logs/basic_auction_simulation-2024_08_26-04_35_25-R1",
+    "status": "Running",
+    "start_time": null
+}
