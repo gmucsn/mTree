@@ -1,11 +1,12 @@
-from mTree.components.admin_message import AdminMessage
-import json
-import sys
-import os
 import inspect
-from pathlib import Path
+import json
+import os
+import sys
 import time
-from datetime import datetime, date
+from datetime import date, datetime
+from pathlib import Path
+
+from mTree.components.admin_message import AdminMessage
 
 
 class Registry:
@@ -176,9 +177,9 @@ class Registry:
         module = importlib.import_module("mTree.components")
 
         import glob
+        import os
         import sys
         from types import ModuleType
-        import os
 
         sys.path.append(target_directory)
 

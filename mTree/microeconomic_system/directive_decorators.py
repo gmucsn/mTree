@@ -1,5 +1,7 @@
+from functools import wraps
 from sre_parse import State
 from types import FunctionType
+
 from jsonschema import validate
 from mTree.components import registry
 
@@ -35,7 +37,6 @@ def message_source(message_name):
     return real_decorator
 
 
-from functools import wraps
 
 
 def dec(msg="default"):

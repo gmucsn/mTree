@@ -1,7 +1,7 @@
+import glob
 import importlib
 import inspect
 import os
-import glob
 
 
 def import_plugins(

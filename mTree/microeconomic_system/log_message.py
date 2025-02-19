@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
 
 
 class LogMessage(object):

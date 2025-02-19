@@ -1,22 +1,6 @@
-from textual.app import App, ComposeResult
-from textual.screen import Screen
-from textual.containers import Container, Horizontal, VerticalScroll
-from textual.widgets import (
-    Header,
-    Footer,
-    Tab,
-    Tabs,
-    Static,
-    Button,
-    TabbedContent,
-    TabPane,
-    OptionList,
-    Placeholder,
-    ListItem,
-    ListView,
-    Label,
-)
-from textual.widgets.option_list import Option, Separator
+from mTree.utilities.console.dashboard_screen import DashboardScreen
+from mTree.utilities.console.mes_library import MESLibrary
+from mTree.utilities.console.system_status_screen import SystemStatusScreen
 from rich import box
 from rich.console import RenderableType
 from rich.json import JSON
@@ -26,11 +10,25 @@ from rich.pretty import Pretty
 from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
-
-from mTree.utilities.console.dashboard_screen import DashboardScreen
-from mTree.utilities.console.system_status_screen import SystemStatusScreen
-from mTree.utilities.console.mes_library import MESLibrary
-
+from textual.app import App, ComposeResult
+from textual.containers import Container, Horizontal, VerticalScroll
+from textual.screen import Screen
+from textual.widgets import (
+    Button,
+    Footer,
+    Header,
+    Label,
+    ListItem,
+    ListView,
+    OptionList,
+    Placeholder,
+    Static,
+    Tab,
+    TabbedContent,
+    TabPane,
+    Tabs,
+)
+from textual.widgets.option_list import Option, Separator
 
 
 class MTreeConsoleApp(App):

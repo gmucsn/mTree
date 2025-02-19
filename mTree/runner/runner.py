@@ -1,30 +1,24 @@
-import sys, getopt
-import json
-import importlib
-import inspect
-import os
+import atexit
+import getopt
 import glob
-
+import importlib
 import importlib.util
+import inspect
+import json
+import os
 import sys
 import time
-
-from mTree.microeconomic_system.message import Message
-from mTree.microeconomic_system.container import Container
-from mTree.microeconomic_system.simulation_container import SimulationContainer
-from thespian.actors import *
-from mTree.components import registry
-from mTree.server.actor_system_connector import ActorSystemConnector
-from mTree.simulation.mes_simulation_library import MESSimulationLibrary
-
-from simple_term_menu import TerminalMenu
-from terminaltables import AsciiTable
-
 from cmd import Cmd
 
-import atexit
+from mTree.components import registry
+from mTree.microeconomic_system.container import Container
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.simulation_container import SimulationContainer
+from mTree.server.actor_system_connector import ActorSystemConnector
+from mTree.simulation.mes_simulation_library import MESSimulationLibrary
+from simple_term_menu import TerminalMenu
+from terminaltables import AsciiTable
 from thespian.actors import *
-
 
 capabilities = dict([("Admin Port", 19000)])
 
@@ -186,9 +180,9 @@ class Runner:
         module = importlib.import_module("mTree.components")
 
         import glob
+        import os
         import sys
         from types import ModuleType
-        import os
 
         cwd = os.getcwd()
         sys.path.append(cwd)

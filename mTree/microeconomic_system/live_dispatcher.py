@@ -1,17 +1,16 @@
-from thespian.actors import *
+import json
+import logging
 
-from mTree.microeconomic_system.message_space import Message
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
+import setproctitle
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import Message, MessageSpace
+from thespian.actors import *
 
 # from socketIO_client import SocketIO, LoggingNamespace
 
-import logging
-import json
 
-import setproctitle
 
 
 class LiveDispatcher(Actor):

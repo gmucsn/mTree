@@ -1,5 +1,6 @@
-from mTree.components.admin_message import AdminMessage
 import json
+
+from mTree.components.admin_message import AdminMessage
 
 
 class PropertyManager:

@@ -1,36 +1,32 @@
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
-
-
-from mTree.microeconomic_system.message_space import Message
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-from mTree.microeconomic_system.log_message import LogMessage
-from mTree.microeconomic_system.sequence_event import SequenceEvent
-from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.log_actor import LogActor
-from mTree.microeconomic_system.address_book import AddressBook
-from mTree.microeconomic_system.mes_exceptions import *
-# from mTree.microeconomic_system.admin_message import AdminMessage
-from mTree.microeconomic_system.initialization_messages import *
-
-from mTree.microeconomic_system.environment import Environment
-
-# from socketIO_client import SocketIO, LoggingNamespace
-
-import time
-import os
-
-import traceback
-import logging
-import json
-from datetime import datetime, timedelta
-import time
-import sys
 import inspect
+import json
+import logging
+import os
+import sys
+import time
+import traceback
+from datetime import datetime, timedelta
 
 import setproctitle
 from mTree.core_actors.admin_message import AdminMessage
+from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.environment import Environment
+# from mTree.microeconomic_system.admin_message import AdminMessage
+from mTree.microeconomic_system.initialization_messages import *
+from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.log_message import LogMessage
+from mTree.microeconomic_system.mes_exceptions import *
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import Message, MessageSpace
+from mTree.microeconomic_system.sequence_event import SequenceEvent
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
+
+# from socketIO_client import SocketIO, LoggingNamespace
+
+
+
 
 
 @initializing_messages(
@@ -54,10 +50,8 @@ class MESContainer(Actor):
         # Report pid to the system status actor
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
-        message = AdminMessage(directive="register_pid",
-                                payload=pid)
+        message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
-        
 
         self.simulation_configuration = (
             self._mes_container_configuration.mes_configuration_payload[
@@ -71,7 +65,7 @@ class MESContainer(Actor):
         self.dispatcher = self._mes_container_configuration.mes_configuration_payload[
             "dispatcher"
         ]
-        
+
         self.source_hash = self.simulation_configuration["source_hash"]
         self.run_number = None
 
@@ -160,7 +154,7 @@ class MESContainer(Actor):
             ),
         )
         logging.info("SENT About to send an address book")
-        
+
         for agent in self.agents:
             self.send(
                 agent,
@@ -195,10 +189,9 @@ class MESContainer(Actor):
         environment = self.createActor(environment_class, sourceHash=source_hash)
         logging.info("Environment created")
         logging.info(environment)
-        
-        
+
         logging.info("^^^^^^^^^")
-        
+
         # environment created
         self.environment = environment
 
@@ -620,7 +613,7 @@ class MESContainer(Actor):
 
     def logger_setup(self):
         # NOTE: Important to keep a direct reference to the log actor else it will scan the source authority first
-        
+
         logging.info("SHOULD BE Starting logger 1")
         self.log_actor = self.createActor(LogActor)
 

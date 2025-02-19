@@ -1,33 +1,21 @@
-from flask import Blueprint, render_template, abort, request, jsonify, redirect, url_for
-from flask import session
-from flask_socketio import (
-    SocketIO,
-    emit,
-    join_room,
-    leave_room,
-    close_room,
-    rooms,
-    disconnect,
-)
-from jinja2 import TemplateNotFound
-import jinja2
-import os
 import json
+import os
+
+import jinja2
 import markdown
 import markdown.extensions.fenced_code
-
-
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
+from flask_socketio import SocketIO, close_room, disconnect, emit, join_room, leave_room, rooms
+from jinja2 import TemplateNotFound
 # from mTree.components.registry import registry
 from mTree.components.registry import Registry
-from mTree.simulation.mes_simulation_library import MESSimulationLibrary
-from mTree.server.actor_system_connector import ActorSystemConnector
-
 # from mTree.server.configuration_scanner import ConfigurationScanner
 # from mTree.runner.server_runner import ServerRunner
 # from mTree.server.component_registrar import ComponentRegistrar
 # from mTree.server.simulation_controller import SimulationController
 from mTree.development.mtree_configuration import MTreeConfiguration
-
+from mTree.server.actor_system_connector import ActorSystemConnector
+from mTree.simulation.mes_simulation_library import MESSimulationLibrary
 
 development_area = Blueprint("development_area", __name__, template_folder="templates")
 

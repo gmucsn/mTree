@@ -1,8 +1,7 @@
+import requests
+import setproctitle
 # import socketio
 from thespian.actors import *
-import requests
-
-import setproctitle
 
 
 class OutConnect(Actor):

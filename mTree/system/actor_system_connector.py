@@ -1,19 +1,21 @@
-import sys, getopt
-import json
-import inspect
-import os
-import glob
-from zipfile import ZipFile
 import datetime
+import getopt
+import glob
 import importlib
 import importlib.util
+import inspect
+import json
+import os
+import sys
 import time
 import uuid
+from zipfile import ZipFile
 
-from thespian.actors import *
-
+from mTree.core_actors.admin_message import AdminMessage
 # from mTree.microeconomic_system.dispatcher import Dispatcher
 from mTree.microeconomic_system.message import Message
+from mTree.system.actor_system_controller import ActorSystemController
+from thespian.actors import *
 
 # # from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
 # # from mTree.microeconomic_system.outconnect import OutConnect
@@ -23,8 +25,6 @@ from mTree.microeconomic_system.message import Message
 # from mTree.components import registry
 # from mTree.server.log_config import logcfg
 
-from mTree.system.actor_system_controller import ActorSystemController
-from mTree.core_actors.admin_message import AdminMessage
 
 capabilities = dict([("Admin Port", 19000)])
 
@@ -96,7 +96,6 @@ class ActorSystemConnector:
     #         ActorSystemConnector.instance = ActorSystemConnector.__ActorSystemConnector()
     #     return self
 
-
     @staticmethod
     def load_base_mes(mes_base_dir):
         script_dir = os.path.join(
@@ -129,16 +128,13 @@ class ActorSystemConnector:
 
         # self.capabilities = dict([("Admin Port", 19000)])
         actor_system = ActorSystemController.retrieve_connection()
-        dispatcher = actor_system.createActor(
-            Actor, globalName="Dispatcher"
-        )
-
+        dispatcher = actor_system.createActor(Actor, globalName="Dispatcher")
 
         source_hash = None
         # try:
         # asys = (
         #     ActorSystemConnector.__instance.actor_system
-        # )  
+        # )
         source_hash = actor_system.loadActorSource("temp_components.zip")
         os.remove("temp_components.zip")
         # except:
@@ -150,9 +146,7 @@ class ActorSystemConnector:
         source_hash = ActorSystemConnector.load_base_mes(mes_base_dir)
 
         actor_system = ActorSystemController.retrieve_connection()
-        dispatcher = actor_system.createActor(
-            Actor, globalName="Dispatcher"
-        )
+        dispatcher = actor_system.createActor(Actor, globalName="Dispatcher")
 
         configuration_message = Message()
         configuration_message.set_directive("simulation_configurations")
@@ -171,8 +165,6 @@ class ActorSystemConnector:
             dispatcher, configuration_message
         )  # createActor(Dispatcher, globalName = "Dispatcher")
         # ActorSystem("multiprocTCPBase", self.capabilities).tell(dispatcher, configuration_message)
-
-    
 
     def kill_run_by_id(self, run_id):
         dispatcher = ActorSystemConnector.__instance.actor_system.createActor(

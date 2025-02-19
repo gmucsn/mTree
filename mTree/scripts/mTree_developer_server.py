@@ -1,8 +1,10 @@
-import pyfiglet
-import os, signal
-from mTree.server.actor_system_startup import ActorSystemStartup
 import atexit
+import os
+import signal
 import time
+
+import pyfiglet
+from mTree.server.actor_system_startup import ActorSystemStartup
 
 ######
 # Description:
@@ -39,7 +41,7 @@ def goodbye(process=None):
 def launch_background_actor_system():
     # Set Thespian log file location so we can track issues...
     import sys
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
 
     # import subprocess
     # import importlib
@@ -61,9 +63,7 @@ def launch_background_actor_system():
 
 
 def start_developer_server():
-    from mTree.development.development_server import (
-        DevelopmentServer,
-    )  # , MTreeController
+    from mTree.development.development_server import DevelopmentServer  # , MTreeController
 
     ascii_banner = pyfiglet.figlet_format("mTree - Developer Server")
     print(ascii_banner)
@@ -73,7 +73,8 @@ def start_developer_server():
     plugins_directory_path = os.path.join(SCRIPT_DIR, "components")
     # load browser...
 
-    import threading, webbrowser
+    import threading
+    import webbrowser
 
     port = 5000
     url = "http://127.0.0.1:{0}".format(port)

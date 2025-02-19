@@ -1,41 +1,32 @@
+import inspect
+import json
+import logging
+import os
+import sys
+import time
+# from socketIO_client import SocketIO, LoggingNamespace
+import traceback
+from datetime import datetime, timedelta
+
+import dill
+import setproctitle
+from mTree.core_actors.admin_message import AdminMessage
+from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.directive_decorators import *
+# from mTree.microeconomic_system.admin_message import AdminMessage
+from mTree.microeconomic_system.initialization_messages import *
+from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.log_message import LogMessage
+from mTree.microeconomic_system.mes_component_base import MESComponentBase
+from mTree.microeconomic_system.mes_exceptions import *
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import Message, MessageSpace
+from mTree.microeconomic_system.probe_messages import ProbeMessage
+from mTree.microeconomic_system.sequence_event import SequenceEvent
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 
 
-from mTree.microeconomic_system.message_space import Message
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-from mTree.microeconomic_system.log_message import LogMessage
-from mTree.microeconomic_system.sequence_event import SequenceEvent
-from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.log_actor import LogActor
-from mTree.microeconomic_system.address_book import AddressBook
-from mTree.microeconomic_system.mes_exceptions import *
-# from mTree.microeconomic_system.admin_message import AdminMessage
-from mTree.microeconomic_system.initialization_messages import *
-from mTree.microeconomic_system.probe_messages import ProbeMessage
-from mTree.core_actors.admin_message import AdminMessage
-
-from mTree.microeconomic_system.mes_component_base import MESComponentBase
-
-
-
-# from socketIO_client import SocketIO, LoggingNamespace
-import traceback
-import logging
-import json
-from datetime import datetime, timedelta
-import time
-import sys
-import inspect
-import time
-import os
-
-import setproctitle
-
-
-import json
-import dill
 def is_jsonable(x):
     try:
         json.dumps(x)
@@ -61,20 +52,18 @@ class Agent(MESComponentBase):
     def invoke_prepare(self):
         # TODO should provide unique id in proctitle for review
         setproctitle.setproctitle("mTree - Agent")
-        
+
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
-        message = AdminMessage(directive="register_pid",
-                                payload=pid)
+        message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
-
 
         logging.info("AGENT PREPARING")
         self.initialization_dict = self._startup_payload.startup_payload
         logging.info(self.initialization_dict)
 
         self._address_book = self._address_book_payload.address_book_payload
-        
+
         self.debug = self.initialization_dict["simulation_configuration"]["debug"]
         self.log_level = self.initialization_dict["simulation_configuration"][
             "log_level"
@@ -394,7 +383,7 @@ class Agent(MESComponentBase):
     #     # test = [ mthd for mthd in dir(self) if not inspect.ismethod(self.__getattribute__(mthd))  ]
     #     # output = {}
 
-    #     # bad_fields = dill.detect.badtypes(self, depth=1).keys()  
+    #     # bad_fields = dill.detect.badtypes(self, depth=1).keys()
     #     # logging.warn(output)
     #     # for i in test:
     #     #     if i not in bad_fields:
@@ -404,9 +393,7 @@ class Agent(MESComponentBase):
     #     #         output[i] = self.__getattribute__(i)
     #     # # self.send(sender, ProbeMessage(state_response=json.dumps(output, default=str)))
     #     # self.send(sender, output)
-                
 
-        
     #     if not isinstance(message, ActorSystemMessage):
     #         try:
     #             if message.get_directive() not in self._enabled_directives.keys():

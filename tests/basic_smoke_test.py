@@ -1,6 +1,8 @@
+from dataclasses import dataclass
+
 import pytest
 from thespian.actors import *
-from dataclasses import dataclass
+
 
 class BaseActorTest(Actor):
     def __init__(self):
@@ -36,4 +38,3 @@ def test_basic_message(pytest_actor_system):
     pytest_actor_system.listen()
     print("test")
     assert test_value == 2
-        

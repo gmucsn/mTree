@@ -1,11 +1,10 @@
-
+import datetime
 import types
 import uuid
-import datetime
 
+from mTree.new_objects.treatments import Treatment, Treatments
 from mTree.new_objects.user import User
 from mTree.new_objects.user_state import UserState
-from mTree.new_objects.treatments import Treatment, Treatments
 
 
 class Experiment:

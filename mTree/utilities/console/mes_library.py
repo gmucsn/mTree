@@ -1,40 +1,14 @@
-import sys
+import atexit
 import os
 import sys
-import pyfiglet
-
-# from mTree.runner.runner import Runner
-# from mTree.server.actor_system_startup import ActorSystemStartup
-# from mTree.server.actor_system_connector import ActorSystemConnector
-
 # from thespian.actors import *
 import time
+from datetime import datetime
+from subprocess import PIPE, Popen
 
-import atexit
-from subprocess import Popen, PIPE
-
-# import subprocess
-
-
-from textual.app import App, ComposeResult
-from textual.screen import Screen
-from textual.containers import Container, Horizontal, VerticalScroll
-from textual.widgets import (
-    Header,
-    Footer,
-    Tab,
-    Tabs,
-    Static,
-    Button,
-    TabbedContent,
-    TabPane,
-    OptionList,
-    Placeholder,
-    ListItem,
-    ListView,
-    Label,
-)
-from textual.widgets.option_list import Option, Separator
+import pyfiglet
+from mTree.system.actor_system_connector import ActorSystemConnector
+from mTree.system.mes_simulation_library import MESSimulationLibrary
 from rich import box
 from rich.console import RenderableType
 from rich.json import JSON
@@ -44,20 +18,45 @@ from rich.pretty import Pretty
 from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
-
-from datetime import datetime
-
-
-import atexit
-
-
 from textual.app import App, ComposeResult
-from textual.widgets import DataTable
+from textual.containers import Container, Horizontal, VerticalScroll
+from textual.screen import Screen
 from textual.timer import Timer
-from textual.widgets import Tree, SelectionList
+from textual.widgets import (
+    Button,
+    DataTable,
+    Footer,
+    Header,
+    Label,
+    ListItem,
+    ListView,
+    OptionList,
+    Placeholder,
+    SelectionList,
+    Static,
+    Tab,
+    TabbedContent,
+    TabPane,
+    Tabs,
+    Tree,
+)
+from textual.widgets.option_list import Option, Separator
 
-from mTree.system.actor_system_connector import ActorSystemConnector
-from mTree.system.mes_simulation_library import MESSimulationLibrary
+# from mTree.runner.runner import Runner
+# from mTree.server.actor_system_startup import ActorSystemStartup
+# from mTree.server.actor_system_connector import ActorSystemConnector
+
+
+
+# import subprocess
+
+
+
+
+
+
+
+
 
 
 def run_simulation_from_configurations(config_dir, configurations):
@@ -70,7 +69,7 @@ def run_simulation_from_configurations(config_dir, configurations):
         simulation_library.list_simulation_files_directory(working_dir)
         list_simulations = simulation_library.simulations
         configuration_name = os.path.basename(configuration)
-        
+
         simulation = simulation_library.get_simulation_by_filename(
             os.path.join(config_dir, configuration_name)
         )

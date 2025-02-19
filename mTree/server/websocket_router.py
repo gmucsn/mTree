@@ -1,9 +1,9 @@
 import asyncio
-import socketio
+import json
 
+import socketio
 from mTree.microeconomic_system.dispatcher import Dispatcher
 from thespian.actors import *
-
 
 # class Async:
 #     def __init__(self):
@@ -19,8 +19,6 @@ from thespian.actors import *
 #         print(word)
 #         await asyncio.sleep(1.0)
 
-import socketio
-import json
 
 # class Wrapper_class():
 #         sio = socketio.AsyncClient()

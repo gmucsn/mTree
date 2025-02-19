@@ -1,7 +1,7 @@
 import pytest
-
 from mes.basic_auction_agent import AuctionAgent
 from mTree.microeconomic_system.message import Message
+
 
 def component_wrapper(component):
     class Wrapper(component):
@@ -14,7 +14,6 @@ def component_wrapper(component):
             self.log_level = 1
             self.log_actor = None
             self.previous_message = None
-            
 
         def myAddress(self):
             return "SELF"
@@ -22,7 +21,6 @@ def component_wrapper(component):
         def send(self, target_address, new_message):
             self.previous_message = new_message
 
-        
         def get_previous_message(self):
             print("------")
             print(self.previous_message)
@@ -38,6 +36,7 @@ def component_wrapper(component):
     bare_component = Wrapper()
     return bare_component
 
+
 class TestAuctionAgent:
     @pytest.fixture(scope="class", autouse=True)
     def prepare_component(self):
@@ -52,8 +51,7 @@ class TestAuctionAgent:
         new_message.set_directive("bid_for_item")
         new_message.set_payload({"value_estimate": 10, "error": 2})
 
-
         prepare_component.start_bidding(new_message)
         message_out = prepare_component.get_previous_message()
-        
+
         assert message_out.get_payload()["bid"] >= 0

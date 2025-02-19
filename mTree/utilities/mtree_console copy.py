@@ -1,41 +1,17 @@
-import sys
+import atexit
 import os
 import sys
-import pyfiglet
-
-# from mTree.runner.runner import Runner
-from mTree.server.actor_system_startup import ActorSystemStartup
-from mTree.server.actor_system_connector import ActorSystemConnector
-
 # from thespian.actors import *
 import time
+from subprocess import PIPE, Popen
 
-import atexit
-from subprocess import Popen, PIPE
-
-# import subprocess
-
-
-from textual.app import App, ComposeResult
-from textual.screen import Screen
-from textual.containers import Container, Horizontal, VerticalScroll
-from textual.widgets import (
-    Header,
-    Footer,
-    Tab,
-    Tabs,
-    Static,
-    Button,
-    TabbedContent,
-    TabPane,
-    OptionList,
-    Placeholder,
-    ListItem,
-    ListView,
-    Label,
-)
-from textual.widgets.option_list import Option, Separator
-from rich import box
+import pyfiglet
+from mTree.server.actor_system_connector import ActorSystemConnector
+# from mTree.runner.runner import Runner
+from mTree.server.actor_system_startup import ActorSystemStartup
+from mTree.utilities.mtree_run_simulation_screen import MTreeRunSimulationScreen
+from mTree.utilities.mtree_system_status_screen import MTreeSystemStatusScreen
+from rich import box, print
 from rich.console import RenderableType
 from rich.json import JSON
 from rich.markdown import Markdown
@@ -44,8 +20,30 @@ from rich.pretty import Pretty
 from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
+from textual.app import App, ComposeResult
+from textual.containers import Container, Horizontal, VerticalScroll
+from textual.screen import Screen
+from textual.widgets import (
+    Button,
+    Footer,
+    Header,
+    Label,
+    ListItem,
+    ListView,
+    OptionList,
+    Placeholder,
+    Static,
+    Tab,
+    TabbedContent,
+    TabPane,
+    Tabs,
+)
+from textual.widgets.option_list import Option, Separator
 
-import atexit
+# import subprocess
+
+
+
 
 
 @atexit.register
@@ -192,8 +190,6 @@ class Simulations(Static):
         # )
 
 
-import pyfiglet
-from rich import print
 
 title = pyfiglet.figlet_format("mTree Console", font="slant")
 # print(f'[magenta]{title}[/magenta]')
@@ -253,8 +249,6 @@ class HelpScreen(Screen):
         yield Footer()
 
 
-from mTree.utilities.mtree_system_status_screen import MTreeSystemStatusScreen
-from mTree.utilities.mtree_run_simulation_screen import MTreeRunSimulationScreen
 
 
 class MTreeConsole(App):

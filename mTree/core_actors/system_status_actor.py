@@ -1,15 +1,14 @@
-from thespian.actors import *
+import datetime
 import logging
+import os
 
-from mTree.core_actors.admin_message import AdminMessage
+import psutil
+import setproctitle
 from mTree.core_actors.actor_process_descriptor import ActorProcessDescriptor
-
+from mTree.core_actors.admin_message import AdminMessage
+from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 
-import datetime
-import setproctitle
-import os
-import psutil
 
 @initializing_messages([("starting", str)], initdone="init_done")
 class SystemStatusActor(Actor):

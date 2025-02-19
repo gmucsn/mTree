@@ -1,33 +1,33 @@
+import hashlib
+import json
+import logging
+import os
+import random
+from dataclasses import dataclass, field
+from datetime import datetime
 from email.mime import base
 from importlib.util import source_hash
-from mTree.microeconomic_system.initialization_messages import MESConfigurationPayload
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
-import os
-import numpy as np
+from typing import Dict
 
-from mTree.microeconomic_system.message_space import Message
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
+import numpy as np
+import setproctitle
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.initialization_messages import MESConfigurationPayload
 from mTree.microeconomic_system.log_actor import LogActor
-from mTree.microeconomic_system.outconnect import OutConnect
 from mTree.microeconomic_system.mes_container import MESContainer
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import Message, MessageSpace
+from mTree.microeconomic_system.outconnect import OutConnect
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 
 # from mTree.microeconomic_system.web_socket_router_actor import WebSocketRouterActor
 
 # from socketIO_client import SocketIO, LoggingNamespace
 
-import logging
-import json
-import hashlib
-import random
-from datetime import datetime
 
-from dataclasses import dataclass, field
-from typing import Dict
 
 
 # This class represents a request for an MES component
@@ -103,7 +103,6 @@ class SimulationRun:
         return self.__str__()
 
 
-import setproctitle
 
 
 @initializing_messages([("starting", str)], initdone="init_done")
@@ -140,8 +139,7 @@ class Dispatcher(Actor):
         # Report pid to the system status actor
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
-        message = AdminMessage(directive="register_pid",
-                                payload=pid)
+        message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
         # system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         # self.send(system_status_actor, "START")

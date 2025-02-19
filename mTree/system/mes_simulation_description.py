@@ -1,9 +1,10 @@
-from jsonschema import validate
 import json
 import uuid
+
+from jsonschema import validate
+from mTree.microeconomic_system.agent import Agent
 from mTree.microeconomic_system.environment import Environment
 from mTree.microeconomic_system.institution import Institution
-from mTree.microeconomic_system.agent import Agent
 
 simulation_description_schema = {
     "$schema": "http://json-schema.org/draft-04/schema#",

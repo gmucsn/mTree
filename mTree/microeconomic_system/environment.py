@@ -1,30 +1,25 @@
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
-from datetime import datetime, timedelta
-
-import logging
-
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-from mTree.microeconomic_system.log_message import LogMessage
-from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.log_actor import LogActor
-from mTree.microeconomic_system.address_book import AddressBook
-from mTree.microeconomic_system.mes_exceptions import *
-from mTree.microeconomic_system.sequence_event import SequenceEvent
-from mTree.microeconomic_system.initialization_messages import *
-from mTree.core_actors.admin_message import AdminMessage
-from mTree.microeconomic_system.mes_component_base import MESComponentBase
-
-import time
-
-import traceback
 import json
+import logging
 import os
 import sys
+import time
+import traceback
+from datetime import datetime, timedelta
 
 import setproctitle
-
+from mTree.core_actors.admin_message import AdminMessage
+from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.initialization_messages import *
+from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.log_message import LogMessage
+from mTree.microeconomic_system.mes_component_base import MESComponentBase
+from mTree.microeconomic_system.mes_exceptions import *
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import MessageSpace
+from mTree.microeconomic_system.sequence_event import SequenceEvent
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 
 
 @initializing_messages(
@@ -33,7 +28,7 @@ import setproctitle
         ("_startup_payload", StartupPayload),
         ("_address_book_payload", AddressBookPayload),
     ],
-    initdone="invoke_prepare"
+    initdone="invoke_prepare",
 )
 @directive_enabled_class
 class Environment(MESComponentBase):
@@ -46,8 +41,7 @@ class Environment(MESComponentBase):
         # Report pid to the system status actor
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
-        message = AdminMessage(directive="register_pid",
-                                payload=pid)
+        message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
         logging.info("environment setup....")
         # prepare the environment...
@@ -80,13 +74,15 @@ class Environment(MESComponentBase):
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
 
         # prepping log actor
-        self.log_actor = self.createActor("log_actor.LogActor") #, globalName="log_actor")
+        self.log_actor = self.createActor(
+            "log_actor.LogActor"
+        )  # , globalName="log_actor")
 
         log_basis = {}
         log_basis["message_type"] = "setup"
 
         # setting short name for environment
-        #self.short_name = message.get_payload()["short_name"]
+        # self.short_name = message.get_payload()["short_name"]
         logging.info("ENVIRONMENT logger prepared")
 
         self.short_name = self.initialization_dict["short_name"]
@@ -99,7 +95,7 @@ class Environment(MESComponentBase):
 
         log_basis["simulation_run_id"] = self.initialization_dict["simulation_run_id"]
         log_basis["simulation_id"] = self.initialization_dict["simulation_id"]
-        log_basis["run_number"] = 1 #self.initialization_dict["simulation_run_number"]
+        log_basis["run_number"] = 1  # self.initialization_dict["simulation_run_number"]
         # TODO Fix references
         # log_basis["run_code"] = self.initialization_dict["run_code"]
         # log_basis["status"] = self.initialization_dict["status"]
@@ -379,9 +375,10 @@ class Environment(MESComponentBase):
         log_basis["status"] = message.get_payload()["status"]
         log_basis["mes_directory"] = message.get_payload()["mes_directory"]
         log_basis["data_logging"] = message.get_payload()["data_logging"]
-        log_basis["simulation_configuration"] = message.get_payload()["simulation_configuration"]
-        self.send(self.log_actor, log_basis) 
-        
+        log_basis["simulation_configuration"] = message.get_payload()[
+            "simulation_configuration"
+        ]
+        self.send(self.log_actor, log_basis)
 
     # def log_sequence_event(self, message):
     #     sequence_event = SequenceEvent(
@@ -610,115 +607,117 @@ class Environment(MESComponentBase):
         new_message.set_payload(message.get_payload())
         self.send(subject_agent_map, new_message)
 
-    # @directive_decorator("setup_institution")
-    # def create_institution(self, message:Message):
-    #     if "institutions" not in dir(self):
-    #         self.institutions = []
+        # @directive_decorator("setup_institution")
+        # def create_institution(self, message:Message):
+        #     if "institutions" not in dir(self):
+        #         self.institutions = []
 
-    #     institution_class = message.get_payload()["institution_class"]
-    #     source_hash = message.get_payload()["source_hash"]
-    #     institution_order = message.get_payload()["order"]
+        #     institution_class = message.get_payload()["institution_class"]
+        #     source_hash = message.get_payload()["source_hash"]
+        #     institution_order = message.get_payload()["order"]
 
-    #     new_institution = self.createActor(institution_class, sourceHash=source_hash)
+        #     new_institution = self.createActor(institution_class, sourceHash=source_hash)
 
-    #     ###
-    #     # Insitutiton Initialization Message 1
-    #     ###
-    #     super().send(new_institution, institution_class + " " + str(institution_order))
+        #     ###
+        #     # Insitutiton Initialization Message 1
+        #     ###
+        #     super().send(new_institution, institution_class + " " + str(institution_order))
 
-    #     startup_payload = {}
-    #     startup_payload["address_type"] = "institution"
-    #     startup_payload["address"] = new_institution
-    #     startup_payload["component_class"] = institution_class
-    #     startup_payload["component_number"] = 1
-    #     startup_payload["short_name"] = institution_class + " " + str(institution_order)
-    #     startup_payload["properties"] = self.mtree_properties
+        #     startup_payload = {}
+        #     startup_payload["address_type"] = "institution"
+        #     startup_payload["address"] = new_institution
+        #     startup_payload["component_class"] = institution_class
+        #     startup_payload["component_number"] = 1
+        #     startup_payload["short_name"] = institution_class + " " + str(institution_order)
+        #     startup_payload["properties"] = self.mtree_properties
 
-    #     startup_payload["environment"] = self.myAddress
-    #     startup_payload["simulation_id"] = self.simulation_id
-    #     startup_payload["simulation_run_id"] = self.simulation_run_id
-    #     startup_payload["log_actor"] = self.log_actor
-    #     if "run_number" in dir(self):
-    #         startup_payload["run_number"] = self.run_number
+        #     startup_payload["environment"] = self.myAddress
+        #     startup_payload["simulation_id"] = self.simulation_id
+        #     startup_payload["simulation_run_id"] = self.simulation_run_id
+        #     startup_payload["log_actor"] = self.log_actor
+        #     if "run_number" in dir(self):
+        #         startup_payload["run_number"] = self.run_number
 
-    #     ###
-    #     # Insitutiton Initialization Message 2
-    #     ###
-    #     super().send(new_institution, StartupPayload(startup_payload=startup_payload))
+        #     ###
+        #     # Insitutiton Initialization Message 2
+        #     ###
+        #     super().send(new_institution, StartupPayload(startup_payload=startup_payload))
 
-    #     institution_info = {}
-    #     institution_info["address_type"] = "institution"
-    #     institution_info["address"] = new_institution
-    #     institution_info["component_class"] = institution_class
-    #     institution_info["component_number"] = 1
-    #     institution_info["short_name"] = institution_class + " " + str(institution_order)
-    #     self.address_book.add_address(institution_info["short_name"], institution_info)
+        #     institution_info = {}
+        #     institution_info["address_type"] = "institution"
+        #     institution_info["address"] = new_institution
+        #     institution_info["component_class"] = institution_class
+        #     institution_info["component_number"] = 1
+        #     institution_info["short_name"] = institution_class + " " + str(institution_order)
+        #     self.address_book.add_address(institution_info["short_name"], institution_info)
 
-    #     new_message = Message()
-    #     #new_message.set_sender(self.myAddress)
-    #     new_message.set_directive("simulation_properties")
-    #     payload = {}
+        #     new_message = Message()
+        #     #new_message.set_sender(self.myAddress)
+        #     new_message.set_directive("simulation_properties")
+        #     payload = {}
 
-    #     #if "mtree_properties" not in dir(self):
-    #     #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
-    #     payload["environment"] = self.myAddress
-    #     payload["properties"] = self.mtree_properties
-    #     payload["simulation_id"] = self.simulation_id
-    #     payload["simulation_run_id"] = self.simulation_run_id
-    #     payload["log_actor"] = self.log_actor
-    #     if "run_number" in dir(self):
-    #         payload["run_number"] = self.run_number
+        #     #if "mtree_properties" not in dir(self):
+        #     #payload["dispatcher"] = self.createActor("Dispatcher", globalName="dispatcher")
+        #     payload["environment"] = self.myAddress
+        #     payload["properties"] = self.mtree_properties
+        #     payload["simulation_id"] = self.simulation_id
+        #     payload["simulation_run_id"] = self.simulation_run_id
+        #     payload["log_actor"] = self.log_actor
+        #     if "run_number" in dir(self):
+        #         payload["run_number"] = self.run_number
 
-    #     payload["institution_info"] = institution_info
+        #     payload["institution_info"] = institution_info
 
-    #     new_message.set_payload(payload)
-    #     #self.send(new_institution, new_message)
+        #     new_message.set_payload(payload)
+        #     #self.send(new_institution, new_message)
 
-    #     self.institutions.append(new_institution)
+        #     self.institutions.append(new_institution)
 
-    # def send_message(self, directive, receiver, payload=None):
-    #     """Send message
-    #     Constructs and sends a message inside the system"""
-    #     new_message = Message()
-    #     new_message.set_sender(self.myAddress)
-    #     new_message.set_directive(directive)
-    #     if payload is not None:
-    #         new_message.set_payload(payload)
+        # def send_message(self, directive, receiver, payload=None):
+        #     """Send message
+        #     Constructs and sends a message inside the system"""
+        #     new_message = Message()
+        #     new_message.set_sender(self.myAddress)
+        #     new_message.set_directive(directive)
+        #     if payload is not None:
+        #         new_message.set_payload(payload)
 
-    #     if isinstance(receiver, list):
-    #         for target_address in receiver:
-    #             self.send(target_address, new_message)
+        #     if isinstance(receiver, list):
+        #         for target_address in receiver:
+        #             self.send(target_address, new_message)
 
-    #     else:
-    #         receiver_address = self.address_book.select_addresses(
-    #             {"short_name": receiver}
-    #         )
+        #     else:
+        #         receiver_address = self.address_book.select_addresses(
+        #             {"short_name": receiver}
+        #         )
 
-    #         self.send(receiver_address, new_message)
+        #         self.send(receiver_address, new_message)
 
-    #     # else:
-    #     #     receiver_address = receiver
-    #     #     # self.address_book.select_addresses(
-    #     #     #                     {"short_name": receiver})
+        #     # else:
+        #     #     receiver_address = receiver
+        #     #     # self.address_book.select_addresses(
+        #     #     #                     {"short_name": receiver})
 
-    #     #     self.send(receiver_address, new_message)
+        #     #     self.send(receiver_address, new_message)
 
-    # def send(self, targetAddress, message):
-    #     if hasattr(self, "short_name") and type(message) is Message:
-    #         try:
-    #             message.set_short_name(self.short_name)
-    #         except:
-    #             message.set_short_name(self.__class__.__name__)
-    #     elif type(message) is Message:
-    #         try:
-    #             message.set_short_name(self.__class__.__name__)
-    #         except:
-    #             pass
+        # def send(self, targetAddress, message):
+        #     if hasattr(self, "short_name") and type(message) is Message:
+        #         try:
+        #             message.set_short_name(self.short_name)
+        #         except:
+        #             message.set_short_name(self.__class__.__name__)
+        #     elif type(message) is Message:
+        #         try:
+        #             message.set_short_name(self.__class__.__name__)
+        #         except:
+        #             pass
 
         if isinstance(message, Message):
-            self.log_message("Environment: sending to "  + " directive: " + message.get_directive() )
-        
-        if type(targetAddress) is list:            
+            self.log_message(
+                "Environment: sending to " + " directive: " + message.get_directive()
+            )
+
+        if type(targetAddress) is list:
             if len(targetAddress) == 0:
                 raise Exception("Trying to send to an empty list of addresses.")
             for address in targetAddress:
@@ -726,7 +725,6 @@ class Environment(MESComponentBase):
         else:
             if targetAddress is not None:
                 super().send(targetAddress, message)
-   
 
     def list_agents(self):
         message = MessageSpace.list_agents()

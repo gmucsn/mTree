@@ -1,15 +1,13 @@
-from thespian.actors import *
-
-from mTree.microeconomic_system.message_space import Message
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.log_actor import LogActor
-from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
-from mTree.server.component_registrar import ComponentRegistrar
-
-import logging
 import json
+import logging
+
+from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
+from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import Message, MessageSpace
+from mTree.server.component_registrar import ComponentRegistrar
+from thespian.actors import *
 
 capabilities = dict([("Admin Port", 1900)])
 

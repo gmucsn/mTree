@@ -1,8 +1,9 @@
-from thespian.actors import *
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
 import sys
 from datetime import timedelta
+
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import MessageSpace
+from thespian.actors import *
 
 
 class Universe:

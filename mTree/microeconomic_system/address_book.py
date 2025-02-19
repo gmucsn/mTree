@@ -1,7 +1,8 @@
-from mTree.microeconomic_system.message import Message
-import uuid
-import logging
 import json
+import logging
+import uuid
+
+from mTree.microeconomic_system.message import Message
 
 
 class AddressBook:

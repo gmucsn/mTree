@@ -1,15 +1,15 @@
-from mTree.server.actor_system_startup import ActorSystemStartup
 import os
 import sys
-from thespian.actors import *
 import time
+from os import name, system
+
 import socketio
+from mTree.server.actor_system_startup import ActorSystemStartup
 from thespian.actors import *
 
 os.environ["THESPLOG_THRESHOLD"] = "DEBUG"
 os.environ["THESPLOG_FILE"] = os.path.join(os.getcwd(), "thespian.log")
 
-import socketio
 
 sio = socketio.Client()
 
@@ -29,8 +29,6 @@ def hello(a, b, c):
     print(a, b, c)
 
 
-from os import system, name
-from thespian.actors import *
 
 
 def clear():

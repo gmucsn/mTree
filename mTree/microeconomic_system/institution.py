@@ -1,39 +1,26 @@
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
-
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-from mTree.microeconomic_system.log_message import LogMessage
-from mTree.microeconomic_system.address_book import AddressBook
-from mTree.microeconomic_system.mes_exceptions import *
-import uuid
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.sequence_event import SequenceEvent
-from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.log_actor import LogActor
-from mTree.microeconomic_system.initialization_messages import *
-from mTree.core_actors.admin_message import AdminMessage
-import logging
 import json
-import traceback
-from datetime import datetime, timedelta
-import time
-import sys
+import logging
 import os
+import sys
+import time
+import traceback
+import uuid
+from datetime import datetime, timedelta
 
 import setproctitle
-
+from mTree.core_actors.admin_message import AdminMessage
+from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.initialization_messages import *
+from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.mes_component_base import MESComponentBase
-
-
-from mTree.microeconomic_system.mes_component_base import MESComponentBase
-
-
-from mTree.microeconomic_system.mes_component_base import MESComponentBase
-
-
-from mTree.microeconomic_system.mes_component_base import MESComponentBase
-
+from mTree.microeconomic_system.mes_exceptions import *
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import MessageSpace
+from mTree.microeconomic_system.sequence_event import SequenceEvent
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 
 
 @initializing_messages(
@@ -57,8 +44,7 @@ class Institution(MESComponentBase):
         setproctitle.setproctitle("mTree - Institution")
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
-        message = AdminMessage(directive="register_pid",
-                                payload=pid)
+        message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
 
         # prepare the institution...
@@ -120,7 +106,6 @@ class Institution(MESComponentBase):
     #     self.agents = []
     #     self.agent_ids = []
     #     self.mtree_properties = {}
-
 
     # def log_sequence_event(self, message):
     #     # logging.info("Institution should be sequence logging")
@@ -340,37 +325,42 @@ class Institution(MESComponentBase):
 
         self.environment = message.get_payload()["environment"]
 
-    # def send_message(self, directive, receiver, payload=None):
-    #     """Send message
-    #     Constructs and sends a message inside the system"""
-    #     new_message = Message()
-    #     new_message.set_sender(self.myAddress)
-    #     new_message.set_directive(directive)
-    #     if payload is not None:
-    #         new_message.set_payload(payload)
+        # def send_message(self, directive, receiver, payload=None):
+        #     """Send message
+        #     Constructs and sends a message inside the system"""
+        #     new_message = Message()
+        #     new_message.set_sender(self.myAddress)
+        #     new_message.set_directive(directive)
+        #     if payload is not None:
+        #         new_message.set_payload(payload)
 
-    #     if isinstance(receiver, list):
-    #         for target_address in receiver:
-    #             self.send(target_address, new_message)
-    #     else:
-    #         receiver_address = self.address_book.select_addresses(
-    #             {"short_name": receiver}
-    #         )
+        #     if isinstance(receiver, list):
+        #         for target_address in receiver:
+        #             self.send(target_address, new_message)
+        #     else:
+        #         receiver_address = self.address_book.select_addresses(
+        #             {"short_name": receiver}
+        #         )
 
-    #         self.send(receiver_address, new_message)
+        #         self.send(receiver_address, new_message)
 
-    # def send(self, targetAddress, message):
-    #     if hasattr(self, "short_name") and type(message) is Message:
-    #         try:
-    #             message.set_short_name(self.short_name)
-    #         except:
-    #             message.set_short_name(self.__class__.__name__)
+        # def send(self, targetAddress, message):
+        #     if hasattr(self, "short_name") and type(message) is Message:
+        #         try:
+        #             message.set_short_name(self.short_name)
+        #         except:
+        #             message.set_short_name(self.__class__.__name__)
 
         if isinstance(message, Message):
-            self.log_message("Institution (" + self.short_name + ") : sending to "  + " directive: " + message.get_directive())
+            self.log_message(
+                "Institution ("
+                + self.short_name
+                + ") : sending to "
+                + " directive: "
+                + message.get_directive()
+            )
 
-
-        if type(targetAddress) is list:            
+        if type(targetAddress) is list:
             if len(targetAddress) == 0:
                 raise Exception("Trying to send to an empty list of addresses.")
             for address in targetAddress:
@@ -378,7 +368,6 @@ class Institution(MESComponentBase):
         else:
             if targetAddress is not None:
                 super().send(targetAddress, message)
-   
 
     def add_agent(self, agent_class):
         if "agents" not in dir(self):

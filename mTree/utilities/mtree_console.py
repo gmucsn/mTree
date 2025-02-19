@@ -2,14 +2,11 @@ import atexit
 import os
 from datetime import timedelta
 
-from thespian.actors import *
-
 from mTree.system.actor_system_controller import ActorSystemController
 from mTree.utilities.console.mtree_console_app import MTreeConsoleApp
+from thespian.actors import *
 
 # lsof -nP -i:19000
-
-
 
 
 @atexit.register
@@ -25,7 +22,6 @@ def main():
     mtree_console_app = MTreeConsoleApp()
     mtree_console_app.run()
 
-
     # capabilities = dict([("Admin Port", 19000)])
     # asys = ActorSystem(systemBase ="multiprocTCPBase", capabilities=capabilities)
     # try:
@@ -37,9 +33,8 @@ def main():
     # except  Exception as e:
     #     print(e)
 
-
     # actor_system = ActorSystemController(True)
     # capabilities = dict([("Admin Port", 19020)])
     # asys = ActorSystem(systemBase ="multiprocTCPBase", capabilities =capabilities) #@, logDefs=logcfg)
     # asys = ActorSystem('multiprocTCPBase')systemBase = None,
-                    #    capabilities = None,
+    #    capabilities = None,

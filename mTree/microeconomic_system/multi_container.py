@@ -1,10 +1,11 @@
-from thespian.actors import *
 import logging
-from mTree.microeconomic_system.logging import logcfg
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
 import sys
 from datetime import timedelta
+
+from mTree.microeconomic_system.logging import logcfg
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import MessageSpace
+from thespian.actors import *
 
 
 class actorLogFilter(logging.Filter):

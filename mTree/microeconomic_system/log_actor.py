@@ -1,26 +1,24 @@
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
-
-from mTree.microeconomic_system.message_space import Message
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-from mTree.microeconomic_system.log_message import LogMessage
-from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.outconnect import OutConnect
-from mTree.microeconomic_system.sequence_event import SequenceEvent
-from mTree.microeconomic_system.initialization_messages import *
-from mTree.core_actors.admin_message import AdminMessage
+import json
+import logging
+import os
+import sys
 # from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 
-import os
-import sys
-import logging
-import json
+import setproctitle
+from mTree.core_actors.admin_message import AdminMessage
+from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.initialization_messages import *
+from mTree.microeconomic_system.log_message import LogMessage
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import Message, MessageSpace
+from mTree.microeconomic_system.outconnect import OutConnect
+from mTree.microeconomic_system.sequence_event import SequenceEvent
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 
 EXPERIMENT_DATA = 27
 
-import setproctitle
 
 
 @initializing_messages(
@@ -37,8 +35,7 @@ class LogActor(Actor):
         setproctitle.setproctitle("mTree - LogActor")
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
-        message = AdminMessage(directive="register_pid",
-                                payload=pid)
+        message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
 
         logging.info("SHOULD BE Starting insider logger 2")

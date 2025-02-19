@@ -1,13 +1,14 @@
-from thespian.actors import *
+import atexit
 import logging
-from pythonjsonlogger import jsonlogger
-from mTree.microeconomic_system.log_cfg import logcfg
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
 import sys
 from datetime import timedelta
-import atexit
+
 from mTree.components import registry
+from mTree.microeconomic_system.log_cfg import logcfg
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import MessageSpace
+from pythonjsonlogger import jsonlogger
+from thespian.actors import *
 
 
 class actorLogFilter(logging.Filter):
@@ -64,7 +65,7 @@ class Container:
 
     def actor_system_cleanup(self):
         self.actor_system.shutdown()
-        
+
     def create_root_environment(self, environment_class, properties=None):
         self.environment = self.actor_system.createActor(environment_class)
         if properties is not None:

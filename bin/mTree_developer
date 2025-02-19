@@ -1,21 +1,25 @@
 #! /usr/bin/python
 
-from mTree.development.development_server import DevelopmentServer#, MTreeController
-from mTree.server.admin import admin_area
-from mTree.microeconomic_system.agent import Agent
-import pyfiglet
-
-
+import atexit
+import glob
 import importlib
+import importlib.util
 #import inspectf
 import os
-import glob
-
-import importlib.util
+# load browser...
+import random
 import sys
-
+import threading
 # For illustrative purposes.
 import tokenize
+import webbrowser
+from subprocess import PIPE, Popen
+
+import pyfiglet
+from mTree.development.development_server import DevelopmentServer  # , MTreeController
+from mTree.microeconomic_system.agent import Agent
+from mTree.server.actor_system_startup import ActorSystemStartup
+from mTree.server.admin import admin_area
 
 ascii_banner = pyfiglet.figlet_format("mTree - Developer")
 print(ascii_banner)
@@ -23,7 +27,6 @@ print(ascii_banner)
 
 
 
-import atexit
 
 # @atexit.register
 # def goodbye():
@@ -136,14 +139,11 @@ plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
 #server.run()
 
 
-# load browser...
-import random, threading, webbrowser
 
 port = 5000
 url = "http://127.0.0.1:{0}".format(port)
 
 threading.Timer(2, lambda: webbrowser.open(url) ).start()
-from mTree.server.actor_system_startup import ActorSystemStartup
 
 # from threading import Thread 
 # def start_thespian():
@@ -157,8 +157,6 @@ from mTree.server.actor_system_startup import ActorSystemStartup
 #actor_system = ActorSystem('multiprocTCPBase')
 
 print("mTree - Background starting up...")
-import sys
-from subprocess import Popen, PIPE
 background_actor_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "mTree", "server", "background_actor_system.py")
         
 process = Popen([sys.executable, background_actor_py]) #, stdout=PIPE, stderr=PIPE)

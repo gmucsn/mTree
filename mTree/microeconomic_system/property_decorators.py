@@ -1,4 +1,5 @@
 from types import FunctionType
+
 from jsonschema import validate
 from mTree.components import registry
 

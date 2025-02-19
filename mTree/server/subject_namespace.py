@@ -2,19 +2,19 @@ from flask import (
     Flask,
     render_template,
     render_template_string,
-    session,
     request,
     send_from_directory,
+    session,
 )
 from flask_socketio import (
+    Namespace,
     SocketIO,
+    close_room,
+    disconnect,
     emit,
     join_room,
     leave_room,
-    close_room,
     rooms,
-    disconnect,
-    Namespace,
 )
 from mTree.server.subject_pool import SubjectPool
 

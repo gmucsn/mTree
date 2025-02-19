@@ -1,59 +1,70 @@
+import datetime
+import inspect
+import json
 import logging
-import time, datetime
+import os
+import time
+import unittest
+
+import pytest
+from mTree.microeconomic_system.environment import Environment
+from mTree.microeconomic_system.initialization_messages import AddressBookPayload, StartupPayload
+from mTree.microeconomic_system.probe_messages import ProbeMessage
 from thespian.actors import *
+from thespian.actors import ActorSystem
+
 # from mTree.microeconomic_system.test import *
 
 
-import unittest
-import pytest
-import logging
-import time
-from thespian.actors import ActorSystem
 
-from mTree.microeconomic_system.environment import Environment
-from mTree.microeconomic_system.initialization_messages import StartupPayload, AddressBookPayload
-from mTree.microeconomic_system.probe_messages import ProbeMessage
 
-import os
+
 os.environ["PYTEST"] = "1"
+
 
 class actorLogFilter(logging.Filter):
     def filter(self, logrecord):
-        return 'actorAddress' in logrecord.__dict__
+        return "actorAddress" in logrecord.__dict__
+
+
 class notActorLogFilter(logging.Filter):
     def filter(self, logrecord):
-        return 'actorAddress' not in logrecord.__dict__
+        return "actorAddress" not in logrecord.__dict__
+
 
 def simpleActorTestLogging():
     """This function returns a logging dictionary that can be passed as
-       the logDefs argument for ActorSystem() initialization to get
-       simple stdout logging configuration.  This is not necessary for
-       typical unit testing that uses the simpleActorSystemBase, but
-       it can be useful for multiproc.. ActorSystems where the
-       separate processes created should have a very simple logging
-       configuration.
+    the logDefs argument for ActorSystem() initialization to get
+    simple stdout logging configuration.  This is not necessary for
+    typical unit testing that uses the simpleActorSystemBase, but
+    it can be useful for multiproc.. ActorSystems where the
+    separate processes created should have a very simple logging
+    configuration.
     """
     import sys
-    if sys.platform == 'win32':
+
+    if sys.platform == "win32":
         # Windows will not allow sys.stdout to be passed to a child
         # process, which breaks the startup/config for some of the
         # tests.
-        handler = { 'class': 'logging.handlers.RotatingFileHandler',
-                    'filename': 'nosetests.log',
-                    'maxBytes': 256*1024,
-                    'backupCount':3,
+        handler = {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "nosetests.log",
+            "maxBytes": 256 * 1024,
+            "backupCount": 3,
         }
     else:
-        handler = { 'class': 'logging.StreamHandler',
-                    'stream': sys.stdout,
+        handler = {
+            "class": "logging.StreamHandler",
+            "stream": sys.stdout,
         }
     return {
-        'version' : 1,
-        'handlers': { #'discarder': {'class': 'logging.NullHandler' },
-            'testStream' : handler,
+        "version": 1,
+        "handlers": {  #'discarder': {'class': 'logging.NullHandler' },
+            "testStream": handler,
         },
-        'root': { 'handlers': ['testStream'] },
-        'disable_existing_loggers': False,
+        "root": {"handlers": ["testStream"]},
+        "disable_existing_loggers": False,
     }
     # logcfg = { 'version': 1,
     #        'formatters': {
@@ -78,53 +89,57 @@ def simpleActorTestLogging():
 
 testAdminPort = None
 
+
 def get_free_admin_port_random():
     global testAdminPort
     if testAdminPort is None:
         import random
+
         # Reserved system ports are typically below 1024. Ephemeral
         # ports typically start at either 32768 (Linux) or 49152
         # (IANA), or range from 1024-5000 (older Windows).  Pick
         # something unused outside those ranges for the admin.
         testAdminPort = random.randint(10000, 30000)
-        #testAdminPort = random.randint(5,60) * 1000
+        # testAdminPort = random.randint(5,60) * 1000
     else:
         testAdminPort = testAdminPort + 1
     return testAdminPort
 
+
 def get_free_admin_port():
-    import socket
     import random
+    import socket
+
     for tries in range(100):
         port = random.randint(5000, 30000)
         try:
-            for m,p in [ (socket.SOCK_STREAM, socket.IPPROTO_TCP),
-                         (socket.SOCK_DGRAM, socket.IPPROTO_UDP),
+            for m, p in [
+                (socket.SOCK_STREAM, socket.IPPROTO_TCP),
+                (socket.SOCK_DGRAM, socket.IPPROTO_UDP),
             ]:
                 s = socket.socket(socket.AF_INET, m, p)
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                s.bind(('',port))
+                s.bind(("", port))
                 s.close()
             return port
         except Exception:
             pass
     return get_free_admin_port_random()
 
-import inspect
-import json
 
 
 
 @pytest.fixture()
 def asys():
     caps = {}
-    caps['Admin Port'] = get_free_admin_port()
-    
-    asys = ActorSystem(systemBase='multiprocTCPBase',
-        capabilities=caps, 
-        logDefs=simpleActorTestLogging())
-    return asys
+    caps["Admin Port"] = get_free_admin_port()
 
+    asys = ActorSystem(
+        systemBase="multiprocTCPBase",
+        capabilities=caps,
+        logDefs=simpleActorTestLogging(),
+    )
+    return asys
 
 
 class TestFuncSimpleActorOperations(object):

@@ -1,13 +1,13 @@
-from thespian.actors import *
+import atexit
+import logging
+import sys
+from datetime import timedelta
 
+from mTree.microeconomic_system.message import Message
 # import logging
 # from mTree.microeconomic_system.logging import logcfg
 from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-import sys
-from datetime import timedelta
-import logging
-import atexit
+from thespian.actors import *
 
 
 class SubjectContainer:

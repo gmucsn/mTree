@@ -1,14 +1,15 @@
+import json
+
 from flask_socketio import (
+    Namespace,
     SocketIO,
+    close_room,
+    disconnect,
     emit,
     join_room,
     leave_room,
-    close_room,
     rooms,
-    disconnect,
-    Namespace,
 )
-import json
 
 
 class Subject:

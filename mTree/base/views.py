@@ -1,13 +1,5 @@
-from flask import Flask, render_template, session, request
-from flask_socketio import (
-    SocketIO,
-    emit,
-    join_room,
-    leave_room,
-    close_room,
-    rooms,
-    disconnect,
-)
+from flask import Flask, render_template, request, session
+from flask_socketio import SocketIO, close_room, disconnect, emit, join_room, leave_room, rooms
 
 
 @app.route("/")

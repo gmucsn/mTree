@@ -1,8 +1,9 @@
-from mTree.server.actor_system_startup import ActorSystemStartup
 import os
 import sys
-from thespian.actors import *
 import time
+
+from mTree.server.actor_system_startup import ActorSystemStartup
+from thespian.actors import *
 
 os.environ["THESPLOG_THRESHOLD"] = "WARNING"
 os.environ["THESPLOG_FILE"] = os.path.join(os.getcwd(), "thespian.log")

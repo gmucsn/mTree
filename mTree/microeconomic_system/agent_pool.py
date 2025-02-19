@@ -1,14 +1,11 @@
-from thespian.actors import *
-
-from mTree.microeconomic_system.message_space import Message
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-from mTree.microeconomic_system.directive_decorators import *
-
-import logging
 import json
+import logging
 
 import setproctitle
+from mTree.microeconomic_system.directive_decorators import *
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import Message, MessageSpace
+from thespian.actors import *
 
 
 @directive_enabled_class

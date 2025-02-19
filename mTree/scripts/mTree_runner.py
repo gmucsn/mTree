@@ -1,24 +1,15 @@
-import sys
+import argparse
+import atexit
 import os
+import subprocess
 import sys
-import pyfiglet
+import time
+from subprocess import PIPE, Popen
 
+import pyfiglet
 from mTree.runner.runner import Runner
 from mTree.server.actor_system_startup import ActorSystemStartup
-import os
-import sys
 from thespian.actors import *
-import time
-
-import atexit
-from thespian.actors import *
-import time
-import sys
-from subprocess import Popen, PIPE
-import subprocess
-
-import argparse
-
 
 ######
 # Description:

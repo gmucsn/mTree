@@ -1,20 +1,21 @@
-from thespian.actors import *
-
+import glob
 # from thespian.system.multiprocQueueBase import
 import logging
-import pythonjsonlogger
-from mTree.microeconomic_system.log_cfg import logcfg
-from mTree.microeconomic_system.dispatcher import Dispatcher
-from mTree.microeconomic_system.log_actor import LogActor
-from mTree.microeconomic_system.message_space import MessageSpace
-from mTree.microeconomic_system.message import Message
-import sys
-from datetime import timedelta
-from mTree.components import registry
 import os
-import glob
+import sys
 import time
 import traceback
+from datetime import datetime, timedelta
+
+import pythonjsonlogger
+from mTree.components import registry
+from mTree.microeconomic_system.dispatcher import Dispatcher
+from mTree.microeconomic_system.log_actor import LogActor
+from mTree.microeconomic_system.log_cfg import logcfg
+from mTree.microeconomic_system.message import Message
+from mTree.microeconomic_system.message_space import MessageSpace
+from pythonjsonlogger import jsonlogger
+from thespian.actors import *
 
 
 class actorLogFilter(logging.Filter):
@@ -37,8 +38,6 @@ class experimentLogFilter(logging.Filter):
         return logRecord.levelno == 25
 
 
-from pythonjsonlogger import jsonlogger
-from datetime import datetime
 
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):

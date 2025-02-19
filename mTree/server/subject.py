@@ -1,23 +1,10 @@
-from flask import Blueprint, render_template, abort
-from jinja2 import TemplateNotFound
-import jinja2
-from flask import session
-from flask_socketio import emit, join_room, leave_room
-
-# from .. import socketio
-from flask_socketio import (
-    SocketIO,
-    emit,
-    join_room,
-    leave_room,
-    close_room,
-    rooms,
-    disconnect,
-)
-
 import json
 
-
+import jinja2
+from flask import Blueprint, abort, render_template, session
+# from .. import socketio
+from flask_socketio import SocketIO, close_room, disconnect, emit, join_room, leave_room, rooms
+from jinja2 import TemplateNotFound
 from mTree.components import registry
 
 subject_area = Blueprint("subject_area", __name__, template_folder="templates")

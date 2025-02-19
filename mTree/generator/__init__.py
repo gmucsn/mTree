@@ -1,2 +1,2 @@
-from .templates import *
 from .generator import Generate
+from .templates import *

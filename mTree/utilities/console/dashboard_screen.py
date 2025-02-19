@@ -1,24 +1,5 @@
-
-from textual.app import App, ComposeResult
-from textual.screen import Screen
-from textual.containers import Container, Horizontal, VerticalScroll
-from textual.widgets import (
-    Header,
-    Footer,
-    Tab,
-    Tabs,
-    Static,
-    Button,
-    TabbedContent,
-    TabPane,
-    OptionList,
-    Placeholder,
-    ListItem,
-    ListView,
-    Label,
-)
-from textual.widgets.option_list import Option, Separator
-from rich import box
+import pyfiglet
+from rich import box, print
 from rich.console import RenderableType
 from rich.json import JSON
 from rich.markdown import Markdown
@@ -27,10 +8,25 @@ from rich.pretty import Pretty
 from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
-
-
-import pyfiglet
-from rich import print
+from textual.app import App, ComposeResult
+from textual.containers import Container, Horizontal, VerticalScroll
+from textual.screen import Screen
+from textual.widgets import (
+    Button,
+    Footer,
+    Header,
+    Label,
+    ListItem,
+    ListView,
+    OptionList,
+    Placeholder,
+    Static,
+    Tab,
+    TabbedContent,
+    TabPane,
+    Tabs,
+)
+from textual.widgets.option_list import Option, Separator
 
 title = pyfiglet.figlet_format("mTree Console", font="slant")
 

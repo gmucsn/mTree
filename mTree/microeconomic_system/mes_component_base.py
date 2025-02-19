@@ -1,13 +1,15 @@
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
-from mTree.microeconomic_system.log_message import LogMessage
-from mTree.microeconomic_system.probe_messages import ProbeMessage
-from mTree.microeconomic_system.message_space import Message
 import json
-import dill
 import sys
 import traceback
 from datetime import timedelta
+
+import dill
+from mTree.microeconomic_system.log_message import LogMessage
+from mTree.microeconomic_system.message_space import Message
+from mTree.microeconomic_system.probe_messages import ProbeMessage
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
+
 
 def is_jsonable(x):
     try:

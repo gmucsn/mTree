@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
-from typing import Dict
-from datetime import datetime, timedelta
 import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Dict
 
 
 @dataclass
