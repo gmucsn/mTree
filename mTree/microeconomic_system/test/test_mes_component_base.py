@@ -20,7 +20,7 @@ class BaseActorTest(Actor):
                 pass
 
 
-@pytest.fixture(scope=function)
+@pytest.fixture(scope="function")
 def pytest_basic_actor_system(request):
     actor_system = ActorSystem()
     # actor = actor_system.createActor(BaseActorTest, globalName="test")

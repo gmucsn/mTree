@@ -17,7 +17,7 @@ class BaseActorTest(Actor):
                 pass
 
 
-@pytest.fixture(scope=function)
+@pytest.fixture(scope="function")
 def pytest_actor_system(request):
     actor_system = ActorSystem("multiPrcQueueBase")
     actor = actor_system.createActor(BaseActorTest, globalName="test")
