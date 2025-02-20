@@ -12,7 +12,7 @@ from mTree.microeconomic_system.message import Message
 
 
 @directive_enabled_class
-class AuctionAgent(Agent):
+class BasicAuctionAgent(Agent):
     def prepare(self):
         self.endowment = None
         self.institution = None
