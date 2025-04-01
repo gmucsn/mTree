@@ -7,6 +7,11 @@ name = "mTree"
 dynamic = ["version"]
 dependencies = [
     'thespian==3.10.7',
+    'Flask==3.0.2',
+    'Flask-SocketIO==5.3.6',
+    'Flask-APScheduler==1.12.3',
+    'Flask-BasicAuth==0.2.0',
+    'Flask-SQLAlchemy==2.5.1',
     'eventlet',
     'pyfiglet==0.8.post1',
     'jsonschema==4.4.0',
@@ -28,6 +33,7 @@ dependencies = [
     'python-socketio==5.12.1',
     'uvicorn==0.34.0',
     'dill==0.3.9'
+]
 requires-python = ">=3.10"
 authors = [
   {name = "GMU CEELAB", email = "mtree.email@gmail.com"}
