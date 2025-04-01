@@ -6,6 +6,8 @@ __pycache__/
 examples/**/logs
 
 system.log
+*.log
+*.log.old
 THESPIAN_OUT.LOG
 
 # C extensions
