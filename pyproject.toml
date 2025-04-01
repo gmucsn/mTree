@@ -7,13 +7,7 @@ name = "mTree"
 dynamic = ["version"]
 dependencies = [
     'thespian==3.10.7',
-    'Flask==3.0.2',
-    'Flask-SocketIO==5.3.6',
-    'Flask-APScheduler==1.12.3',
-    'Flask-BasicAuth==0.2.0',
-    'Flask-SQLAlchemy==2.5.1',
     'eventlet',
-    'python-socketio==5.11.1',
     'pyfiglet==0.8.post1',
     'jsonschema==4.4.0',
     'requests==2.27.1',
