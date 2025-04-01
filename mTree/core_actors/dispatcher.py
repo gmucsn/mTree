@@ -9,7 +9,7 @@ from email.mime import base
 from importlib.util import source_hash
 from typing import Dict
 
-import numpy as np
+# import numpy as np
 import setproctitle
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.core_actors.admin_message import AdminMessage

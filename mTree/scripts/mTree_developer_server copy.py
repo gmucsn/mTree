@@ -62,7 +62,7 @@ def launch_background_actor_system():
     atexit.register(goodbye, process=process)
 
 
-def start_flask_developer_server():
+def start_developer_server():
     from mTree.development.development_server import DevelopmentServer  # , MTreeController
 
     ascii_banner = pyfiglet.figlet_format("mTree - Developer Server")
@@ -82,29 +82,6 @@ def start_flask_developer_server():
     threading.Timer(1, lambda: webbrowser.open(url)).start()
     print("mTree is launching")
     server = DevelopmentServer()
-    server.run_server()
-
-
-def start_developer_server():
-    from mTree.developer.developer_server import DeveloperServer
-
-    ascii_banner = pyfiglet.figlet_format("mTree - Developer Server")
-    print(ascii_banner)
-
-    # SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-    # # SCRIPT_DIR = "/repos/mTree_dev_folder"
-    # plugins_directory_path = os.path.join(SCRIPT_DIR, "components")
-    # # load browser...
-
-    # import threading
-    # import webbrowser
-
-    # port = 5000
-    # url = "http://127.0.0.1:{0}".format(port)
-
-    # threading.Timer(1, lambda: webbrowser.open(url)).start()
-    # print("mTree is launching")
-    server = DeveloperServer()
     server.run_server()
 
 
