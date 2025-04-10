@@ -14,6 +14,13 @@ Once installed, mTree is imported in the standard fashion.
 import mTree
 ```
 
+## Version 2 adaptive markets
+
+This will have a submodule reference to the adaptive 
+`git submodule init`
+
+You will access this repository inside the mTree_adaptive_markets folder inside of this.
+
 ## Developer Documentation
 
 mTree makes use of pdoc to document the code inside this repository. Assuming you have mTree installed you should be able to type `pdoc mTree` and the pdoc webserver will start and be available at http://localhost:8080
