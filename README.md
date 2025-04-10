@@ -21,6 +21,8 @@ This will have a submodule reference to the adaptive
 
 You will access this repository inside the mTree_adaptive_markets folder inside of this.
 
+These repositories will have to be somewhat manually synchronized.
+
 ## Developer Documentation
 
 mTree makes use of pdoc to document the code inside this repository. Assuming you have mTree installed you should be able to type `pdoc mTree` and the pdoc webserver will start and be available at http://localhost:8080
