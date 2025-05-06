@@ -43,6 +43,9 @@ from fastapi import FastAPI
 import socketio
 import uvicorn
 from mTree.developer.system_router import base_router
+from mTree.developer.subject_router import subject_router
+from mTree.developer.experiment_admin_router import experiment_admin_router
+from mTree.developer.developer_router import developer_router
 from mTree.developer.socketio_router import sio
 
 
@@ -56,7 +59,10 @@ class DeveloperServer(object):
         # self.socket_app = socketio.ASGIApp(sio)
         # self.app.mount("/comm_socket", self.socket_app)
         self.app.include_router(base_router)
-        self.socket_app = socketio.ASGIApp(sio, self.app)
+        self.app.include_router(subject_router, prefix="/subject")
+        self.app.include_router(experiment_admin_router, prefix="/admin")
+        self.app.include_router(developer_router, prefix="/developer")
+        self.socket_app = socketio.ASGIApp(sio, self.app)        
 
     def run_server(self):
         config = uvicorn.Config(self.socket_app, host="0.0.0.0", port=8000, reload=True, use_colors=False)

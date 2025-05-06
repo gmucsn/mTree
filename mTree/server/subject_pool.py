@@ -35,26 +35,28 @@ class SubjectPool:
     def register_flask_outlet(self, flask_outlet):
         SubjectPool.instance.flask_outlet = flask_outlet
 
-    def attempt_add(self, sid):
+    async def attempt_add(self, sid):
         if sid not in SubjectPool.instance.subject_pool.keys():
             new_subject = Subject(sid)
             SubjectPool.instance.subject_pool[sid] = new_subject
             self.update_subject_pool_emit()
             print("SUBJECT ADDED ", sid)
 
-    def attempt_remove(self, sid):
+    async def attempt_remove(self, sid):
         if sid in SubjectPool.instance.subject_pool.keys():
             SubjectPool.instance.subject_pool.pop(sid)
             self.update_subject_pool_emit()
             print("SUBJECT REMOVED ", sid)
 
-    def emit(self, message, data):
+    async def emit(self, message, data):
         response = {"message": message, "data": data}
-        SubjectPool.instance.flask_outlet.emit("response", response, namespace="/admin")
+        # SubjectPool.instance.flask_outlet.emit("response", response, namespace="/admin")
+        await SubjectPool.instance.flask_outlet.emit("chat", {"data": "from inside subject pool"}, namespace="/admin")
 
-    def update_subject_pool_emit(self):
+    async def update_subject_pool_emit(self):
         print("SHOULD EMIT FROM SUBJECT POOL UPDATE")
-        self.emit("subject_pool_data", self.get_json())
+        # await self.emit("subject_pool_data", self.get_json())
+        await SubjectPool.instance.flask_outlet.emit("chat", {"data": "from inside subject pool"}, namespace="/admin")
 
     def get_json(self):
         subject_ids = []

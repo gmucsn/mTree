@@ -38,7 +38,7 @@ from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.server.actor_system_connector import ActorSystemConnector
 from mTree.simulation.mes_simulation_library import MESSimulationLibrary
 from mTree.subject_interface.subject_endpoints import subject_area
-
+from mTree.server.subject_pool import SubjectPool
 # eventlet.monkey_patch()
 
 # from gevent.pywsgi import WSGIServer
@@ -95,6 +95,7 @@ class DevelopmentServer(object):
             logger=False,
             engineio_logger=False,
         )
+        SubjectPool().register_flask_outlet(self.socketio)
         ###
         # TODO think about the log setup above
         ###

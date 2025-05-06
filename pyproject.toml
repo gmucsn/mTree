@@ -32,7 +32,9 @@ dependencies = [
     'fastapi==0.115.11',
     'python-socketio==5.12.1',
     'uvicorn==0.34.0',
-    'dill==0.3.9'
+    'dill==0.3.9',
+    'fastapi-sio',
+    'python-multipart'
 ]
 requires-python = ">=3.10"
 authors = [
