@@ -40,15 +40,18 @@ class SubjectNamespace(socketio.AsyncNamespace):
 
     # @self.socketio.on("json", namespace="/subject")
     async def on_json(self, sid, json):
-
         command = json["command"]
         payload = json["payload"]
-
+        print("the command is ", command)
+        print("the payload is ", payload)
         if command == "register_subject_id":
             subject_directory = SubjectDirectory()
             subject_directory.update_subjects(payload["subject_id"], sid)
-            # self.join_room(payload["subject_id"])
-            # self.join_room("all_subjects")
+            # await self.join_room(payload["subject_id"])
+            # await self.join_room("all_subjects")
+            await self.enter_room(sid, payload["subject_id"])
+            await self.enter_room(sid, "all_subjects")
+            
             await self.emit(
                 "subject_message",
                 {"response": "Another Subject Connected "},
@@ -83,6 +86,7 @@ class AdminNamespace(socketio.AsyncNamespace):
         # self.subject_pool.attempt_add(request.sid)
         print("ADMIN Connected")
         self.admin_sid = sid
+        await self.emit("log_message", {"data": "Received by server."})
         await self.emit("chat", {"data": "Connected"})
 
     def on_disconnect(self, sid, reason):
@@ -138,6 +142,9 @@ class DeveloperNamespace(socketio.AsyncNamespace):
 
     async def on_connect(self, sid, environ):
         await self.emit("subject_message", {"response": "connected"})
+        # namespace="/developer",
+        await self.emit("log_message", {"data": "Received by server."})
+        
 
     def on_disconnect(self, sid, reason):
         # self.subject_pool.attempt_remove(sid)
@@ -147,44 +154,40 @@ class DeveloperNamespace(socketio.AsyncNamespace):
         pass
         # return self.subject_pool
 
+    async def on_json(self, sid, json):
+        print("Received a json message to admin...")
+        command = json["command"]
+        payload = json["payload"]
 
+        if command == "register_admin":
+            await self.enter_room(sid, "admin")
+        if command == "start_subject_experiment":
+            subject_directory = SubjectDirectory()
+            if not subject_directory.experiment_status():
+                self.emit(
+                    "experiment_status_message",
+                    {"response": "status", "payload": {"status": "Started"}},
+                )
+                subject_directory.start_experiment()
+                configuration = payload["configuration"]
+                # run_code_gen = str(uuid.uuid4())
+                # run_code = run_code_gen[0:6]
 
-
-# @self.socketio.on("json", namespace="/developer")
-#         def admin_json(json):
-#             print("Received a json message to admin...")
-#             command = json["command"]
-#             payload = json["payload"]
-
-#             if command == "register_admin":
-#                 join_room("admin")
-#             if command == "start_subject_experiment":
-#                 subject_directory = SubjectDirectory()
-#                 if not subject_directory.experiment_status():
-#                     emit(
-#                         "experiment_status_message",
-#                         {"response": "status", "payload": {"status": "Started"}},
-#                     )
-#                     subject_directory.start_experiment()
-#                     configuration = payload["configuration"]
-#                     # run_code_gen = str(uuid.uuid4())
-#                     # run_code = run_code_gen[0:6]
-
-#                     component_registry = Registry()
-#                     working_dir = os.path.join(os.getcwd())
-#                     simulation_library = MESSimulationLibrary()
-#                     simulation_library.list_human_subject_files_directory(working_dir)
-#                     simulation = simulation_library.get_simulation_by_filename(
-#                         configuration
-#                     )
-#                     actor_system = ActorSystemConnector()
-#                     working_dir = os.path.join(os.getcwd())
-#                     actor_system.run_human_subject_experiment(
-#                         working_dir,
-#                         configuration,
-#                         simulation["description"].to_hash(),
-#                         subject_directory.get_subjects(),
-#                     )
+                component_registry = Registry()
+                working_dir = os.path.join(os.getcwd())
+                simulation_library = MESSimulationLibrary()
+                simulation_library.list_human_subject_files_directory(working_dir)
+                simulation = simulation_library.get_simulation_by_filename(
+                    configuration
+                )
+                actor_system = ActorSystemConnector()
+                working_dir = os.path.join(os.getcwd())
+                actor_system.run_human_subject_experiment(
+                    working_dir,
+                    configuration,
+                    simulation["description"].to_hash(),
+                    subject_directory.get_subjects(),
+                )
 
 #         @self.socketio.on("disconnect")
 #         def test_disconnect():

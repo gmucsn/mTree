@@ -76,6 +76,7 @@
 
           
           this.socket.on('subject_message', (message) => {
+            console.log("Subject Message received")
             if (message.response == "subject_connection"){
               this.process_subject_message(message);
             }
