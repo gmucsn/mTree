@@ -114,7 +114,6 @@ class ActorSystemStartup:
         self.actor_system = ActorSystem(
             "multiprocTCPBase", capabilities=self.capabilities, logDefs=logcfg
         )
-        print("ABOUT TO START....")
         # self.actor_system = ActorSystem('multiprocTCPBase', logDefs=logcfg)
 
         logging.info("Checking System Status...")
@@ -131,44 +130,67 @@ class ActorSystemStartup:
         self.system_status_actor_address = status_actor
 
         logging.info("STATUS ACTOR STARTING... ")
-        self.actor_system.tell(
-            self.system_status_actor_address, "system_status_actor_initialization"
-        )
+        self.actor_system.tell(self.system_status_actor_address, "starting")
+        
 
-        # message = AdminMessage(request="start_source_authority")
+        logging.info("Dispatcher ACTOR STARTING... ")
+        dispatcher = self.actor_system.createActor(Dispatcher, globalName="Dispatcher")
+        self.actor_system.tell(dispatcher, "starting")
+        
+        # self.actor_system.tell(
+        #     self.system_status_actor_address, "system_status_actor_initialization"
+        # )
+
+        # message = AdminMessage(request="check_status")
         # self.actor_system.tell(status_actor, message)
-
+        
         message = AdminMessage(request="system_running")
+        message = AdminMessage(request="check_status")
         system_status = self.actor_system.ask(status_actor, message)
-
         return system_status
 
     def startup(self):
-        # status_actor = self.actor_system.createActor(Actor, globalName = "SystemStatusActor")
+        # The System Status Actor should be the first actor started.
+        # This actor will maintain a list of all known actors and what have you
+        system_status_actor = self.actor_system.createActor(
+            SystemStatusActor, globalName="SystemStatusActor"
+        )
+        self.actor_system.tell(system_status_actor, "starting")
+        # ActorSystemController.admin_actors.append("SystemStatusActor")
 
-        logging.info("STATUS ACTOR STARTING... ")
+        print("starting dispatcher")
         dispatcher = self.actor_system.createActor(Dispatcher, globalName="Dispatcher")
-        self.actor_system.tell(dispatcher, "dipatcher_initialization_message")
+        self.actor_system.tell(dispatcher, "starting")
+        # ActorSystemController.admin_actors.append("Dispatcher")
 
-        start_message = Message()
-        start_message.set_sender("system")
-        start_message.set_directive("register_dispatcher")
-        self.actor_system.tell(dispatcher, start_message)
+        return actor_system
 
-        # if self.websocket:
-        #     # try the websocket actor
-        #     web_socket_router_actor = self.actor_system.createActor(WebSocketRouterActor, globalName = "WebSocketRouterActor")
-        #     self.actor_system.tell(web_socket_router_actor, "web_socket_router_initializing")
-        #     print("Websocket actor address: " + str(web_socket_router_actor))
+        # trying different startup process
+        # # status_actor = self.actor_system.createActor(Actor, globalName = "SystemStatusActor")
 
-        #     #self.websocket_router = WebsocketRouter()
+        # logging.info("STATUS ACTOR STARTING... ")
+        # dispatcher = self.actor_system.createActor(Dispatcher, globalName="Dispatcher")
+        # self.actor_system.tell(dispatcher, "dipatcher_initialization_message")
 
-        #     # start_message = Message()
-        #     # start_message.set_sender("websocketrouter")
-        #     # start_message.set_directive("register_websocket_router")
+        # start_message = Message()
+        # start_message.set_sender("system")
+        # start_message.set_directive("register_dispatcher")
+        # self.actor_system.tell(dispatcher, start_message)
 
-        #     #self.actor_system.tell(dispatcher, start_message)
-        #     # self.actor_system.tell(web_socket_router_actor, start_message)
+        # # if self.websocket:
+        # #     # try the websocket actor
+        # #     web_socket_router_actor = self.actor_system.createActor(WebSocketRouterActor, globalName = "WebSocketRouterActor")
+        # #     self.actor_system.tell(web_socket_router_actor, "web_socket_router_initializing")
+        # #     print("Websocket actor address: " + str(web_socket_router_actor))
+
+        # #     #self.websocket_router = WebsocketRouter()
+
+        # #     # start_message = Message()
+        # #     # start_message.set_sender("websocketrouter")
+        # #     # start_message.set_directive("register_websocket_router")
+
+        # #     #self.actor_system.tell(dispatcher, start_message)
+        # #     # self.actor_system.tell(web_socket_router_actor, start_message)
 
     def load_base_mes(self):
         # script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system")

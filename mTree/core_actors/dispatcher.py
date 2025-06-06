@@ -130,6 +130,7 @@ class Dispatcher(Actor):
     #     # self.agent_memory = {}
 
     def init_done(self):
+        logging.info("Dispatcher initializing")
         setproctitle.setproctitle("mTree - Dispatcher Actor")
         self.simulation_runs = []
         self.configurations_pending = []
@@ -141,6 +142,8 @@ class Dispatcher(Actor):
         pid = os.getpid()
         message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
+        logging.info("Dispatcher Ready")
+        
         # system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         # self.send(system_status_actor, "START")
         # message = AdminMessage(request="register_dispatcher")
@@ -547,6 +550,7 @@ class Dispatcher(Actor):
                 self.send(environment_address, ActorExitRequest())
 
     def receiveMessage(self, message, sender):
+        logging.info("DISPATCHER actor message received -> ", message)
         # outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
         # self.send(outconnect, message)
         # logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
@@ -568,7 +572,8 @@ class Dispatcher(Actor):
 
                 # TODO targeting the only known human subject container...
                 self.send(self.human_subject_container, new_message)
-
+            elif isinstance(message, str):
+                pass
             else:
                 if message.get_directive() == "simulation_configurations":
                     self.configurations_pending = message.get_payload()

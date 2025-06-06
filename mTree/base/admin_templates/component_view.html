@@ -150,7 +150,6 @@
             $('button').click(function(){
                     var button_pressed = this.id;
                     message = {};
-                    console.log("Should be routing...")
                     switch(button_pressed){
                     case "start_experiment":
                         message['control'] = "START";
@@ -162,6 +161,7 @@
                         message['control'] = "STOP";
                         break;
                     }
+                    console.log("Admin Control Message: " + message);
                     socket.emit('admin_control', message);
 
                 }

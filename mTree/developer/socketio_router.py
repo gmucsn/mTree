@@ -1,4 +1,5 @@
 import socketio
+import os
 
 from mTree.components import registry
 # from mTree.server.component_registrar import ComponentRegistrar
@@ -6,6 +7,10 @@ from mTree.server.configuration_scanner import ConfigurationScanner
 from mTree.server.simulation_controller import SimulationController
 from mTree.server.subject_pool import SubjectPool
 from mTree.development.subject_directory import SubjectDirectory
+from mTree.components.registry import Registry
+from mTree.system.mes_simulation_library import MESSimulationLibrary
+from mTree.system.actor_system_connector import ActorSystemConnector
+
 
 sio=socketio.AsyncServer(cors_allowed_origins='*',async_mode='asgi')
 SubjectPool().register_flask_outlet(sio)
@@ -155,7 +160,7 @@ class DeveloperNamespace(socketio.AsyncNamespace):
         # return self.subject_pool
 
     async def on_json(self, sid, json):
-        print("Received a json message to admin...")
+        print("Admin message received: ", json)
         command = json["command"]
         payload = json["payload"]
 
@@ -164,7 +169,7 @@ class DeveloperNamespace(socketio.AsyncNamespace):
         if command == "start_subject_experiment":
             subject_directory = SubjectDirectory()
             if not subject_directory.experiment_status():
-                self.emit(
+                await self.emit(
                     "experiment_status_message",
                     {"response": "status", "payload": {"status": "Started"}},
                 )
@@ -173,21 +178,39 @@ class DeveloperNamespace(socketio.AsyncNamespace):
                 # run_code_gen = str(uuid.uuid4())
                 # run_code = run_code_gen[0:6]
 
-                component_registry = Registry()
-                working_dir = os.path.join(os.getcwd())
-                simulation_library = MESSimulationLibrary()
-                simulation_library.list_human_subject_files_directory(working_dir)
-                simulation = simulation_library.get_simulation_by_filename(
-                    configuration
+                # await self.emit(
+                #     "display_ui",
+                #     {"ui_file": "seller_interface.html"},
+                # )
+                
+                ui_file = os.path.join(os.getcwd(), "ui", "seller_interface.html")
+                ui_content = None
+                with open(ui_file, "r") as t_file:
+                    ui_content = t_file.read()
+                
+                await self.emit(
+                    "display_ui",
+                    {"ui_content": ui_content},
+                    namespace="/subject",
+                    to="all_subjects",
                 )
-                actor_system = ActorSystemConnector()
-                working_dir = os.path.join(os.getcwd())
-                actor_system.run_human_subject_experiment(
-                    working_dir,
-                    configuration,
-                    simulation["description"].to_hash(),
-                    subject_directory.get_subjects(),
-                )
+                # self.send_to_subject("display_ui", {"ui_file": "seller_interface.html"})
+
+                # component_registry = Registry()
+                # working_dir = os.path.join(os.getcwd())
+                # simulation_library = MESSimulationLibrary()
+                # simulation_library.list_human_subject_files_directory(working_dir)
+                # simulation = simulation_library.get_simulation_by_filename(
+                #     configuration
+                # )
+                # actor_system = ActorSystemConnector()
+                # working_dir = os.path.join(os.getcwd())
+                # actor_system.run_human_subject_experiment(
+                #     working_dir,
+                #     configuration,
+                #     simulation["description"].to_hash(),
+                #     subject_directory.get_subjects(),
+                # )
 
 #         @self.socketio.on("disconnect")
 #         def test_disconnect():

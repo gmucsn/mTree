@@ -11,8 +11,9 @@ import time
 import uuid
 from zipfile import ZipFile
 
+from mTree.components.registry import Registry
 from mTree.core_actors.admin_message import AdminMessage
-# from mTree.microeconomic_system.dispatcher import Dispatcher
+from mTree.core_actors.dispatcher import Dispatcher
 from mTree.microeconomic_system.message import Message
 from mTree.system.actor_system_controller import ActorSystemController
 from thespian.actors import *
@@ -53,23 +54,23 @@ class ActorSystemConnector:
     __instance = None
 
     def __init__(self):
-        pass
-        # if ActorSystemConnector.__instance is None:
-        #     self.actor_system = None
-        #     self.component_registry = registry.Registry()
-        #     self.container = None
-        #     self.component_registry.register_server(self)
-        #     # self.multi_simulation = multi_simulation
-        #     self.container = None
-        #     self.configuration = None
-        #     # self.capabilities = dict([('Admin Port', 19000)])
-        #     # self.actor_system = ActorSystem('multiprocTCPBase', capabilities=self.capabilities, logDefs=logcfg)
-        #     # self.capabilities = dict([('Admin Port', 19000)])
-        #     self.actor_system = ActorSystem("multiprocTCPBase")  # , logDefs=logcfg)
+        # pass
+        if ActorSystemConnector.__instance is None:
+            self.actor_system = None
+            self.component_registry = Registry()
+            self.container = None
+            self.component_registry.register_server(self)
+            # self.multi_simulation = multi_simulation
+            self.container = None
+            self.configuration = None
+            # self.capabilities = dict([('Admin Port', 19000)])
+            # self.actor_system = ActorSystem('multiprocTCPBase', capabilities=self.capabilities, logDefs=logcfg)
+            # self.capabilities = dict([('Admin Port', 19000)])
+            self.actor_system = ActorSystem("multiprocTCPBase")  # , logDefs=logcfg)
 
-        #     ActorSystemConnector.__instance = self
-        #     self.dispatchers = []
-        #     self.source_hashes = []
+            ActorSystemConnector.__instance = self
+            self.dispatchers = []
+            self.source_hashes = []
 
     @staticmethod
     def get_status():
@@ -194,9 +195,10 @@ class ActorSystemConnector:
         """
         This method allows injections of messages into the Actor System by routing through the Dispatcher.
         """
-        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(
-            Dispatcher, globalName="Dispatcher"
-        )  # ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        # dispatcher = ActorSystemConnector.__instance.actor_system.createActor(
+        #     Dispatcher, globalName="Dispatcher"
+        # )  
+        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Dispatcher, globalName = "Dispatcher")
         ActorSystemConnector.__instance.actor_system.tell(dispatcher, message)
 
     # 2022 purge
@@ -236,9 +238,19 @@ class ActorSystemConnector:
         source_hash = self.load_base_mes(mes_base_dir)
         self.capabilities = dict([("Admin Port", 19000)])
 
+        print("AFLKJASLFKJASLFKJALKFJZX<MVNZ><XNGV<>MN")
+        print("AFLKJASLFKJASLFKJALKFJZX<MVNZ><XNGV<>MN")
+        print("AFLKJASLFKJASLFKJALKFJZX<MVNZ><XNGV<>MN")
+        print("AFLKJASLFKJASLFKJALKFJZX<MVNZ><XNGV<>MN")
+        print("AFLKJASLFKJASLFKJALKFJZX<MVNZ><XNGV<>MN")
+        print("AFLKJASLFKJASLFKJALKFJZX<MVNZ><XNGV<>MN")
+        print("AFLKJASLFKJASLFKJALKFJZX<MVNZ><XNGV<>MN")
+        print("AFLKJASLFKJASLFKJALKFJZX<MVNZ><XNGV<>MN")
+
         dispatcher = ActorSystemConnector.__instance.actor_system.createActor(
             Actor, globalName="Dispatcher"
         )  # ActorSystem("multiprocTCPBase", self.capabilities).createActor(Dispatcher, globalName = "Dispatcher")
+        # ActorSystemConnector.__instance.actor_system.tell(dispatcher, "starting")
 
         self.__instance.dispatchers.append(dispatcher)
 

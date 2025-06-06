@@ -18,7 +18,7 @@ from mTree.server.actor_system_startup import ActorSystemStartup
 # os.environ['THESPLOG_THRESHOLD'] =  "DEBUG"
 
 
-# @atexit.register
+@atexit.register
 def goodbye(process=None):
     from thespian.actors import ActorSystem
 
@@ -30,8 +30,8 @@ def goodbye(process=None):
     time.sleep(3)
     actors.shutdown()
     time.sleep(1)
-    process.kill()
-    process.terminate()
+    # process.kill()
+    # process.terminate()
     print("mTree finished shutting down")
 
 

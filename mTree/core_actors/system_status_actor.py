@@ -27,7 +27,7 @@ class SystemStatusActor(Actor):
         #     print("Motto is there")
         # if not self.sa_running:
         self.registerSourceAuthority()
-        logging.info("STARTING STATUS ACTOR")
+        logging.info("The Status actor is starting... Initialization successful")
         self.sa_running = True
 
     def register_pid(self, msg):
@@ -36,6 +36,7 @@ class SystemStatusActor(Actor):
         
 
     def generate_status_report(self, sender):
+        logging.info("Generating status report")
         processes = []
         for pid in self.pids:
             try:
@@ -73,8 +74,7 @@ class SystemStatusActor(Actor):
         self.send(sender, self.processes)
 
     def receiveMessage(self, msg, sender):
-        logging.info("STARTING STATUS ACTOR")
-        logging.info("A MESSAGE -> ", msg)
+        logging.info("Status actor message received -> ")
         match msg:
             case AdminMessage():
                 match msg.directive:
