@@ -116,6 +116,51 @@ def mes_run_human_subject_experiment(request: Request, mes_directory: str, confi
     # )
     # return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title)
 
+
+@developer_router.get("/mes_run_human_subject_ui", tags=["developer"])
+def mes_run_human_subject_ui(request: Request, mes_directory: str, configuration: str):
+    title = "Human Subject Status"
+    return templates.TemplateResponse(
+        "mes_human_subject_screen_view.html", {"request": request, 
+        "title": title,
+        # "subject_ids":SUBJECT_IDS,
+        # "configuration": configuration
+        }
+    )
+    
+    
+    # component_registry = Registry()
+
+    # title = mes_directory + " - " + configuration + " - Configuration"
+    # working_dir = os.path.join(os.getcwd(), mes_directory)
+    # simulation_library = MESSimulationLibrary()
+    # simulation_library.list_simulation_files_directory(working_dir)
+    # simulation = simulation_library.get_simulation_by_filename(configuration)
+
+    # # actor_system = ActorSystemConnector()
+    # # working_dir = os.path.join(os.getcwd(), mes_directory)
+    # # #actor_system.send_message()
+    # # #actor_system.run_simulation(working_dir, simulation["description"].to_hash())
+    # # actor_system.run_simulation(working_dir, configuration, simulation["description"].to_hash())
+
+    # # sim_controller = SimulationController()
+    # # sim_controller.process_configuration(simulation["source_file"])
+
+    # return RedirectResponse(f"/developer/human_subject_status?configuration={configuration}")
+    # # return redirect(
+    #     url_for("development_area.human_subject_status", configuration=configuration)
+    # )
+    # return render_template('mes_configuration_view.html',  simulation=simulation, mes_directory=mes_directory, configuration=configuration, title=title)
+
+
+@developer_router.get("/mes_human_subject_screen_portal", tags=["developer"])
+def mes_human_subject_screen_portal(request: Request):
+    title = "Human Subject Status"
+    subject_id = "TEST"
+    return templates.TemplateResponse(
+            "subject_viewer.html", {"request": request, "subject_id": subject_id}
+        )
+
 @developer_router.get("/human_subject_status", tags=["developer"])
 def human_subject_status(request: Request, configuration: str):
     title = "Human Subject Status"

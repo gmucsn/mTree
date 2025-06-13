@@ -192,6 +192,7 @@ class DeveloperNamespace(socketio.AsyncNamespace):
                     "display_ui",
                     {"ui_content": ui_content},
                     namespace="/subject",
+                    
                     to="all_subjects",
                 )
                 # self.send_to_subject("display_ui", {"ui_file": "seller_interface.html"})

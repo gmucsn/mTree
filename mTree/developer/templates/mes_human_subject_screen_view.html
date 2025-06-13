@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block mesnav %}
+
+{% endblock %}
+
+
+
+{% block content %}
+
+
+
+
+<div class="container text-center w-100 ">
+  <div class="row align-items-start w-100 ">
+    <div class="col-3">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </div>
+    <div class="col-9 w-75">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </div>
+  </div>
+</div>
+
+<div class="container text-center w-100 ">
+  <div class="row align-items-start w-100 ">
+    <div class="col-3">
+      <button id="start_experiment" class="btn btn-success" type="submit"><span class="glyphicon glyphicon-play"></span>Display UI</button>
+      <br>
+      <button id="start_experiment" class="btn btn-success" type="submit"><span class="glyphicon glyphicon-play"></span>Advance Round</button>
+      <br>
+      <button id="start_experiment" class="btn btn-success" type="submit"><span class="glyphicon glyphicon-play"></span>Pause</button>
+      <br>
+      <button id="start_experiment" class="btn btn-success" type="submit"><span class="glyphicon glyphicon-play"></span>Send Log Message</button>
+              
+    </div>
+    <div class="col-9 w-75">
+      <iframe src="/developer/mes_human_subject_screen_portal" style="width:1200px; height:500px;overflow:auto;" title="description"></iframe> 
+    </div>
+  </div>
+</div>
+
+{% endblock %}
