@@ -72,8 +72,21 @@ class SubjectNamespace(socketio.AsyncNamespace):
                 to="admin",
             )
         elif command == "agent_action":
-            actor_system = ActorSystemConnector()
-            actor_system.send_agent_action(json)
+            if "control_action" in payload.keys():
+                if payload["control_action"] == "register":
+                    await self.emit(
+                        "subject_message",
+                        {
+                            "response": "subject_ui_details",
+                            "payload": payload,
+                        },
+                        namespace="/developer",
+                        to="admin",
+                    )
+
+            # TODO for 
+            # actor_system = ActorSystemConnector()
+            # actor_system.send_agent_action(json)
 
 
 class AdminNamespace(socketio.AsyncNamespace):
@@ -164,6 +177,26 @@ class DeveloperNamespace(socketio.AsyncNamespace):
         command = json["command"]
         payload = json["payload"]
 
+        if command == "developer_execute_ui_method":
+                await self.emit(
+                    "execute_method",
+                    payload,
+                    namespace="/subject",
+                    to="all_subjects",
+                )
+        if command == "developer_display_ui":
+                ui_file = os.path.join(os.getcwd(), "ui", "seller_interface.html")
+                ui_content = None
+                with open(ui_file, "r") as t_file:
+                    ui_content = t_file.read()
+                
+                await self.emit(
+                    "display_ui",
+                    {"ui_content": ui_content},
+                    namespace="/subject",
+                    
+                    to="all_subjects",
+                )
         if command == "register_admin":
             await self.enter_room(sid, "admin")
         if command == "start_subject_experiment":

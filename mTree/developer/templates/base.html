@@ -80,6 +80,9 @@
             if (message.response == "subject_connection"){
               this.process_subject_message(message);
             }
+            if (message.response == "subject_ui_details"){
+              this.process_subject_ui_details(message);
+            }
             
           });
 
@@ -164,6 +167,57 @@
             $("#experiment_status").html(message.payload.status)
           }
 
+        process_subject_ui_details(message){
+          //<button id="start_experiment" class="btn btn-success" type="submit"><span class="glyphicon glyphicon-play"></span>Advance Round</button>
+
+// ui-methods
+
+// <button id="developer_display_ui" class="btn btn-success" type="submit"><span class="glyphicon glyphicon-play"></span>Display UI</button>
+          $("#ui-methods").empty()
+          var subject_ui_methods = message.payload.ui_methods;
+          for(var i=0; i< subject_ui_methods.length; i++){
+            let subject_method_name = subject_ui_methods[i];
+            var newButton = $('<button/>', {
+                text: subject_method_name,
+                id: subject_method_name, 
+                class: 'btn btn-success',
+                on: {
+                  click: ()=>{
+              message = {command: 'developer_execute_ui_method', payload: {"method": subject_method_name}};
+              console.log("Display UI Method Fire");
+              console.log(message);
+              const local_mTreeConnection = new MTreeConnection();
+              local_mTreeConnection.send_control_message(message);
+                }
+                // ,
+                // onclick: "newButtonClickListener()"
+            } });
+            // newButton.click(()=>{
+            //   message = {command: 'developer_execute_ui_method', payload: {"method": subject_ui_methods[i]}};
+            //   console.log("Display UI Method Fire");
+            //   console.log(message);
+            //   const local_mTreeConnection = new MTreeConnection();
+            //   local_mTreeConnection.send_control_message(message);
+
+            // });
+
+                        
+
+            $('#ui-methods').append(newButton);
+          }
+
+
+          $("#subject-ui-properties-body").empty()
+          var subject_ui_properties = message.payload.ui_properties;
+          for(var i=0; i< subject_ui_properties.length; i++){
+              var row = $('<tr>');        
+              row.append($('<td>').text(subject_ui_properties[i]));
+              row.append($('<td>'));
+              $("#subject-ui-properties-body").append(row);
+          }
+
+        }
+
 
         process_subject_message(message){
 
@@ -240,6 +294,11 @@
                     message = {};
                     
                     switch(button_pressed){
+                    case "developer_display_ui":
+                        message = {command: 'developer_display_ui', payload: {}};
+                        break;
+                    
+                    
                     case "start_experiment":
                         message = {command: 'start_subject_experiment', payload: {configuration: configuration}};
                         break;

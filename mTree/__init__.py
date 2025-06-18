@@ -1,3 +1,9 @@
+"""
+mTree
+
+A project produced by the GMU CEL
+"""
+
 from . import *
 from .base import *
 from .base.agents import *
