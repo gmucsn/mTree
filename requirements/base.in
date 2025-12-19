@@ -27,3 +27,6 @@ uvicorn
 dill
 fastapi-sio
 python-multipart
+typer
+pip-compile-multi
+questionary

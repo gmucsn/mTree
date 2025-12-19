@@ -35,8 +35,8 @@ Repository = "https://github.com/gmucsn/mTree"
 Changelog = "https://github.com/gmucsn/mTree/master/CHANGELOG.md"
 
 [project.scripts]
-mTree_runner = "mTree.scripts.mTree_runner:main"
 mTree_developer_server = "mTree.scripts.mTree_developer_server:main"
+mTree_runner = "mTree.utilities.mTree_runner:app"
 mTree_console = "mTree.utilities.mtree_console:main"
 
 [tool.towncrier]
@@ -101,7 +101,7 @@ float_to_top = true
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ['py313']
 include = '\.pyi?$'
 # 'extend-exclude' excludes files or directories in addition to the defaults
 extend-exclude = '''

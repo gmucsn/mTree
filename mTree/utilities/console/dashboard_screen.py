@@ -26,7 +26,7 @@ from textual.widgets import (
     TabPane,
     Tabs,
 )
-from textual.widgets.option_list import Option, Separator
+# from textual.widgets.option_list import Option, Separator
 
 title = pyfiglet.figlet_format("mTree Console", font="slant")
 

@@ -28,7 +28,7 @@ from textual.widgets import (
     TabPane,
     Tabs,
 )
-from textual.widgets.option_list import Option, Separator
+# from textual.widgets.option_list import Option, Separator
 
 
 class MTreeConsoleApp(App):

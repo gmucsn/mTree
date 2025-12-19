@@ -14,6 +14,11 @@ Once installed, mTree is imported in the standard fashion.
 import mTree
 ```
 
+## Developer Documentation
+
+mTree makes use of pdoc to document the code inside this repository. Assuming you have mTree installed you should be able to type `pdoc mTree` and the pdoc webserver will start and be available at http://localhost:8080
+
+
 ## Version 2 adaptive markets
 
 This will have a submodule reference to the adaptive 
@@ -23,51 +28,13 @@ You will access this repository inside the mTree_adaptive_markets folder inside 
 
 These repositories will have to be somewhat manually synchronized.
 
-## Developer Documentation
-
-mTree makes use of pdoc to document the code inside this repository. Assuming you have mTree installed you should be able to type `pdoc mTree` and the pdoc webserver will start and be available at http://localhost:8080
 
 # Extra Commands
 
 
 ps aux  |  grep -i Actor  |  awk '{print $2}'  |  xargs sudo kill -9
 
-# Development
-
-Running the set up:
-
-Go to the directory and enter the following:
-
-```commandline
-python setup.py develop
-```
-
-If you are using macOS:
-```commandline
-python3.6 setup.py bdist_egg
-```
-
-For Windows:
-```commandline
-python setup.py bdist_egg
-```
-
-After building this you will need to install locally:
-
-```commandline
-easy_install dist/mTree-x-py3.6.egg
-```
-
-
-To test this, open python3 in either Terminal or Command Prompt, and try importing mTree with:
-
-```python
-import mTree
-```
-
-If there are no error messages, the build was successful.
-You can now access mTree as you would any other python package.
-
+# Logging Information
 
 Thespian Logging notes:
 
