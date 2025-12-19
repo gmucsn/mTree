@@ -1,5 +1,0 @@
-1724648632.9860768	Institution (second_price_auction_institution.SecondPriceAuctionInstitution) : About to enter directive: address_book_update
-1724648632.9866116	Institution (second_price_auction_institution.SecondPriceAuctionInstitution) : Exited directive: address_book_update
-1724648632.9875374	Institution (second_price_auction_institution.SecondPriceAuctionInstitution) : About to enter directive: start_auction
-1724648632.9876437	Starting auction...10
-1724648632.9881938	Institution (second_price_auction_institution.SecondPriceAuctionInstitution) : Exited directive: start_auction
