@@ -9,13 +9,13 @@ Outstanding questions:
 
 - how to run the examples included in the code inside a container
 
-- how to run the human subject version of the auction code
-
 - how to look through the documentation in pdoc
 
 - how to setup a new mTree project
     - setting up a basic simulation experiment
     - setting up a basic human subject experiment
+
+- how to run the human subject version of the auction code
 
 - how to run your new simulation project
 
