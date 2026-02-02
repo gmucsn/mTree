@@ -38,6 +38,7 @@ Changelog = "https://github.com/gmucsn/mTree/master/CHANGELOG.md"
 mTree_developer_server = "mTree.scripts.mTree_developer_server:main"
 mTree_runner = "mTree.utilities.mTree_runner:app"
 mTree_console = "mTree.utilities.mtree_console:main"
+mTree_cli = "mTree.utilities.mtree_cli:app"
 
 [tool.towncrier]
 # package = "mTree"

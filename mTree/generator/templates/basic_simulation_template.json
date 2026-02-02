@@ -1,10 +1,10 @@
 {"mtree_type": "mes_simulation_description",
    "name":"Basic Simulation Run",
    "id": "1",
-   "environment": "BasicEnvironment",
-   "institution": "BasicInstitution",
+   "environment": "ENVIRONMENTNAME",
+   "institution": "INSTITUTIONNAME",
    "number_of_runs": 1,
-   "agents": [{"agent_name": "BasicAgent", "number": 5}],
+   "agents": [{"agent_name": "AGENTNAME", "number": 5}],
    "properties": {
        "agent_endowment": 10
     }
