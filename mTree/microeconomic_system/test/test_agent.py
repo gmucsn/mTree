@@ -9,16 +9,16 @@ import unittest
 import pytest
 from mTree.microeconomic_system.agent import Agent
 from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.initialization_messages import AddressBookPayload, StartupPayload
+from mTree.microeconomic_system.initialization_messages import (
+    AddressBookPayload,
+    StartupPayload,
+)
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.probe_messages import ProbeMessage
 from thespian.actors import *
 from thespian.actors import ActorSystem
 
 # from mTree.microeconomic_system.test import *
-
-
-
 
 
 os.environ["PYTEST"] = "1"
@@ -127,8 +127,6 @@ def get_free_admin_port():
         except Exception:
             pass
     return get_free_admin_port_random()
-
-
 
 
 @pytest.fixture()

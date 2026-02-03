@@ -31,3 +31,4 @@ typer
 pip-compile-multi
 questionary
 pydantic
+isort

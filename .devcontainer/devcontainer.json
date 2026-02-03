@@ -3,7 +3,12 @@
     "onCreateCommand": "pip install -e /workspaces/mTree",
     "customizations": {
       "vscode": {
-        "extensions": ["dbaeumer.vscode-eslint"]
+        "extensions": [
+          "dbaeumer.vscode-eslint", 
+          "ms-python.isort",
+          "ms-python.python",
+          "ms-python.vscode-pylance",
+          "ms-python.black-formatter"]
       }
     },
 

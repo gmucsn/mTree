@@ -1,6 +1,7 @@
 import atexit
 import os
 import sys
+
 # from thespian.actors import *
 import time
 from datetime import datetime
@@ -40,6 +41,7 @@ from textual.widgets import (
     Tabs,
     Tree,
 )
+
 # from textual.widgets.option_list import Option, Separator
 
 # from mTree.runner.runner import Runner
@@ -47,16 +49,7 @@ from textual.widgets import (
 # from mTree.server.actor_system_connector import ActorSystemConnector
 
 
-
 # import subprocess
-
-
-
-
-
-
-
-
 
 
 def run_simulation_from_configurations(config_dir, configurations):

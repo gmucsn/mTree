@@ -3,5 +3,15 @@
         "mTree"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+     "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+        // Optional: set a default formatter (e.g., Black) and enable format on save
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "ms-python.black-formatter" 
+    },
+    // Optional: add arguments for isort (e.g., using the "black" profile for compatibility)
+    "isort.args": ["--profile", "black"]
 }
