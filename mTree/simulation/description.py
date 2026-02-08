@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
@@ -18,3 +19,9 @@ class SimulationDescription(BaseModel):
     institution: str
     agents: List[AgentDescription]
     properties: Dict[str, Any]
+    file_source: Path = None
+
+
+class MESDescription(BaseModel):
+    mes_directory: Path
+    configurations: List[SimulationDescription]
