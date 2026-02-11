@@ -20,6 +20,9 @@ class SimulationDescription(BaseModel):
     agents: List[AgentDescription]
     properties: Dict[str, Any]
     file_source: Path = None
+    data_logging: str = "json"
+    debug: bool = True
+    log_level: int = 2
 
 
 class MESDescription(BaseModel):

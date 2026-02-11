@@ -19,10 +19,11 @@ class Library:
             self.mes_library[mes].mes_directory.name for mes in self.mes_library.keys()
         ]
 
-    def configuration_list(self, mes):
-        temp = [
-            configuration.name for configuration in self.mes_library[mes].configurations
-        ]
+    def configuration_dict(self, mes):
+        temp = {
+            configuration.name: configuration
+            for configuration in self.mes_library[mes].configurations
+        }
         return temp
 
     def load_libraries_from_directories(self):

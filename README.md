@@ -18,6 +18,7 @@ import mTree
 
 mTree makes use of pdoc to document the code inside this repository. Assuming you have mTree installed you should be able to type `pdoc mTree` and the pdoc webserver will start and be available at http://localhost:8080
 
+Killing unnecessary processes: kill $(ps aux | grep 'cto' | awk '{print $2}')
 
 ## Version 2 adaptive markets
 

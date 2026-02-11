@@ -1,5 +1,5 @@
 {"mtree_type": "mes_simulation_description",
-  "name":"Basic Auction Run",
+  "name":"Second Price Auction Simulation",
   "id": "1",
   "environment": "basic_auction_environment.AuctionEnvironment",
   "institution": "second_price_auction_institution.SecondPriceAuctionInstitution",

@@ -1,5 +1,5 @@
 {"mtree_type": "mes_simulation_description",
-  "name":"Basic Auction Run",
+  "name":"Basic Auction Run Debug",
   "id": "1",
   "debug": true,
   "log_level": 2,
