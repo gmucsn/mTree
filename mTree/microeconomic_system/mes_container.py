@@ -12,6 +12,7 @@ from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.environment import Environment
+
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.log_actor import LogActor
@@ -26,9 +27,6 @@ from thespian.initmsgs import initializing_messages
 # from socketIO_client import SocketIO, LoggingNamespace
 
 
-
-
-
 @initializing_messages(
     [("_mes_container_configuration", MESConfigurationPayload)],
     initdone="prepare_mes_container",
@@ -37,12 +35,13 @@ class MESContainer(Actor):
 
     def prepare_mes_container(self):
         self.simulation_id = (
-            self._mes_container_configuration.mes_configuration_payload["simulation_id"]
+            self._mes_container_configuration.mes_configuration_payload.simulation_id
         )
         self.simulation_run_id = (
-            self._mes_container_configuration.mes_configuration_payload[
-                "simulation_run_id"
-            ]
+            self._mes_container_configuration.mes_configuration_payload.simulation_run_id
+        )
+        self.simulation_run = (
+            self._mes_container_configuration.mes_configuration_payload.simulation_run
         )
 
         setproctitle.setproctitle(f"mTree - MESContainer ({self.simulation_run_id})")
@@ -54,67 +53,51 @@ class MESContainer(Actor):
         self.send(system_status_actor, message)
 
         self.simulation_configuration = (
-            self._mes_container_configuration.mes_configuration_payload[
-                "simulation_configuration"
-            ]
+            self._mes_container_configuration.mes_configuration_payload.configuration
         )
-        self.mes_directory = self.simulation_configuration["mes_directory"]
+        self.mes_directory = self.simulation_configuration.mes_directory
         self.global_properties = (
-            self._mes_container_configuration.mes_configuration_payload["properties"]
+            self._mes_container_configuration.mes_configuration_payload.properties
         )
-        self.dispatcher = self._mes_container_configuration.mes_configuration_payload[
-            "dispatcher"
-        ]
+        self.dispatcher = (
+            self._mes_container_configuration.mes_configuration_payload.dispatcher
+        )
 
-        self.source_hash = self.simulation_configuration["source_hash"]
+        self.source_hash = self.simulation_configuration.source_hash
         self.run_number = None
 
-        self.debug = self.simulation_configuration["debug"]
-        self.log_level = self.simulation_configuration["log_level"]
+        self.debug = self.simulation_configuration.debug
+        self.log_level = self.simulation_configuration.log_level
 
-        if (
-            "run_number"
-            in self._mes_container_configuration.mes_configuration_payload.keys()
-        ):
-            self.run_number = (
-                self._mes_container_configuration.mes_configuration_payload[
-                    "run_number"
-                ]
-            )
+        self.run_number = (
+            self._mes_container_configuration.mes_configuration_payload.run_number
+        )
 
-        self.run_code = self._mes_container_configuration.mes_configuration_payload[
-            "run_code"
-        ]
-        self.status = self._mes_container_configuration.mes_configuration_payload[
-            "status"
-        ]
+        self.run_code = (
+            self._mes_container_configuration.mes_configuration_payload.run_code
+        )
+        self.status = self._mes_container_configuration.mes_configuration_payload.status
 
         self.data_logging = None
-        if (
-            "data_logging"
-            in self._mes_container_configuration.mes_configuration_payload.keys()
-        ):
-            self.data_logging = (
-                self._mes_container_configuration.mes_configuration_payload[
-                    "data_logging"
-                ]
-            )
 
-        if (
-            "subjects"
-            in self._mes_container_configuration.mes_configuration_payload.keys()
-        ):
-            self.subjects = self._mes_container_configuration.mes_configuration_payload[
-                "subjects"
-            ]
+        self.data_logging = (
+            self._mes_container_configuration.mes_configuration_payload.data_logging
+        )
+
+        # TODO fix subjects
+        # if (
+        #     "subjects"
+        #     in self._mes_container_configuration.mes_configuration_payload.keys()
+        # ):
+        #     self.subjects = self._mes_container_configuration.mes_configuration_payload[
+        #         "subjects"
+        #     ]
 
         logging.info("CONTAINER PREP")
         logging.info(self._mes_container_configuration.mes_configuration_payload)
 
         self.configuration_object = (
-            self._mes_container_configuration.mes_configuration_payload[
-                "configuration_object"
-            ]
+            self._mes_container_configuration.mes_configuration_payload.configuration
         )
 
         self.logger_setup()
@@ -175,8 +158,8 @@ class MESContainer(Actor):
         ####
         # Create the environment for the new MES
         ####
-        source_hash = self.simulation_configuration["source_hash"]
-        environment_configuration = self.simulation_configuration["environment"]
+        source_hash = self.simulation_configuration.source_hash
+        environment_configuration = self.simulation_configuration.environment
         environment_class = None
         if isinstance(environment_configuration, str):
             environment_class = environment_configuration
@@ -206,7 +189,7 @@ class MESContainer(Actor):
         logging.info("SHOULD BE CREATING AN ENVIRONMENT..4.")
         startup_payload = {}
         startup_payload["simulation_configuration"] = self.simulation_configuration
-        startup_payload["properties"] = self.simulation_configuration["properties"]
+        startup_payload["properties"] = self.simulation_configuration.properties
         ### ADD LOCAL PROPERTIES
         startup_payload["container"] = self.myAddress
         startup_payload["address_type"] = "environment"
@@ -257,25 +240,25 @@ class MESContainer(Actor):
         logging.info("SHOULD BE CREATING AN institution...")
         institutions = []
         institution_requests = []
-        if "institution" in self.simulation_configuration.keys():
-            # institution_request = ComponentRequest()
-            # institution_request.source_hash=source_hash
-            # institution_request.number=agent_d["number"]
-            # institution_request.source_class=agent_d["agent_name"]
-            institution_request = {}
-            institution_request["institution_class"] = self.simulation_configuration[
-                "institution"
-            ]
-            institutions = [institution_request]
-        elif "institutions" in self.simulation_configuration.keys():
-            institutions = self.simulation_configuration["institutions"]
-            # if len(configuration["institutions"]) == 1:
-            #     institutions = [configuration["institutions"]]
-            # else:
-            #     pass
-            #     # for institution_d in configuration["institutions"]:
-            # institution_class = institution_d
-            # institutions.append(institution_class)
+        # if "institution" in self.simulation_configuration.keys():
+        #     # institution_request = ComponentRequest()
+        #     # institution_request.source_hash=source_hash
+        #     # institution_request.number=agent_d["number"]
+        #     # institution_request.source_class=agent_d["agent_name"]
+        institution_request = {}
+        institution_request["institution_class"] = (
+            self.simulation_configuration.institution
+        )
+        institutions = [institution_request]
+        # elif "institutions" in self.simulation_configuration.keys():
+        #     institutions = self.simulation_configuration["institutions"]
+        #     # if len(configuration["institutions"]) == 1:
+        #     #     institutions = [configuration["institutions"]]
+        #     # else:
+        #     #     pass
+        #     #     # for institution_d in configuration["institutions"]:
+        #     # institution_class = institution_d
+        #     # institutions.append(institution_class)
         logging.info("SHOULD BE CREATING AN institution. 2..")
         #####
 
@@ -369,16 +352,15 @@ class MESContainer(Actor):
 
         agents = []
         agent_requests = []
-        for agent_d in self.simulation_configuration["agents"]:
-            agent_type = agent_d["agent_name"]
+        for agent_d in self.simulation_configuration.agents:
+            agent_type = agent_d.agent_name
 
-            if "number" in agent_d.keys():
-                agent_count = agent_d["number"]
-            else:
-                # if "min_subjects" in agent_d.keys():
-                #     if len(self.subjects) >= agent_d["min_subjects"]:
-                # TODO should be sensitive to min subject requirements
-                agent_count = len(self.subjects)
+            agent_count = agent_d.number
+            # else:
+            #     # if "min_subjects" in agent_d.keys():
+            #     #     if len(self.subjects) >= agent_d["min_subjects"]:
+            #     # TODO should be sensitive to min subject requirements
+            #     agent_count = len(self.subjects)
 
             # agents.append((agent_type, agent_count))
             # for i in range(0, agent_count):
@@ -395,10 +377,10 @@ class MESContainer(Actor):
             # agent_requests.append(agent_request)
 
             agent_configuration = {"agent_class": agent_type, "number": agent_count}
-            if "short_name" in agent_d.keys():
-                agent_configuration["short_name"] = agent_d["short_name"]
-            if "properties" in agent_d.keys():
-                agent_configuration["properties"] = agent_d["properties"]
+            # if "short_name" in agent_d.keys():
+            #     agent_configuration["short_name"] = agent_d["short_name"]
+            # if "properties" in agent_d.keys():
+            #     agent_configuration["properties"] = agent_d["properties"]
 
             agents.append(agent_configuration)
             # for i in range(0, agent_count):
@@ -490,7 +472,7 @@ class MESContainer(Actor):
             self.mes_component_list.pop(extract_index)
         if len(self.mes_component_list) == 0:
             logging.info("Message to close logger: ")
-            self.configuration_object.mark_finished()
+            self.simulation_run.mark_finished()
 
             message = Message()
             message.set_directive("update_mes_run_information")
@@ -617,8 +599,8 @@ class MESContainer(Actor):
         logging.info("SHOULD BE Starting logger 1")
         self.log_actor = self.createActor(LogActor)
 
-        log_basis = {}
-        log_basis["message_type"] = "setup"
+        # log_basis = {}
+        # log_basis["message_type"] = "setup"
 
         log_configuration = {}
         log_configuration["simulation_run_id"] = self.simulation_run_id
@@ -633,7 +615,7 @@ class MESContainer(Actor):
         self.send(
             self.log_actor,
             LogActorConfigurationPayload(
-                log_actor_configuration_payload=log_configuration
+                log_actor_configuration_payload=self._mes_container_configuration.mes_configuration_payload  # log_configuration
             ),
         )
 

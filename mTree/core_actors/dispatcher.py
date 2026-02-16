@@ -11,6 +11,7 @@ from typing import Dict
 
 # import numpy as np
 import setproctitle
+
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.directive_decorators import *
@@ -20,14 +21,14 @@ from mTree.microeconomic_system.mes_container import MESContainer
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message, MessageSpace
 from mTree.microeconomic_system.outconnect import OutConnect
+from mTree.simulation.simulation_run import SimulationRun
+from mTree.simulation.startup_payload import StartupPayload
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 
 # from mTree.microeconomic_system.web_socket_router_actor import WebSocketRouterActor
 
 # from socketIO_client import SocketIO, LoggingNamespace
-
-
 
 
 # This class represents a request for an MES component
@@ -42,67 +43,65 @@ class ComponentRequest:
     number: int = 1
 
 
-class SimulationRun:
-    def __init__(self, configuration, run_number=None) -> None:
+# class SimulationRun:
+#     def __init__(self, configuration, run_number=None) -> None:
 
-        self.configuration = configuration
+#         self.configuration = configuration
 
-        self.name = configuration["name"]
-        self.id = configuration["id"]
-        self.run_number = run_number
+#         self.name = configuration["name"]
+#         self.id = configuration["id"]
+#         self.run_number = run_number
 
-        hash_basis = (
-            str(self.name)
-            + "-"
-            + str(self.id)
-            + "-"
-            + str(self.run_number)
-            + str(random.uniform(0, 100))
-        )
-        hash_object = hashlib.sha1(hash_basis.encode("utf-8"))
-        self.run_code = hash_object.hexdigest()[0:6]
+#         hash_basis = (
+#             str(self.name)
+#             + "-"
+#             + str(self.id)
+#             + "-"
+#             + str(self.run_number)
+#             + str(random.uniform(0, 100))
+#         )
+#         hash_object = hashlib.sha1(hash_basis.encode("utf-8"))
+#         self.run_code = hash_object.hexdigest()[0:6]
 
-        self.status = "Registered"
-        self.mes_base_address = None
-        self.start_time = None
-        self.end_time = None
+#         self.status = "Registered"
+#         self.mes_base_address = None
+#         self.start_time = None
+#         self.end_time = None
 
-    def set_mes_base_address(self, base_address):
-        self.mes_base_address = base_address
+#     def set_mes_base_address(self, base_address):
+#         self.mes_base_address = base_address
 
-    def mark_running(self):
-        self.status = "Running"
-        self.start_time = datetime.now()
+#     def mark_running(self):
+#         self.status = "Running"
+#         self.start_time = datetime.now()
 
-    def mark_finished(self):
-        self.status = "Finished"
-        self.end_time = datetime.now()
+#     def mark_finished(self):
+#         self.status = "Finished"
+#         self.end_time = datetime.now()
 
-    def mark_killed(self):
-        self.status = "Killed"
-        self.end_time = datetime.now()
+#     def mark_killed(self):
+#         self.status = "Killed"
+#         self.end_time = datetime.now()
 
-    def mark_excepted(self):
-        self.status = "Exception!"
-        self.end_time = datetime.now()
+#     def mark_excepted(self):
+#         self.status = "Exception!"
+#         self.end_time = datetime.now()
 
-    def to_data_row(self):
-        total_time = "Not running"
-        if self.start_time is not None:
-            if self.end_time is not None:
-                total_time = self.end_time - self.start_time
-            else:
-                total_time = datetime.now() - self.start_time
-        return [self.run_code, self.name, self.run_number, self.status, str(total_time)]
+#     def to_data_row(self):
+#         total_time = "Not running"
+#         if self.start_time is not None:
+#             if self.end_time is not None:
+#                 total_time = self.end_time - self.start_time
+#             else:
+#                 total_time = datetime.now() - self.start_time
+#         return [self.run_code, self.name, self.run_number, self.status, str(total_time)]
 
-    def __str__(self):
-        output_string = f"<SimulationRunStatus run_code: {self.run_code} id: {self.id} run_number: {self.run_number} status: {self.status} start_time: {self.start_time} end_time: {self.start_time}  >"
-        return output_string
+#     def __str__(self):
+#         output_string = f"<SimulationRunStatus run_code: {self.run_code} id: {self.id} run_number: {self.run_number} status: {self.status} start_time: {self.start_time} end_time: {self.start_time}  >"
+#         return output_string
 
-    def __repr__(self):
-        return self.__str__()
-
-
+#     def __repr__(self):
+#         return self.__str__()
 
 
 @initializing_messages([("starting", str)], initdone="init_done")
@@ -143,7 +142,7 @@ class Dispatcher(Actor):
         message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
         logging.info("Dispatcher Ready")
-        
+
         # system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         # self.send(system_status_actor, "START")
         # message = AdminMessage(request="register_dispatcher")
@@ -192,31 +191,33 @@ class Dispatcher(Actor):
 
         self.send(web_socket_router_actor, message)
 
-    def run_simulation(self, configuration, run_number=None, configuration_obect=None):
+    def run_simulation(
+        self, simulation_run: SimulationRun
+    ):  # configuration, run_number=None, configuration_obect=None):
 
         ####
         # get the source hash for the newly loaded MES components
         ####
-        source_hash = configuration["source_hash"]
+        source_hash = simulation_run.configuration.source_hash
 
         ####
         # get debug and log level information for sharing across all components
         ####
-        debug = configuration["debug"]
-        log_level = configuration["log_level"]
+        debug = simulation_run.configuration.debug
+        log_level = simulation_run.configuration.log_level
 
         ####
         # Startup the MES Container that will contain this simulation
         ####
 
-        source_hash = configuration["source_hash"]
+        source_hash = simulation_run.configuration.source_hash
         mes_container = self.createActor(MESContainer)
 
         ####
         # Create the environment for the new MES
         ####
-        source_hash = configuration["source_hash"]
-        environment_class = configuration["environment"]
+        source_hash = simulation_run.configuration.source_hash
+        environment_class = simulation_run.configuration.environment
         # environment = self.createActor(environment_class,sourceHash=source_hash)
         # # environment created
         # self.environment = environment
@@ -227,27 +228,41 @@ class Dispatcher(Actor):
 
         # Initialization Message 1
         # self.send(environment, str(environment_class))
-        startup_payload = {}
-        startup_payload["simulation_configuration"] = configuration
-        startup_payload["properties"] = configuration["properties"]
-        startup_payload["dispatcher"] = self.myAddress
-        startup_payload["simulation_id"] = configuration["id"]
-        startup_payload["simulation_run_id"] = configuration["simulation_run_id"]
-        startup_payload["short_name"] = str(environment_class)
-        startup_payload["run_code"] = configuration_obect.run_code
-        startup_payload["status"] = configuration_obect.status
-        startup_payload["configuration_object"] = configuration_obect
 
-        startup_payload["debug"] = debug
-        startup_payload["log_level"] = log_level
+        startup_payload = StartupPayload(
+            configuration=simulation_run.configuration,
+            properties=simulation_run.configuration.properties,
+            dispatcher=self.myAddress,
+            simulation_id=simulation_run.configuration.id,
+            simulation_run_id=simulation_run.configuration.simulation_run_id,
+            short_name=str(environment_class),
+            run_code="123456",  # simulation_run.configuration.run_code,
+            status="Requested",
+            debug=simulation_run.configuration.debug,
+            log_level=simulation_run.configuration.log_level,
+            simulation_run=simulation_run,
+        )
+        # startup_payload = {}
+        # startup_payload["simulation_configuration"] = configuration
+        # startup_payload["properties"] = configuration["properties"]
+        # startup_payload["dispatcher"] = self.myAddress
+        # startup_payload["simulation_id"] = configuration["id"]
+        # startup_payload["simulation_run_id"] = configuration["simulation_run_id"]
+        # startup_payload["short_name"] = str(environment_class)
+        # startup_payload["run_code"] = configuration_obect.run_code
+        # startup_payload["status"] = configuration_obect.status
+        # startup_payload["configuration_object"] = configuration_obect
 
-        # payload["run_code"] = configuration_obect.run_code
-        # payload["run_code"] = configuration_obect.run_code
-        if "data_logging" in configuration.keys():
-            startup_payload["data_logging"] = configuration["data_logging"]
+        # startup_payload["debug"] = debug
+        # startup_payload["log_level"] = log_level
 
-        if run_number is not None:
-            startup_payload["run_number"] = run_number
+        # # payload["run_code"] = configuration_obect.run_code
+        # # payload["run_code"] = configuration_obect.run_code
+        # if "data_logging" in configuration.keys():
+        #     startup_payload["data_logging"] = configuration["data_logging"]
+
+        # if run_number is not None:
+        #     startup_payload["run_number"] = run_number
 
         # Initialization Message 2
         # self.send(environment, startup_payload)
@@ -273,8 +288,8 @@ class Dispatcher(Actor):
         #     self.send(environment, message)
 
         ### CHANGE THIS TO THE CONTAINER
-        if configuration_obect is not None:
-            configuration_obect.set_mes_base_address(mes_container)
+        # if configuration_obect is not None:
+        #     configuration_obect.set_mes_base_address(mes_container)
 
         return
 
@@ -435,13 +450,17 @@ class Dispatcher(Actor):
         logging.info("Simulation environment should have started")
 
     def prepare_simulation_run(self, configuration):
-        if "number_of_runs" in configuration.keys():
-            total_runs = configuration["number_of_runs"]
+        if configuration.number_of_runs > 1:
+            total_runs = configuration.number_of_runs
             for run_number in range(1, total_runs + 1):
-                new_simulation_run = SimulationRun(configuration, run_number)
+                new_simulation_run = SimulationRun(
+                    configuration=configuration, run_number=run_number
+                )
                 self.simulation_runs.append(new_simulation_run)
         else:
-            new_simulation_run = SimulationRun(configuration, 1)
+            new_simulation_run = SimulationRun(
+                configuration=configuration, run_number=1
+            )
             self.simulation_runs.append(new_simulation_run)
 
     def begin_simulations(self):
@@ -450,11 +469,12 @@ class Dispatcher(Actor):
         for simulation_configuration in self.simulation_runs:
             if simulation_configuration.status == "Registered":
                 simulation_configuration.mark_running()
-                self.run_simulation(
-                    simulation_configuration.configuration,
-                    simulation_configuration.run_number,
-                    configuration_obect=simulation_configuration,
-                )
+                self.run_simulation(simulation_configuration)
+
+                #     simulation_configuration.configuration,
+                #     simulation_configuration.run_number,
+                #     configuration_obect=simulation_configuration,
+                # )
 
     def end_round(self):
         self.send(self.environment, ActorExitRequest())
@@ -838,6 +858,7 @@ class Dispatcher(Actor):
 
         new_simulation_run = SimulationRun(configuration, 1)
 
+        startup_payload["simulation_run"] = new_simulation_run
         startup_payload["status"] = new_simulation_run.status
         startup_payload["configuration_object"] = new_simulation_run
 

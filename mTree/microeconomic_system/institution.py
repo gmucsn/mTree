@@ -49,10 +49,8 @@ class Institution(MESComponentBase):
 
         # prepare the institution...
         self.initialization_dict = self._startup_payload.startup_payload
-        self.debug = self.initialization_dict["simulation_configuration"]["debug"]
-        self.log_level = self.initialization_dict["simulation_configuration"][
-            "log_level"
-        ]
+        self.debug = self.initialization_dict["simulation_configuration"].debug
+        self.log_level = self.initialization_dict["simulation_configuration"].log_level
 
         self._address_book = self._address_book_payload.address_book_payload
         self.mtree_properties = self.initialization_dict["properties"]

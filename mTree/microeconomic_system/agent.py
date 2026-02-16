@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import time
+
 # from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 from datetime import datetime, timedelta
@@ -13,6 +14,7 @@ import setproctitle
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.directive_decorators import *
+
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.log_actor import LogActor
@@ -60,14 +62,11 @@ class Agent(MESComponentBase):
 
         logging.info("AGENT PREPARING")
         self.initialization_dict = self._startup_payload.startup_payload
-        logging.info(self.initialization_dict)
 
         self._address_book = self._address_book_payload.address_book_payload
 
-        self.debug = self.initialization_dict["simulation_configuration"]["debug"]
-        self.log_level = self.initialization_dict["simulation_configuration"][
-            "log_level"
-        ]
+        self.debug = self.initialization_dict["simulation_configuration"].debug
+        self.log_level = self.initialization_dict["simulation_configuration"].log_level
 
         self.mtree_properties = self.initialization_dict["properties"]
 

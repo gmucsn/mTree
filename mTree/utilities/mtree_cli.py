@@ -1,5 +1,6 @@
 import atexit
 import os
+import time
 
 import questionary
 import typer
@@ -8,6 +9,7 @@ from mTree.simulation import Library
 from mTree.system.actor_system_connector import ActorSystemConnector
 from mTree.system.actor_system_controller import ActorSystemController
 from mTree.system.mes_simulation_library import MESSimulationLibrary
+from mTree.utilities.console.simulation_viewer import SimulationViewer
 from thespian.actors import *
 
 """
@@ -42,11 +44,14 @@ def run_simulation_from_configurations(config_dir, configurations):
             actor_system = ActorSystemConnector()
             working_dir = config_dir
             # actor_system.send_message()
-            actor_system.run_simulation(
-                working_dir,
-                str(configuration.file_source),
-                configuration.dict(exclude={"file_source"}),
-            )
+            actor_system.run_simulation_configuration(configuration)
+            # actor_system.run_simulation_configuration(
+            #     working_dir,
+            #     str(configuration.file_source),
+            #     configuration.dict(exclude={"file_source"}),
+            # )
+            simulation_viewer = SimulationViewer()
+            simulation_viewer.run()
 
 
 # simulation["description"].to_hash()

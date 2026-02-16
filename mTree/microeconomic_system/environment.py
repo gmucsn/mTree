@@ -65,10 +65,8 @@ class Environment(MESComponentBase):
         ### REPLACE WITH CONTAINER REFERENCE
         # self.dispatcher = self.initialization_dict["dispatcher"]
         self.container = self.initialization_dict["container"]
-        self.debug = self.initialization_dict["simulation_configuration"]["debug"]
-        self.log_level = self.initialization_dict["simulation_configuration"][
-            "log_level"
-        ]
+        self.debug = self.initialization_dict["simulation_configuration"].debug
+        self.log_level = self.initialization_dict["simulation_configuration"].log_level
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))

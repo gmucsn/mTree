@@ -42,6 +42,7 @@ class Library:
             input_json = config_file.read_text()
             configuration = SimulationDescription.model_validate_json(input_json)
             configuration.file_source = config_file
+            configuration.mes_directory = mes_directory
             simulation_descriptions.append(configuration)
         return MESDescription(
             mes_directory=mes_directory, configurations=simulation_descriptions

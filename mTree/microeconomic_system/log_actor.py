@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sys
+
 # from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 
@@ -20,15 +21,11 @@ from thespian.initmsgs import initializing_messages
 EXPERIMENT_DATA = 27
 
 
-
 @initializing_messages(
     [("_log_actor_configuration", LogActorConfigurationPayload)],
     initdone="prepare_log_actor",
 )
 class LogActor(Actor):
-    # def __init__(self):
-    #     setproctitle.setproctitle("mTree - LogActor")
-
     def prepare_log_actor(self):
         logging.info("SHOULD BE Starting insider logger 1")
 
@@ -41,41 +38,31 @@ class LogActor(Actor):
         logging.info("SHOULD BE Starting insider logger 2")
 
         self.simulation_id = (
-            self._log_actor_configuration.log_actor_configuration_payload[
-                "simulation_id"
-            ]
+            self._log_actor_configuration.log_actor_configuration_payload.simulation_id
         )
         self.simulation_run_id = (
-            self._log_actor_configuration.log_actor_configuration_payload[
-                "simulation_run_id"
-            ]
+            self._log_actor_configuration.log_actor_configuration_payload.simulation_run_id
         )
-        self.run_number = self._log_actor_configuration.log_actor_configuration_payload[
-            "run_number"
-        ]
-        self.run_code = self._log_actor_configuration.log_actor_configuration_payload[
-            "run_code"
-        ]
-        self.status = self._log_actor_configuration.log_actor_configuration_payload[
-            "status"
-        ]
+        self.run_number = (
+            self._log_actor_configuration.log_actor_configuration_payload.run_number
+        )
+        self.run_code = (
+            self._log_actor_configuration.log_actor_configuration_payload.run_code
+        )
+        self.status = (
+            self._log_actor_configuration.log_actor_configuration_payload.status
+        )
         self.mes_directory = (
-            self._log_actor_configuration.log_actor_configuration_payload[
-                "mes_directory"
-            ]
+            self._log_actor_configuration.log_actor_configuration_payload.configuration.mes_directory
         )
         self.output_type = (
-            self._log_actor_configuration.log_actor_configuration_payload[
-                "data_logging"
-            ]
+            self._log_actor_configuration.log_actor_configuration_payload.data_logging
         )
         self.simulation_configuration = (
-            self._log_actor_configuration.log_actor_configuration_payload[
-                "simulation_configuration"
-            ]
+            self._log_actor_configuration.log_actor_configuration_payload.configuration
         )
-        self.debug = self.simulation_configuration["debug"]
-        self.log_level = self.simulation_configuration["log_level"]
+        self.debug = self.simulation_configuration.debug
+        self.log_level = self.simulation_configuration.log_level
         self.setup_log_files_folder()
         self.create_mes_status_file()
         self.targets = {}
@@ -291,7 +278,7 @@ class LogActor(Actor):
             + "-configuration.json",
         )
         with open(os.path.join(self.configuration_target), "a") as file_object:
-            file_object.write(json.dumps(self.simulation_configuration, indent=4))
+            file_object.write(self.simulation_configuration.model_dump_json(indent=2))
 
     def create_mes_status_file(self):
         """
@@ -309,8 +296,8 @@ class LogActor(Actor):
         mes_information["run_number"] = self.run_number
         mes_information["run_code"] = self.run_code
         # !! note that these directory locations could be out of date if folders are moved !!
-        mes_information["mes_directory"] = self.mes_directory
-        mes_information["mes_log_directory"] = self.output_log_folder
+        mes_information["mes_directory"] = str(self.mes_directory)
+        mes_information["mes_log_directory"] = str(self.output_log_folder)
         mes_information["status"] = self.status
         mes_information["start_time"] = None
 

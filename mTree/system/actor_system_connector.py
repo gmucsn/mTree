@@ -15,6 +15,7 @@ from mTree.components.registry import Registry
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.core_actors.dispatcher import Dispatcher
 from mTree.microeconomic_system.message import Message
+from mTree.simulation.description import MESDescription
 from mTree.system.actor_system_controller import ActorSystemController
 from thespian.actors import *
 
@@ -167,6 +168,30 @@ class ActorSystemConnector:
         )  # createActor(Dispatcher, globalName = "Dispatcher")
         # ActorSystem("multiprocTCPBase", self.capabilities).tell(dispatcher, configuration_message)
 
+    @staticmethod
+    def run_simulation_configuration(configuration: MESDescription):
+        configuration.source_hash = ActorSystemConnector.load_base_mes(
+            configuration.mes_directory
+        )
+
+        actor_system = ActorSystemController.retrieve_connection()
+        dispatcher = actor_system.createActor(Actor, globalName="Dispatcher")
+
+        configuration_message = Message()
+        configuration_message.set_directive("simulation_configurations")
+
+        config_base_name = os.path.basename(configuration.file_source).split(".")[0]
+        nowtime = datetime.datetime.now().timestamp()
+        # Simulation Run ID Generator - TODO consolidate with subject ID generation
+        nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+        simulation_run_id = config_base_name + "-" + nowtime_filename
+        configuration.simulation_run_id = simulation_run_id
+        configuration_message.set_payload(configuration)
+        actor_system.tell(
+            dispatcher, configuration_message
+        )  # createActor(Dispatcher, globalName = "Dispatcher")
+        # ActorSystem("multiprocTCPBase", self.capabilities).tell(dispatcher, configuration_message)
+
     def kill_run_by_id(self, run_id):
         dispatcher = ActorSystemConnector.__instance.actor_system.createActor(
             Dispatcher, globalName="Dispatcher"
@@ -197,8 +222,10 @@ class ActorSystemConnector:
         """
         # dispatcher = ActorSystemConnector.__instance.actor_system.createActor(
         #     Dispatcher, globalName="Dispatcher"
-        # )  
-        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(Dispatcher, globalName = "Dispatcher")
+        # )
+        dispatcher = ActorSystemConnector.__instance.actor_system.createActor(
+            Dispatcher, globalName="Dispatcher"
+        )
         ActorSystemConnector.__instance.actor_system.tell(dispatcher, message)
 
     # 2022 purge
