@@ -165,11 +165,11 @@ class MESContainer(Actor):
         ####
         source_hash = self.simulation_configuration.source_hash
         environment_configuration = self.simulation_configuration.environment
-        environment_class = None
-        if isinstance(environment_configuration, str):
-            environment_class = environment_configuration
-        elif isinstance(environment_configuration, dict):
-            environment_class = environment_configuration["environment_class"]
+        environment_class = environment_configuration.mes_class
+        # if isinstance(environment_configuration, str):
+        #     environment_class = environment_configuration
+        # elif isinstance(environment_configuration, dict):
+        #     environment_class = environment_configuration["environment_class"]
         logging.info("SHOULD BE CREATING AN ENVIRONMENT...")
         logging.info(str(environment_configuration))
         logging.info(environment_class)

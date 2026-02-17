@@ -18,11 +18,17 @@ class InstitutionConfiguration(BaseModel):
     properties: Dict[str, Any] = {}
 
 
+class EnvironmentConfiguration(BaseModel):
+    name: str
+    mes_class: str = ""
+    properties: Dict[str, Any] = {}
+
+
 class Configuration(BaseModel):
     mtree_type: str
     name: str
     id: str
-    environment: str
+    environment: EnvironmentConfiguration
     institutions: List[InstitutionConfiguration]
     agents: List[AgentConfiguration]
     properties: Dict[str, Any]

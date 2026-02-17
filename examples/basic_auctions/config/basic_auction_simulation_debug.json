@@ -3,7 +3,7 @@
   "id": "1",
   "debug": true,
   "log_level": 2,
-  "environment": "basic_auction_environment.AuctionEnvironment",
+  "environment": {"name":"basic_auction_institution.AuctionInstitution", "mes_class":"basic_auction_environment.AuctionEnvironment" },
   "institutions": [{"institution_name":"basic_auction_institution.AuctionInstitution", "class_name":"basic_auction_institution.AuctionInstitution" }],
   "number_of_iterations": 1,
   "agents": [{"agent_class": "basic_auction_agent.AuctionAgent", "agent_name": "basic_auction_agent.AuctionAgent", "properties": { "strategy": "reasonable" }, "number": 4}, 
