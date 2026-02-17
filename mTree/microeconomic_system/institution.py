@@ -29,7 +29,7 @@ from thespian.initmsgs import initializing_messages
 @initializing_messages(
     [
         ("startup", str),
-        ("_startup_payload", StartupPayload),
+        ("_component_initialization", ComponentInitialization),
         ("_address_book_payload", AddressBookPayload),
     ],
     initdone="invoke_prepare",
@@ -51,19 +51,15 @@ class Institution(MESComponentBase):
         self.send(system_status_actor, message)
 
         # prepare the institution...
-        self.initialization: ComponentInitialization = (
-            self._startup_payload.startup_payload
-        )
+        self.initialization: ComponentInitialization = self._component_initialization
         self.iteration: Iteration = self.initialization.iteration
         self.configuration: Configuration = self.iteration.configuration
 
-        self.initialization_dict = self._startup_payload.startup_payload
+        self.initialization_dict = self._component_initialization
 
         self.debug = self.configuration.debug
         self.log_level = self.configuration.log_level
         self.mtree_properties = self.configuration.properties
-        # if "local_properties" in self.initialization_dict.keys():
-        #     self.local_properties = self.initialization_dict["local_properties"]
 
         self._address_book = self._address_book_payload.address_book_payload
 
@@ -79,32 +75,7 @@ class Institution(MESComponentBase):
         try:
             self.prepare()
         except:
-            error_type, error, tb = sys.exc_info()
-            error_message = "MES CRASHING IN PREPARATION - EXCEPTION FOLLOWS \n"
-            error_message += "\tError Type: " + str(error_type) + "\n"
-            error_message += "\tError: " + str(error) + "\n"
-            traces = traceback.extract_tb(tb)
-            trace_output = "\tTrace Output: \n"
-            for trace_line in traceback.format_list(traces):
-                trace_output += "\t" + trace_line + "\n"
-            error_message += "\n"
-            error_message += trace_output
-            # self.log_message(error_message)
-            self.log_message(
-                "Institution: PREPARATION EXCEPTION! Check exception log. "
-            )
-            exception_payload = {}
-            exception_payload["error_message"] = error_message
-            exception_payload["error_type"] = str(error_type)
-            exception_payload["error"] = str(error)
-
-            excepting_trace = traces[0]
-            exception_payload["filename"] = excepting_trace.filename
-            exception_payload["lineno"] = excepting_trace.lineno
-            exception_payload["name"] = excepting_trace.name
-            exception_payload["line"] = excepting_trace.line
-
-            self.excepted_mes(exception_payload)
+            self.exception_logging_handler()
 
     # def __init__(self):
     #     self.address_book = AddressBook(self)

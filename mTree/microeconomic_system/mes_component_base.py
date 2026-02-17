@@ -19,7 +19,6 @@ def is_jsonable(x):
         return False
 
 
-
 class MESComponentBase(Actor):
     """
     This is a mixin class. It is meant to provide a set of basic communication functions
@@ -183,6 +182,35 @@ class MESComponentBase(Actor):
 
             self.send(receiver_address, new_message)
 
+    def exception_logging_handler(self):
+        error_type, error, tb = sys.exc_info()
+        error_message = "MES CRASHING IN PREPARATION - EXCEPTION FOLLOWS \n"
+        error_message += "\tError Type: " + str(error_type) + "\n"
+        error_message += "\tError: " + str(error) + "\n"
+        traces = traceback.extract_tb(tb)
+        trace_output = "\tTrace Output: \n"
+        for trace_line in traceback.format_list(traces):
+            trace_output += "\t" + trace_line + "\n"
+        error_message += "\n"
+        error_message += trace_output
+        # self.log_message(error_message)
+        self.log_message(
+            "Agent: PREPARATION EXCEPTION! Check exception log. --- " + error_message
+        )
+        self.log_message(error_message)
+        exception_payload = {}
+        exception_payload["error_message"] = error_message
+        exception_payload["error_type"] = str(error_type)
+        exception_payload["error"] = str(error)
+
+        excepting_trace = traces[0]
+        exception_payload["filename"] = excepting_trace.filename
+        exception_payload["lineno"] = excepting_trace.lineno
+        exception_payload["name"] = excepting_trace.name
+        exception_payload["line"] = excepting_trace.line
+
+        self.excepted_mes(exception_payload)
+
     def receiveMessage(self, message, sender):
         # print("AGENT GOT MESSAGE: ", message) # + message)
         # self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
@@ -192,7 +220,7 @@ class MESComponentBase(Actor):
         # test = [ mthd for mthd in dir(self) if not inspect.ismethod(self.__getattribute__(mthd))  ]
         # output = {}
 
-        # bad_fields = dill.detect.badtypes(self, depth=1).keys()  
+        # bad_fields = dill.detect.badtypes(self, depth=1).keys()
         # logging.warn(output)
         # for i in test:
         #     if i not in bad_fields:
@@ -202,17 +230,21 @@ class MESComponentBase(Actor):
         #         output[i] = self.__getattribute__(i)
         # # self.send(sender, ProbeMessage(state_response=json.dumps(output, default=str)))
         # self.send(sender, output)
-                
+
         match message:
             case ProbeMessage():
                 # self.mTree_logger().log(24, "{!s} got {!s}".format(self, message))
                 # if isinstance(message, ProbeMessage):
                 t = 1
                 probe = vars(self)
-                test = [ mthd for mthd in dir(self) if not inspect.ismethod(self.__getattribute__(mthd))  ]
+                test = [
+                    mthd
+                    for mthd in dir(self)
+                    if not inspect.ismethod(self.__getattribute__(mthd))
+                ]
                 output = {}
 
-                bad_fields = dill.detect.badtypes(self, depth=1).keys()  
+                bad_fields = dill.detect.badtypes(self, depth=1).keys()
                 logging.warn(output)
                 for i in test:
                     if i not in bad_fields:
@@ -220,7 +252,9 @@ class MESComponentBase(Actor):
                         # if not is_jsonable(self.__getattribute__(i)):
                         #     next
                         output[i] = self.__getattribute__(i)
-                self.send(sender, ProbeMessage(state_response=json.dumps(output, default=str)))
+                self.send(
+                    sender, ProbeMessage(state_response=json.dumps(output, default=str))
+                )
             case WakeupMessage():
                 try:
                     wakeup_message = message.payload
@@ -277,34 +311,7 @@ class MESComponentBase(Actor):
                     # except:
                     #     pass
                 except Exception as e:
-                    error_type, error, tb = sys.exc_info()
-                    error_message = "MES AGENT CRASHING - EXCEPTION FOLLOWS \n"
-                    error_message += "\tSource Message: " + str(message) + "\n"
-                    error_message += "\tError Type: " + str(error_type) + "\n"
-                    error_message += "\tError: " + str(error) + "\n"
-                    traces = traceback.extract_tb(tb)
-                    trace_output = "\tTrace Output: \n"
-
-                    for trace_line in traceback.format_list(traces):
-                        trace_output += "\t" + trace_line + "\n"
-                    error_message += "\n"
-                    error_message += trace_output
-                    # self.log_message(error_message)
-                    self.log_message("AGENT: EXCEPTION! Check exception log. ")
-
-                    exception_payload = {}
-                    exception_payload["error_message"] = error_message
-                    exception_payload["source_message"] = str(message)
-                    exception_payload["error_type"] = str(error_type)
-                    exception_payload["error"] = str(error)
-
-                    excepting_trace = traces[0]
-                    exception_payload["filename"] = excepting_trace.filename
-                    exception_payload["lineno"] = excepting_trace.lineno
-                    exception_payload["name"] = excepting_trace.name
-                    exception_payload["line"] = excepting_trace.line
-
-                    self.excepted_mes(exception_payload)
+                    self.exception_logging_handler()
             case ActorExitRequest():
                 return
             case PoisonMessage():

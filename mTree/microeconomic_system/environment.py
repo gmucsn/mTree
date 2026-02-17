@@ -18,6 +18,7 @@ from mTree.microeconomic_system.mes_exceptions import *
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.sequence_event import SequenceEvent
+from mTree.simulation.component_initialization import ComponentInitialization
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 
@@ -25,7 +26,7 @@ from thespian.initmsgs import initializing_messages
 @initializing_messages(
     [
         ("startup", str),
-        ("_startup_payload", StartupPayload),
+        ("_component_initialization", ComponentInitialization),
         ("_address_book_payload", AddressBookPayload),
     ],
     initdone="invoke_prepare",
@@ -36,63 +37,42 @@ class Environment(MESComponentBase):
         logging.info("Environment prepare invoke")
 
     def invoke_prepare(self):
-        logging.info("Environment invoke")
         setproctitle.setproctitle("mTree - Environment")
         # Report pid to the system status actor
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
         message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
-        logging.info("environment setup....")
-        # prepare the environment...
 
-        # the address book will be sent from the container now
-        # self.address_book = AddressBook(self)
-        self.initialization = self._startup_payload.startup_payload
+        self.initialization = self._component_initialization
         self.iteration = self.initialization.iteration
         self.configuration = self.initialization.iteration.configuration
 
         self._address_book = self._address_book_payload.address_book_payload
-        self.initialization_dict = self._startup_payload.startup_payload
+        self.initialization_dict = self._component_initialization
         self.mtree_properties = self.configuration.properties
         self.simulation_id = self.configuration.id
         self.simulation_run_id = self.configuration.simulation_run_id
         self.short_name = "ENV"  # self.initialization_dict["short_name"]
         self.log_actor = self.initialization.log_actor
         self.address_type = ""  # self.initialization_dict["address_type"]
-        # startup_payload["component_class"] = agent_class
-        # startup_payload["component_number"] = agent_number
+
         self.address_book = AddressBook(self, self._address_book)
-        logging.info("Should have configured address book")
-        logging.info(self.address_book)
-        ### REPLACE WITH CONTAINER REFERENCE
-        # self.dispatcher = self.initialization_dict["dispatcher"]
+
         self.container = self.initialization.mes_container
         self.debug = self.configuration.debug
         self.log_level = self.configuration.log_level
-        # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
-        # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
-        # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
 
         # prepping log actor
-        self.log_actor = self.createActor(
-            "log_actor.LogActor"
-        )  # , globalName="log_actor")
+        self.log_actor = self.createActor("log_actor.LogActor")
 
         log_basis = {}
         log_basis["message_type"] = "setup"
 
-        # setting short name for environment
-        # self.short_name = message.get_payload()["short_name"]
-        logging.info("ENVIRONMENT logger prepared")
-
-        self.short_name = ""  # self.initialization_dict["short_name"]
-        # self.short_name = "environment"
+        self.short_name = ""
 
         # if "address_book" not in dir(self):
         #     self.address_book = AddressBook(self)
-
-        # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
 
         log_basis["simulation_run_id"] = self.simulation_run_id
         log_basis["simulation_id"] = self.simulation_id
@@ -105,39 +85,10 @@ class Environment(MESComponentBase):
         # log_basis["simulation_configuration"] = self.initialization_dict["simulation_configuration"]
         self.send(self.log_actor, log_basis)
 
-        logging.info("ENVIRONMENT sent logger configuration")
-
-        # prepare for actor startup....
         try:
             self.prepare()
         except:
-            error_type, error, tb = sys.exc_info()
-            error_message = "MES CRASHING IN PREPARATION - EXCEPTION FOLLOWS \n"
-            error_message += "\tSource Message: " + str(message) + "\n"
-            error_message += "\tError Type: " + str(error_type) + "\n"
-            error_message += "\tError: " + str(error) + "\n"
-            traces = traceback.extract_tb(tb)
-            trace_output = "\tTrace Output: \n"
-            for trace_line in traceback.format_list(traces):
-                trace_output += "\t" + trace_line + "\n"
-            error_message += "\n"
-            error_message += trace_output
-            # self.log_message(error_message)
-            self.log_message(
-                "Environment: PREPARATION EXCEPTION! Check exception log. "
-            )
-            exception_payload = {}
-            exception_payload["error_message"] = error_message
-            exception_payload["error_type"] = str(error_type)
-            exception_payload["error"] = str(error)
-
-            excepting_trace = traces[0]
-            exception_payload["filename"] = excepting_trace.filename
-            exception_payload["lineno"] = excepting_trace.lineno
-            exception_payload["name"] = excepting_trace.name
-            exception_payload["line"] = excepting_trace.line
-
-            self.excepted_mes(exception_payload)
+            self.exception_logging_handler()
 
     # def __init__(self):
     #     self.address_book = AddressBook(self)

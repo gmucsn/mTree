@@ -4,8 +4,6 @@ import logging
 import os
 import sys
 import time
-
-# from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 from datetime import datetime, timedelta
 
@@ -14,8 +12,6 @@ import setproctitle
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.directive_decorators import *
-
-# from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.log_actor import LogActor
 from mTree.microeconomic_system.log_message import LogMessage
@@ -25,6 +21,9 @@ from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message, MessageSpace
 from mTree.microeconomic_system.probe_messages import ProbeMessage
 from mTree.microeconomic_system.sequence_event import SequenceEvent
+from mTree.simulation.component_initialization import ComponentInitialization
+from mTree.simulation.configuration import Configuration
+from mTree.simulation.iteration import Iteration
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 
@@ -40,7 +39,7 @@ def is_jsonable(x):
 @initializing_messages(
     [
         ("startup", str),
-        ("_startup_payload", StartupPayload),
+        ("_component_initialization", ComponentInitialization),
         ("_address_book_payload", AddressBookPayload),
     ],
     initdone="invoke_prepare",
@@ -60,66 +59,37 @@ class Agent(MESComponentBase):
         message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
 
-        logging.info("AGENT PREPARING")
-        self.initialization_dict = self._startup_payload.startup_payload
+        self.initialization: ComponentInitialization = self._component_initialization
+        self.iteration: Iteration = self.initialization.iteration
+        self.configuration: Configuration = self.iteration.configuration
+
+        self.initialization_dict = self._component_initialization
 
         self._address_book = self._address_book_payload.address_book_payload
 
-        self.debug = self.initialization_dict["simulation_configuration"].debug
-        self.log_level = self.initialization_dict["simulation_configuration"].log_level
+        self.debug = self.configuration.debug
+        self.log_level = self.configuration.log_level
+        self.mtree_properties = self.configuration.properties
 
-        self.mtree_properties = self.initialization_dict["properties"]
-
-        if "local_properties" in self.initialization_dict.keys():
-            self.local_properties = self.initialization_dict["local_properties"]
-
-        self.simulation_id = self.initialization_dict["simulation_id"]
-        self.simulation_run_id = self.initialization_dict["simulation_run_id"]
-        self.short_name = self.initialization_dict["short_name"]
-        self.environment = self.initialization_dict["environment"]
-        self.log_actor = self.initialization_dict["log_actor"]
-        self.address_type = self.initialization_dict["address_type"]
-        # startup_payload["component_class"] = agent_class
-        # startup_payload["component_number"] = agent_number
+        self.simulation_id = self.configuration.id
+        self.simulation_run_id = self.iteration.simulation_run_id
+        self.short_name = ""
+        self.environment = None
+        self.log_actor = self.initialization.log_actor
+        self.address_type = "agent"
         self.address_book = AddressBook(self, self._address_book)
-        self.container = self.initialization_dict["container"]
+        self.container = self.initialization.mes_container
 
-        self.outlets = {}
-        self.subject_id = None
-        if "subject_id" in self.initialization_dict.keys():
-            self.subject_id = self.initialization_dict["subject_id"]
+        # TODO fix for subject startup
+        # self.outlets = {}
+        # self.subject_id = None
+        # if "subject_id" in self.initialization_dict.keys():
+        #     self.subject_id = self.initialization_dict["subject_id"]
 
         try:
             self.prepare()
         except:
-            error_type, error, tb = sys.exc_info()
-            error_message = "MES CRASHING IN PREPARATION - EXCEPTION FOLLOWS \n"
-            error_message += "\tError Type: " + str(error_type) + "\n"
-            error_message += "\tError: " + str(error) + "\n"
-            traces = traceback.extract_tb(tb)
-            trace_output = "\tTrace Output: \n"
-            for trace_line in traceback.format_list(traces):
-                trace_output += "\t" + trace_line + "\n"
-            error_message += "\n"
-            error_message += trace_output
-            # self.log_message(error_message)
-            self.log_message(
-                "Agent: PREPARATION EXCEPTION! Check exception log. --- "
-                + error_message
-            )
-            self.log_message(error_message)
-            exception_payload = {}
-            exception_payload["error_message"] = error_message
-            exception_payload["error_type"] = str(error_type)
-            exception_payload["error"] = str(error)
-
-            excepting_trace = traces[0]
-            exception_payload["filename"] = excepting_trace.filename
-            exception_payload["lineno"] = excepting_trace.lineno
-            exception_payload["name"] = excepting_trace.name
-            exception_payload["line"] = excepting_trace.line
-
-            self.excepted_mes(exception_payload)
+            self.exception_logging_handler()
         logging.info("agent prepare finished...")
 
     # def __init__(self):
