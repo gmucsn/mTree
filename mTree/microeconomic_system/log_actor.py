@@ -27,6 +27,7 @@ EXPERIMENT_DATA = 27
 )
 class LogActor(Actor):
     def prepare_log_actor(self):
+        self.iteration = self._log_actor_configuration.log_actor_configuration_payload
         logging.info("SHOULD BE Starting insider logger 1")
 
         setproctitle.setproctitle("mTree - LogActor")
@@ -37,35 +38,19 @@ class LogActor(Actor):
 
         logging.info("SHOULD BE Starting insider logger 2")
 
-        self.simulation_id = (
-            self._log_actor_configuration.log_actor_configuration_payload.simulation_id
-        )
-        self.simulation_run_id = (
-            self._log_actor_configuration.log_actor_configuration_payload.simulation_run_id
-        )
-        self.run_number = (
-            self._log_actor_configuration.log_actor_configuration_payload.run_number
-        )
-        self.run_code = (
-            self._log_actor_configuration.log_actor_configuration_payload.run_code
-        )
-        self.status = (
-            self._log_actor_configuration.log_actor_configuration_payload.status
-        )
-        self.mes_directory = (
-            self._log_actor_configuration.log_actor_configuration_payload.configuration.mes_directory
-        )
-        self.output_type = (
-            self._log_actor_configuration.log_actor_configuration_payload.data_logging
-        )
-        self.simulation_configuration = (
-            self._log_actor_configuration.log_actor_configuration_payload.configuration
-        )
-        self.debug = self.simulation_configuration.debug
-        self.log_level = self.simulation_configuration.log_level
+        self.simulation_id = self.iteration.configuration.id
+        self.simulation_run_id = self.iteration.simulation_run_id
+        self.run_number = self.iteration.iteration_number
+        self.run_code = self.iteration.run_code
+        self.status = self.iteration.status
+        self.mes_directory = self.iteration.configuration.mes_directory
+        self.output_type = self.iteration.configuration.data_logging
+        self.simulation_configuration = self.iteration.configuration
+        self.debug = self.iteration.configuration.debug
+        self.log_level = self.iteration.configuration.log_level
+        self.targets = {}
         self.setup_log_files_folder()
         self.create_mes_status_file()
-        self.targets = {}
 
     def experiment_log(self, log_message):
         # self.mTree_logger().log(25, log_message)
@@ -347,9 +332,9 @@ class LogActor(Actor):
         status_file.close()
 
         output_information = {}
-        output_information["status"] = configuration_object.status
-        output_information["start_time"] = configuration_object.start_time
-        output_information["end_time"] = configuration_object.end_time
+        output_information["status"] = self.iteration.status
+        output_information["start_time"] = self.iteration.start_time
+        output_information["end_time"] = self.iteration.end_time
 
         # for key in status_dict.keys():
         #     mes_information[key] = status_dict[key]

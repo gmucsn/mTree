@@ -15,7 +15,8 @@ from mTree.components.registry import Registry
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.core_actors.dispatcher import Dispatcher
 from mTree.microeconomic_system.message import Message
-from mTree.simulation.description import MESDescription
+from mTree.simulation.configuration import Configuration
+from mTree.simulation.run import Run
 from mTree.system.actor_system_controller import ActorSystemController
 from thespian.actors import *
 
@@ -169,7 +170,7 @@ class ActorSystemConnector:
         # ActorSystem("multiprocTCPBase", self.capabilities).tell(dispatcher, configuration_message)
 
     @staticmethod
-    def run_simulation_configuration(configuration: MESDescription):
+    def simulation_run_from_configuration(configuration: Configuration):
         configuration.source_hash = ActorSystemConnector.load_base_mes(
             configuration.mes_directory
         )
@@ -177,18 +178,21 @@ class ActorSystemConnector:
         actor_system = ActorSystemController.retrieve_connection()
         dispatcher = actor_system.createActor(Actor, globalName="Dispatcher")
 
-        configuration_message = Message()
-        configuration_message.set_directive("simulation_configurations")
+        run_message = Message()
+        run_message.set_directive("simulation_configurations")
 
         config_base_name = os.path.basename(configuration.file_source).split(".")[0]
-        nowtime = datetime.datetime.now().timestamp()
         # Simulation Run ID Generator - TODO consolidate with subject ID generation
+
+        nowtime = datetime.datetime.now().timestamp()
         nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
         simulation_run_id = config_base_name + "-" + nowtime_filename
-        configuration.simulation_run_id = simulation_run_id
-        configuration_message.set_payload(configuration)
+        # configuration.simulation_run_id = simulation_run_id
+        run = Run(configuration=configuration, simulation_run_id=simulation_run_id)
+
+        run_message.set_payload(run)
         actor_system.tell(
-            dispatcher, configuration_message
+            dispatcher, run_message
         )  # createActor(Dispatcher, globalName = "Dispatcher")
         # ActorSystem("multiprocTCPBase", self.capabilities).tell(dispatcher, configuration_message)
 

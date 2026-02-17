@@ -1,11 +1,13 @@
 import atexit
 import os
 import time
+from typing import List
 
 import questionary
 import typer
 from mTree.generator import Generate
 from mTree.simulation import Library
+from mTree.simulation.configuration import Configuration
 from mTree.system.actor_system_connector import ActorSystemConnector
 from mTree.system.actor_system_controller import ActorSystemController
 from mTree.system.mes_simulation_library import MESSimulationLibrary
@@ -21,15 +23,15 @@ This file invokes other methods to provide particular services.
 app = typer.Typer()
 
 
-def run_simulation_from_configurations(config_dir, configurations):
+def run_simulation_from_configurations(config_dir, configurations: List[Configuration]):
     for configuration in configurations:
-        working_dir = config_dir
-        # actor_system.send_message()
-        configuration_good = True
+        # working_dir = config_dir
+        # # actor_system.send_message()
+        # configuration_good = True
         # try:
-        simulation_library = MESSimulationLibrary()
-        simulation_library.list_simulation_files_directory(working_dir)
-        list_simulations = simulation_library.simulations
+        # simulation_library = MESSimulationLibrary()
+        # simulation_library.list_simulation_files_directory(working_dir)
+        # list_simulations = simulation_library.simulations
         # configuration_name = os.path.basename(configuration)
 
         # simulation = simulation_library.get_simulation_by_filename(
@@ -40,18 +42,18 @@ def run_simulation_from_configurations(config_dir, configurations):
         # except Exception as e:
         #     configuration_good = False
 
-        if configuration_good:
-            actor_system = ActorSystemConnector()
-            working_dir = config_dir
-            # actor_system.send_message()
-            actor_system.run_simulation_configuration(configuration)
-            # actor_system.run_simulation_configuration(
-            #     working_dir,
-            #     str(configuration.file_source),
-            #     configuration.dict(exclude={"file_source"}),
-            # )
-            simulation_viewer = SimulationViewer()
-            simulation_viewer.run()
+        # if configuration_good:
+        actor_system = ActorSystemConnector()
+        working_dir = config_dir
+        # actor_system.send_message()
+        actor_system.simulation_run_from_configuration(configuration)
+        # actor_system.run_simulation_configuration(
+        #     working_dir,
+        #     str(configuration.file_source),
+        #     configuration.dict(exclude={"file_source"}),
+        # )
+        simulation_viewer = SimulationViewer()
+        simulation_viewer.run()
 
 
 # simulation["description"].to_hash()

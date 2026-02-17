@@ -2,8 +2,8 @@
   "name":"Random Timing Auction Run",
   "id": "1",
   "environment": "basic_auction_environment.AuctionEnvironment",
-  "institution": "basic_auction_institution.AuctionInstitution",
-  "number_of_runs": 20,
+  "institutions": [{"institution_name":"basic_auction_institution.AuctionInstitution" }],
+  "number_of_iterations": 20,
   "agents": [{"agent_name": "random_response_auction_agent.RandomResponseAuctionAgent", "number": 5}],
   "properties": {}
 }

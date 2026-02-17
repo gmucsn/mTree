@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
 
-from mTree.simulation import MESDescription, SimulationDescription
+from mTree.simulation.configuration import Configuration
+from mTree.simulation.mes_description import MESDescription
 
 
 class Library:
@@ -37,15 +38,15 @@ class Library:
     def generate_mes_description(self, mes_directory: Path):
         config_directory = mes_directory / "config"
         config_files = [config_file for config_file in config_directory.glob("*.json")]
-        simulation_descriptions = []
+        configurations = []
         for config_file in config_files:
             input_json = config_file.read_text()
-            configuration = SimulationDescription.model_validate_json(input_json)
+            configuration = Configuration.model_validate_json(input_json)
             configuration.file_source = config_file
             configuration.mes_directory = mes_directory
-            simulation_descriptions.append(configuration)
+            configurations.append(configuration)
         return MESDescription(
-            mes_directory=mes_directory, configurations=simulation_descriptions
+            mes_directory=mes_directory, configurations=configurations
         )
 
     def find_mes_directories(self):

@@ -21,6 +21,9 @@ from mTree.microeconomic_system.mes_container import MESContainer
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message, MessageSpace
 from mTree.microeconomic_system.outconnect import OutConnect
+from mTree.simulation.configuration import Configuration
+from mTree.simulation.iteration import Iteration
+from mTree.simulation.run import Run
 from mTree.simulation.simulation_run import SimulationRun
 from mTree.simulation.startup_payload import StartupPayload
 from thespian.actors import *
@@ -131,7 +134,7 @@ class Dispatcher(Actor):
     def init_done(self):
         logging.info("Dispatcher initializing")
         setproctitle.setproctitle("mTree - Dispatcher Actor")
-        self.simulation_runs = []
+        self.simulation_run_iterations = []
         self.configurations_pending = []
         self.configurations_finished = []
         self.agent_memory = {}
@@ -150,7 +153,7 @@ class Dispatcher(Actor):
 
     def get_status(self, sender):
         output = []
-        for run in self.simulation_runs:
+        for run in self.simulation_run_iterations:
             output.append(run.to_data_row())
         self.send(sender, output)
 
@@ -160,7 +163,7 @@ class Dispatcher(Actor):
         )
 
         output = []
-        for run in self.simulation_runs:
+        for run in self.simulation_run_iterations:
             output.append(run.to_data_row())
         payload = {"status": output}
         message = AdminMessage(response="system_status", payload=payload)
@@ -181,7 +184,7 @@ class Dispatcher(Actor):
         )
 
         output = []
-        for run in self.simulation_runs:
+        for run in self.simulation_run_iterations:
             output.append(run.to_data_row())
         message = Message()
         message.set_directive("system_status")
@@ -191,33 +194,34 @@ class Dispatcher(Actor):
 
         self.send(web_socket_router_actor, message)
 
-    def run_simulation(
-        self, simulation_run: SimulationRun
+    # TODO Change to start iteration or something
+    def run_simulation_iteration(
+        self, iteration: Iteration
     ):  # configuration, run_number=None, configuration_obect=None):
 
         ####
         # get the source hash for the newly loaded MES components
         ####
-        source_hash = simulation_run.configuration.source_hash
+        source_hash = iteration.configuration.source_hash
 
         ####
         # get debug and log level information for sharing across all components
         ####
-        debug = simulation_run.configuration.debug
-        log_level = simulation_run.configuration.log_level
+        debug = iteration.configuration.debug
+        log_level = iteration.configuration.log_level
 
         ####
         # Startup the MES Container that will contain this simulation
         ####
 
-        source_hash = simulation_run.configuration.source_hash
+        source_hash = iteration.configuration.source_hash
         mes_container = self.createActor(MESContainer)
 
         ####
         # Create the environment for the new MES
         ####
-        source_hash = simulation_run.configuration.source_hash
-        environment_class = simulation_run.configuration.environment
+        source_hash = iteration.configuration.source_hash
+        environment_class = iteration.configuration.environment
         # environment = self.createActor(environment_class,sourceHash=source_hash)
         # # environment created
         # self.environment = environment
@@ -229,19 +233,19 @@ class Dispatcher(Actor):
         # Initialization Message 1
         # self.send(environment, str(environment_class))
 
-        startup_payload = StartupPayload(
-            configuration=simulation_run.configuration,
-            properties=simulation_run.configuration.properties,
-            dispatcher=self.myAddress,
-            simulation_id=simulation_run.configuration.id,
-            simulation_run_id=simulation_run.configuration.simulation_run_id,
-            short_name=str(environment_class),
-            run_code="123456",  # simulation_run.configuration.run_code,
-            status="Requested",
-            debug=simulation_run.configuration.debug,
-            log_level=simulation_run.configuration.log_level,
-            simulation_run=simulation_run,
-        )
+        # startup_payload = StartupPayload(
+        #     configuration=simulation_run.configuration,
+        #     properties=simulation_run.configuration.properties,
+        #     dispatcher=self.myAddress,
+        #     simulation_id=simulation_run.configuration.id,
+        #     simulation_run_id=simulation_run.configuration.simulation_run_id,
+        #     short_name=str(environment_class),
+        #     run_code="123456",  # simulation_run.configuration.run_code,
+        #     status="Requested",
+        #     debug=simulation_run.configuration.debug,
+        #     log_level=simulation_run.configuration.log_level,
+        #     simulation_run=simulation_run,
+        # )
         # startup_payload = {}
         # startup_payload["simulation_configuration"] = configuration
         # startup_payload["properties"] = configuration["properties"]
@@ -268,9 +272,14 @@ class Dispatcher(Actor):
         # self.send(environment, startup_payload)
 
         # Initialization Message for Container
+        # self.send(
+        #     mes_container,
+        #     MESConfigurationPayload(mes_configuration_payload=startup_payload),
+        # )
+
         self.send(
             mes_container,
-            MESConfigurationPayload(mes_configuration_payload=startup_payload),
+            MESConfigurationPayload(mes_configuration_payload=iteration),
         )
 
         # if "properties" in configuration.keys():
@@ -449,27 +458,33 @@ class Dispatcher(Actor):
         self.send(environment, start_message)
         logging.info("Simulation environment should have started")
 
-    def prepare_simulation_run(self, configuration):
-        if configuration.number_of_runs > 1:
-            total_runs = configuration.number_of_runs
-            for run_number in range(1, total_runs + 1):
-                new_simulation_run = SimulationRun(
-                    configuration=configuration, run_number=run_number
+    def prepare_simulation_run_iteration(self, run: Run):
+        if run.configuration.number_of_iterations > 1:
+            total_iterations = run.configuration.number_of_runs
+            for run_iteration_number in range(1, total_iterations + 1):
+                new_simulation_run_iteration = Iteration(
+                    simulation_run_id=run.simulation_run_id,
+                    configuration=run.configuration,
+                    iteration_number=run_iteration_number,
+                    dispatcher=self.myAddress,
                 )
-                self.simulation_runs.append(new_simulation_run)
+                self.simulation_run_iterations.append(new_simulation_run_iteration)
         else:
-            new_simulation_run = SimulationRun(
-                configuration=configuration, run_number=1
+            new_simulation_run_iteration = Iteration(
+                simulation_run_id=run.simulation_run_id,
+                configuration=run.configuration,
+                iteration_number=1,
+                dispatcher=self.myAddress,
             )
-            self.simulation_runs.append(new_simulation_run)
+            self.simulation_run_iterations.append(new_simulation_run_iteration)
 
-    def begin_simulations(self):
+    def begin_simulation_run_iterations(self):
         MAX_CONCURRENT = 5
 
-        for simulation_configuration in self.simulation_runs:
-            if simulation_configuration.status == "Registered":
-                simulation_configuration.mark_running()
-                self.run_simulation(simulation_configuration)
+        for iteration in self.simulation_run_iterations:
+            if iteration.status == "Registered":
+                iteration.mark_running()
+                self.run_simulation_iteration(iteration)
 
                 #     simulation_configuration.configuration,
                 #     simulation_configuration.run_number,
@@ -492,25 +507,25 @@ class Dispatcher(Actor):
         # else:
         #     self.run_simulation(self.configurations_pending)
 
-    def next_run(self):
+    def next_simulation_iteration(self):
         if self.runs_remaining > 0:
             self.runs_remaining -= 1
             self.current_run += 1
-            self.run_simulation(self.configurations_pending, self.current_run)
+            self.run_simulation_iteration(self.configurations_pending, self.current_run)
         else:
             self.send(self.myAddress, ActorExitRequest())
 
     def update_mes_status(self, sender, message):
 
-        for run in self.simulation_runs:
+        for run in self.simulation_run_iterations:
             if run.mes_base_address == sender:
                 run.mark_finished()
 
     def update_mes_run_information(self, sender, message):
 
-        for run_index, run in enumerate(self.simulation_runs):
+        for run_index, run in enumerate(self.simulation_run_iterations):
             if run.mes_base_address == sender:
-                self.simulation_runs[run_index] = message
+                self.simulation_run_iterations[run_index] = message
                 break
 
     def shutdown_mes(self, environment_address):
@@ -533,7 +548,7 @@ class Dispatcher(Actor):
         # self.send(environment_address, ActorExitRequest())
 
     def kill_run_by_id(self, message):
-        for run in self.simulation_runs:
+        for run in self.simulation_run_iterations:
             if run.run_code == message.get_payload()["run_id"]:
                 run.mark_killed()
 
@@ -552,7 +567,7 @@ class Dispatcher(Actor):
                 self.send(run.mes_base_address, ActorExitRequest())
 
     def excepted_mes_shutdown(self, environment_address, exception_payload):
-        for run in self.simulation_runs:
+        for run in self.simulation_run_iterations:
             if run.mes_base_address == environment_address:
                 run.mark_excepted()
 
@@ -597,8 +612,8 @@ class Dispatcher(Actor):
             else:
                 if message.get_directive() == "simulation_configurations":
                     self.configurations_pending = message.get_payload()
-                    self.prepare_simulation_run(message.get_payload())
-                    self.begin_simulations()
+                    self.prepare_simulation_run_iteration(message.get_payload())
+                    self.begin_simulation_run_iterations()  # simulation run iterations
 
                 elif message.get_directive() == "human_subject_configuration":
                     self.run_human_subject_experiment(message.get_payload())
@@ -648,7 +663,7 @@ class Dispatcher(Actor):
                         self.send(sender, ActorExitRequest())
 
                         self.end_round()
-                        self.next_run()
+                        self.next_simulation_iteration()
 
     def old_run_human_subject_experiment(
         self, configuration, run_number=None, configuration_obect=None

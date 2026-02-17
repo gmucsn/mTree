@@ -48,15 +48,18 @@ class Environment(MESComponentBase):
 
         # the address book will be sent from the container now
         # self.address_book = AddressBook(self)
+        self.initialization = self._startup_payload.startup_payload
+        self.iteration = self.initialization.iteration
+        self.configuration = self.initialization.iteration.configuration
 
         self._address_book = self._address_book_payload.address_book_payload
         self.initialization_dict = self._startup_payload.startup_payload
-        self.mtree_properties = self.initialization_dict["properties"]
-        self.simulation_id = self.initialization_dict["simulation_id"]
-        self.simulation_run_id = self.initialization_dict["simulation_run_id"]
-        self.short_name = self.initialization_dict["short_name"]
-        self.log_actor = self.initialization_dict["log_actor"]
-        self.address_type = self.initialization_dict["address_type"]
+        self.mtree_properties = self.configuration.properties
+        self.simulation_id = self.configuration.id
+        self.simulation_run_id = self.configuration.simulation_run_id
+        self.short_name = "ENV"  # self.initialization_dict["short_name"]
+        self.log_actor = self.initialization.log_actor
+        self.address_type = ""  # self.initialization_dict["address_type"]
         # startup_payload["component_class"] = agent_class
         # startup_payload["component_number"] = agent_number
         self.address_book = AddressBook(self, self._address_book)
@@ -64,9 +67,9 @@ class Environment(MESComponentBase):
         logging.info(self.address_book)
         ### REPLACE WITH CONTAINER REFERENCE
         # self.dispatcher = self.initialization_dict["dispatcher"]
-        self.container = self.initialization_dict["container"]
-        self.debug = self.initialization_dict["simulation_configuration"].debug
-        self.log_level = self.initialization_dict["simulation_configuration"].log_level
+        self.container = self.initialization.mes_container
+        self.debug = self.configuration.debug
+        self.log_level = self.configuration.log_level
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
         # logging.info("ENVIRONMENT should have : " + str(self.config_payload))
@@ -83,7 +86,7 @@ class Environment(MESComponentBase):
         # self.short_name = message.get_payload()["short_name"]
         logging.info("ENVIRONMENT logger prepared")
 
-        self.short_name = self.initialization_dict["short_name"]
+        self.short_name = ""  # self.initialization_dict["short_name"]
         # self.short_name = "environment"
 
         # if "address_book" not in dir(self):
@@ -91,8 +94,8 @@ class Environment(MESComponentBase):
 
         # logging.info("ENVIRONMENT short name is : " + str(self.short_name))
 
-        log_basis["simulation_run_id"] = self.initialization_dict["simulation_run_id"]
-        log_basis["simulation_id"] = self.initialization_dict["simulation_id"]
+        log_basis["simulation_run_id"] = self.simulation_run_id
+        log_basis["simulation_id"] = self.simulation_id
         log_basis["run_number"] = 1  # self.initialization_dict["simulation_run_number"]
         # TODO Fix references
         # log_basis["run_code"] = self.initialization_dict["run_code"]

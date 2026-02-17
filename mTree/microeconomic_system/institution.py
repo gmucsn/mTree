@@ -19,6 +19,9 @@ from mTree.microeconomic_system.mes_exceptions import *
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.microeconomic_system.sequence_event import SequenceEvent
+from mTree.simulation.component_initialization import ComponentInitialization
+from mTree.simulation.configuration import Configuration
+from mTree.simulation.iteration import Iteration
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 
@@ -48,23 +51,30 @@ class Institution(MESComponentBase):
         self.send(system_status_actor, message)
 
         # prepare the institution...
+        self.initialization: ComponentInitialization = (
+            self._startup_payload.startup_payload
+        )
+        self.iteration: Iteration = self.initialization.iteration
+        self.configuration: Configuration = self.iteration.configuration
+
         self.initialization_dict = self._startup_payload.startup_payload
-        self.debug = self.initialization_dict["simulation_configuration"].debug
-        self.log_level = self.initialization_dict["simulation_configuration"].log_level
+
+        self.debug = self.configuration.debug
+        self.log_level = self.configuration.log_level
+        self.mtree_properties = self.configuration.properties
+        # if "local_properties" in self.initialization_dict.keys():
+        #     self.local_properties = self.initialization_dict["local_properties"]
 
         self._address_book = self._address_book_payload.address_book_payload
-        self.mtree_properties = self.initialization_dict["properties"]
-        if "local_properties" in self.initialization_dict.keys():
-            self.local_properties = self.initialization_dict["local_properties"]
 
-        self.simulation_id = self.initialization_dict["simulation_id"]
-        self.simulation_run_id = self.initialization_dict["simulation_run_id"]
-        self.short_name = self.initialization_dict["short_name"]
-        self.environment = self.initialization_dict["environment"]
-        self.log_actor = self.initialization_dict["log_actor"]
-        self.address_type = self.initialization_dict["address_type"]
+        self.simulation_id = self.configuration.id
+        self.simulation_run_id = self.iteration.simulation_run_id
+        self.short_name = ""
+        self.environment = None  # self.initialization_dict["environment"]
+        self.log_actor = self.initialization.log_actor
+        self.address_type = "institution"
         self.address_book = AddressBook(self, self._address_book)
-        self.container = self.initialization_dict["container"]
+        self.container = self.initialization.mes_container
 
         try:
             self.prepare()
