@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 import setproctitle
 from mTree.core_actors.admin_message import AdminMessage
-from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.address_book import AddressBook, ComponentAddress
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.log_actor import LogActor
@@ -30,7 +30,7 @@ from thespian.initmsgs import initializing_messages
     [
         ("startup", str),
         ("_component_initialization", ComponentInitialization),
-        ("_address_book_payload", AddressBookPayload),
+        ("_address_book", AddressBook),
     ],
     initdone="invoke_prepare",
 )
@@ -61,7 +61,7 @@ class Institution(MESComponentBase):
         self.log_level = self.configuration.log_level
         self.mtree_properties = self.configuration.properties
 
-        self._address_book = self._address_book_payload.address_book_payload
+        # self._address_book = self._address_book_payload.address_book_payload
 
         self.simulation_id = self.configuration.id
         self.simulation_run_id = self.iteration.simulation_run_id
@@ -69,7 +69,9 @@ class Institution(MESComponentBase):
         self.environment = None  # self.initialization_dict["environment"]
         self.log_actor = self.initialization.log_actor
         self.address_type = "institution"
-        self.address_book = AddressBook(self, self._address_book)
+        self.address_book = self._address_book
+        self.address_book.register_component(self)
+        # self.address_book = AddressBook(self, self._address_book)
         self.container = self.initialization.mes_container
 
         try:
@@ -157,7 +159,6 @@ class Institution(MESComponentBase):
     #             self.send(agent, new_message)
 
     def shutdown_mes(self):
-        logging.info("INST shutting down sim")
         new_message = Message()
         new_message.set_directive("shutdown_mes")
         new_message.set_sender(self.myAddress)
@@ -277,7 +278,7 @@ class Institution(MESComponentBase):
     @directive_decorator("address_book_update")
     def address_book_update(self, message: Message):
         addresses = message.get_payload()
-        self.address_book.merge_addresses(addresses)
+        # self.address_book.merge_addresses(addresses)
 
     @directive_decorator("simulation_properties")
     def simulation_properties(self, message: Message):

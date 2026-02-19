@@ -40,8 +40,6 @@ class AuctionEnvironment(Environment):
             "set_endowment"
         )  # Set the directive (refer to 3. Make Messages) - has to match receiver decorator
         new_message.set_payload({"endowment": endowment})
-        logging.info("SHOULD BE PROVISDING ENDOWMENT")
-        logging.info(new_message)
 
         self.send_message(
             "set_endowment",

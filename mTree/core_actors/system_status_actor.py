@@ -15,7 +15,6 @@ class SystemStatusActor(Actor):
 
     def init_done(self):
         setproctitle.setproctitle("mTree - SystemStatusActor Actor")
-        logging.info("System status actor starting!")
 
         self.actors = ["mTree - SystemStatusActor Actor"]
         self.pids = [os.getpid()]
@@ -27,45 +26,39 @@ class SystemStatusActor(Actor):
         #     print("Motto is there")
         # if not self.sa_running:
         self.registerSourceAuthority()
-        logging.info("The Status actor is starting... Initialization successful")
         self.sa_running = True
 
     def register_pid(self, msg):
         if msg.payload not in self.pids:
             self.pids.append(msg.payload)
-        
 
     def generate_status_report(self, sender):
-        logging.info("Generating status report")
         processes = []
         for pid in self.pids:
             try:
                 process = psutil.Process(pid)
                 process_report = ActorProcessDescriptor(
-                    actor_address = self.myAddress,
-                    actor_name = process.name(),
-                    status = process.status(),
-                    pid = pid,
-                    cpu_usage = process.cpu_percent(),
-                    memory_usage = process.memory_full_info().rss,
-                    started = datetime.datetime.fromtimestamp(process.create_time())
+                    actor_address=self.myAddress,
+                    actor_name=process.name(),
+                    status=process.status(),
+                    pid=pid,
+                    cpu_usage=process.cpu_percent(),
+                    memory_usage=process.memory_full_info().rss,
+                    started=datetime.datetime.fromtimestamp(process.create_time()),
                 )
                 processes.append(process_report)
             except:
                 process_report = ActorProcessDescriptor(
-                    actor_address = "",
-                    actor_name = "",
-                    status = "DEAD",
-                    pid = pid,
-                    cpu_usage = "",
-                    memory_usage = "",
-                    started = ""
+                    actor_address="",
+                    actor_name="",
+                    status="DEAD",
+                    pid=pid,
+                    cpu_usage="",
+                    memory_usage="",
+                    started="",
                 )
                 processes.append(process_report)
         self.send(sender, processes)
-
-
-
 
     def system_status(self, sender):
         self.send(sender, self.running)
@@ -74,7 +67,6 @@ class SystemStatusActor(Actor):
         self.send(sender, self.processes)
 
     def receiveMessage(self, msg, sender):
-        logging.info("Status actor message received -> ")
         match msg:
             case AdminMessage():
                 match msg.directive:
@@ -85,15 +77,15 @@ class SystemStatusActor(Actor):
             case ValidateSource():
                 logging.info("A VALIDATION REQUEST HAS BEEN RECEIVED....")
                 self.send(
-                    sender, ValidatedSource(msg.sourceHash, msg.sourceData, msg.sourceInfo)
+                    sender,
+                    ValidatedSource(msg.sourceHash, msg.sourceData, msg.sourceInfo),
                 )
-
 
         # if not isinstance(msg, ActorSystemMessage):
         #     if isinstance(msg, AdminMessage):
         #         if msg.directive == "check_status":
         #             self.generate_status_report(sender)
-                
+
         #         # elif msg.get_request() == "register_dispatcher":
         #         #     self.running = True
         #         # elif msg.get_request() == "system_running":

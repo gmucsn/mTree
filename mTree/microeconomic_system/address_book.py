@@ -1,11 +1,109 @@
 import json
 import logging
 import uuid
+from pathlib import Path
+from typing import Any, Dict, List
 
 from mTree.microeconomic_system.message import Message
+from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic.types import constr
 
 
-class AddressBook:
+class ComponentAddress(BaseModel):
+    short_name: str
+    address_type: str
+    address: object
+    component_class: str
+    component_number: int
+
+
+class AddressBook(BaseModel):
+    addresses: Dict[str, ComponentAddress] = {}
+    addresses_to_groups: Dict[str, ComponentAddress] = {}
+    address_groups: Dict[str, List[ComponentAddress]] = {}
+    component: object = None
+
+    def add_address(self, address: ComponentAddress, additional_information=None):
+        # address_str = str(address)
+        # self.addresses[address.short_name] = additional_information
+        self.addresses[address.short_name] = address
+        # if additional_information["address_type"] == "agent":
+        #     self.agents[address_str] = additional_information
+        # else:
+        #     self.institutions[address_str] = additional_information
+
+    def get_addresses(self):
+        return self.addresses
+
+    def merge_addresses(self, addresses):
+        # self.addresses = addresses
+        pass
+
+    def reset_address_groups(self):
+        self.address_groups = {}
+        self.addresses_to_groups = {}
+
+    def register_component(self, component):
+        self.component = component
+
+    def select_addresses(self, selector):
+        """Select addresses from the address book based on provided selector.
+
+        Keyword arguments:
+
+
+        Returns:
+            List of Thespian actor addresses
+        """
+        address = []
+        # try:
+        if "short_name" in selector.keys():
+            address = [
+                entry.address
+                for entry in self.addresses.values()
+                if entry.short_name == selector["short_name"]
+            ]
+
+        elif "address_type" in selector.keys():
+            # logging.info("SHOULD BE SELECTOR TYPE: " + str(selector))
+            # logging.info("DOUBLE CHECK ADDRESS: " + str(self.addresses.values()))
+
+            for entry in self.addresses.values():
+                # try:
+                if entry.address_type == selector["address_type"]:
+                    address.append(entry.address)
+            # except:
+            #     pass
+            # address = [entry["address"] for entry in self.addresses.values() if entry["address_type"] == selector["address_type"]]
+        # except:
+        #     pass
+
+        if len(address) == 1:
+            return address[0]
+        return address
+
+    def forward_address_book(self, address):
+        new_message = Message()
+        new_message.set_sender(self.component.myAddress)
+        new_message.set_directive("address_book_update")
+        new_message.set_payload(self.addresses)
+        # address = self.select_addresses(selector)
+        self.base_component.send(address, new_message)
+
+    def forward_address_book_message(self, selector=None):
+        new_message = Message()
+        new_message.set_sender(self.component.myAddress)
+        new_message.set_directive("address_book_update")
+        new_message.set_payload(self.addresses)
+        return new_message
+        # address = self.select_addresses(selector)
+        # self.base_component.send(address, new_message)
+
+
+# class SimulationDescription(BaseModel):
+
+
+class OldAddressBook:
     def __init__(self, base_component, address_data=None):
         self.base_component = base_component
         self.addresses = {}

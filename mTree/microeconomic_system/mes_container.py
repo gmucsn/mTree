@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 import setproctitle
 from mTree.core_actors.admin_message import AdminMessage
-from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.address_book import AddressBook, ComponentAddress
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.environment import Environment
 
@@ -103,7 +103,7 @@ class MESContainer(Actor):
 
         # This list will be used principally for maintaining which mes components
         self.mes_component_list = []
-        self.master_address_book = AddressBook(self)
+        self.master_address_book = AddressBook()
         self.environment = None
         self.institutions = []
         self.agents = []
@@ -122,26 +122,14 @@ class MESContainer(Actor):
     def distribute_address_book(self):
         self.send(
             self.environment,
-            AddressBookPayload(
-                address_book_payload=self.master_address_book._export_data()
-            ),
+            self.master_address_book,
         )
 
         for agent in self.agents:
-            self.send(
-                agent,
-                AddressBookPayload(
-                    address_book_payload=self.master_address_book._export_data()
-                ),
-            )
+            self.send(agent, self.master_address_book)
 
         for institution in self.institutions:
-            self.send(
-                institution,
-                AddressBookPayload(
-                    address_book_payload=self.master_address_book._export_data()
-                ),
-            )
+            self.send(institution, self.master_address_book)
 
     def construct_environment(self):
         ####
@@ -182,17 +170,14 @@ class MESContainer(Actor):
 
         # prep address book entry for the environment
 
-        environment_info = {}
-        environment_info["address_type"] = "environment"
-        environment_info["address"] = self.environment
-        environment_info["component_class"] = environment_class
-        environment_info["component_number"] = 1
-        # Fix here....
-        environment_info["short_name"] = str(environment_class)
-
-        self.master_address_book.add_address(
-            environment_info["short_name"], environment_info
+        environment_address = ComponentAddress(
+            short_name=str(environment_class),
+            address_type="environment",
+            address=self.environment,
+            component_number=1,
+            component_class=environment_class,
         )
+        self.master_address_book.add_address(environment_address)
 
     def construct_institutions(self):
 
@@ -301,15 +286,15 @@ class MESContainer(Actor):
         self.send(new_institution, institution_initialization)
 
         # Update address book
-        institution_info = {}
-        institution_info["address_type"] = "institution"
-        institution_info["address"] = new_institution
-        institution_info["component_class"] = institution_class
-        institution_info["component_number"] = 1
-        institution_info["short_name"] = institution_short_name
-        self.master_address_book.add_address(
-            institution_info["short_name"], institution_info
+        institution_address = ComponentAddress(
+            short_name=str(institution_class),
+            address_type="institution",
+            address=new_institution,
+            component_number=1,
+            component_class=institution_short_name,
         )
+        self.master_address_book.add_address(institution_address)
+
         self.institutions.append(new_institution)
 
     def construct_agents(self):
@@ -424,14 +409,14 @@ class MESContainer(Actor):
             # Setup Address Book Entry
             self.agents.append(new_agent)
 
-            agent_info = {}
-            agent_info["address_type"] = "agent"
-            agent_info["address"] = new_agent
-            agent_info["component_class"] = agent_class
-            agent_info["component_number"] = agent_number
-            agent_info["short_name"] = agent_short_name
-
-            self.master_address_book.add_address(agent_info["short_name"], agent_info)
+            agent_address = ComponentAddress(
+                short_name=agent_short_name,
+                address_type="agent",
+                address=new_agent,
+                component_number=1,
+                component_class=agent_short_name,
+            )
+            self.master_address_book.add_address(agent_address)
 
     def complete_container_shutdown(self, message):
         # logging.info("Got anotehr child exit...")
@@ -441,7 +426,6 @@ class MESContainer(Actor):
             extract_index = self.mes_component_list.index(message.childAddress)
             self.mes_component_list.pop(extract_index)
         if len(self.mes_component_list) == 0:
-            logging.info("Message to close logger: ")
             self.iteration.mark_finished()
 
             message = Message()
@@ -492,8 +476,6 @@ class MESContainer(Actor):
             self.send(mes_component, ActorExitRequest())
 
     def excepted_mes_shutdown(self, environment_address, exception_payload):
-        logging.info("Message to close logger: " + str(exception_payload))
-        logging.info("MES CONTAINER SHOULD BE EXCEPTING OUT NOW")
         message = Message()
         message.set_directive("update_mes_status")
         message.set_sender(self.myAddress)
@@ -540,7 +522,6 @@ class MESContainer(Actor):
         new_message.set_directive("finalize_mes_status")
         new_message.set_payload(payload)
 
-        logging.info("Message to close logger: " + str(payload))
         self.send(self.log_actor, new_message)
 
         self.send(self.myAddress, ActorExitRequest())
@@ -565,7 +546,6 @@ class MESContainer(Actor):
     def logger_setup(self):
         # NOTE: Important to keep a direct reference to the log actor else it will scan the source authority first
 
-        logging.info("SHOULD BE Starting logger 1")
         self.log_actor = self.createActor(LogActor)
 
         # log_basis = {}
@@ -580,7 +560,6 @@ class MESContainer(Actor):
         # log_configuration["mes_directory"] = self.mes_directory
         # log_configuration["data_logging"] = self.data_logging
         # log_configuration["simulation_configuration"] = self.simulation_configuration
-        logging.info("SHOULD BE Starting logger 2")
         self.send(
             self.log_actor,
             LogActorConfigurationPayload(
@@ -600,8 +579,7 @@ class MESContainer(Actor):
     def receiveMessage(self, message, sender):
         if not isinstance(message, ActorSystemMessage):
             if isinstance(message, Message):
-                logging.info("Got a message to container...")
-                logging.info(str(sender) + " -- " + str(message))
+
                 if message.get_directive() == "excepted_mes":
                     logging.info(
                         "RECEVIED AN EXCEPTION REQUEST:" + str(message.get_payload())

@@ -28,15 +28,12 @@ EXPERIMENT_DATA = 27
 class LogActor(Actor):
     def prepare_log_actor(self):
         self.iteration = self._log_actor_configuration.log_actor_configuration_payload
-        logging.info("SHOULD BE Starting insider logger 1")
 
         setproctitle.setproctitle("mTree - LogActor")
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
         message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
-
-        logging.info("SHOULD BE Starting insider logger 2")
 
         self.simulation_id = self.iteration.configuration.id
         self.simulation_run_id = self.iteration.simulation_run_id
@@ -316,8 +313,6 @@ class LogActor(Actor):
             file_object.write(json.dumps(mes_information, indent=4))
 
     def finalize_mes_status(self, status_dict):
-        logging.info("RECEIVING A FINALIZATION REQUEST")
-        logging.info(status_dict)
 
         configuration_object = status_dict["configuration_object"]
         exception_payload = None
@@ -376,7 +371,6 @@ class LogActor(Actor):
             sorted_events = sorted(sequence_events)
 
             #####
-            logging.info("Completing Log Target File...")
 
             with open(os.path.join(self.data_target), "w") as file_object:
                 for event in sorted_events:
@@ -388,8 +382,6 @@ class LogActor(Actor):
         """
         Method to close all log files and other records created for a run of an MES
         """
-
-        logging.info("Completing Log Files...")
 
         try:
             self.write_sequence_file()
@@ -455,7 +447,6 @@ class LogActor(Actor):
             try:
                 # DEPRECATE
                 if type(message) is dict:
-                    logging.info("SHOULD BE SETTING UP LOGGER")
                     self.simulation_id = message["simulation_id"]
                     self.simulation_run_id = message["simulation_run_id"]
                     self.run_number = message["run_number"]

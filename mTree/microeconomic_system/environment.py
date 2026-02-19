@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 import setproctitle
 from mTree.core_actors.admin_message import AdminMessage
-from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.address_book import AddressBook, ComponentAddress
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.log_actor import LogActor
@@ -27,7 +27,7 @@ from thespian.initmsgs import initializing_messages
     [
         ("startup", str),
         ("_component_initialization", ComponentInitialization),
-        ("_address_book_payload", AddressBookPayload),
+        ("_address_book", AddressBook),
     ],
     initdone="invoke_prepare",
 )
@@ -48,7 +48,7 @@ class Environment(MESComponentBase):
         self.iteration = self.initialization.iteration
         self.configuration = self.initialization.iteration.configuration
 
-        self._address_book = self._address_book_payload.address_book_payload
+        # self._address_book = self._address_book_payload.address_book_payload
         self.initialization_dict = self._component_initialization
         self.mtree_properties = self.configuration.properties
         self.simulation_id = self.configuration.id
@@ -57,7 +57,8 @@ class Environment(MESComponentBase):
         self.log_actor = self.initialization.log_actor
         self.address_type = ""  # self.initialization_dict["address_type"]
 
-        self.address_book = AddressBook(self, self._address_book)
+        self.address_book = self._address_book
+        self.address_book.register_component(self)
 
         self.container = self.initialization.mes_container
         self.debug = self.configuration.debug
@@ -84,6 +85,8 @@ class Environment(MESComponentBase):
         # log_basis["data_logging"] = self.initialization_dict["data_logging"]
         # log_basis["simulation_configuration"] = self.initialization_dict["simulation_configuration"]
         self.send(self.log_actor, log_basis)
+
+        test = self.address_book.select_addresses({"address_type": "agent"})
 
         try:
             self.prepare()
@@ -124,7 +127,6 @@ class Environment(MESComponentBase):
 
     @directive_decorator("shutdown_mes")
     def shutdown_mes(self, message: Message = None):
-        logging.info("ENV shutting down sim")
         new_message = Message()
         new_message.set_sender(self.myAddress)
         new_message.set_directive("shutdown_mes")

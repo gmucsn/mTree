@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import dill
 import setproctitle
 from mTree.core_actors.admin_message import AdminMessage
-from mTree.microeconomic_system.address_book import AddressBook
+from mTree.microeconomic_system.address_book import AddressBook, ComponentAddress
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.log_actor import LogActor
@@ -40,7 +40,7 @@ def is_jsonable(x):
     [
         ("startup", str),
         ("_component_initialization", ComponentInitialization),
-        ("_address_book_payload", AddressBookPayload),
+        ("_address_book", AddressBook),
     ],
     initdone="invoke_prepare",
 )
@@ -65,7 +65,7 @@ class Agent(MESComponentBase):
 
         self.initialization_dict = self._component_initialization
 
-        self._address_book = self._address_book_payload.address_book_payload
+        # self._address_book = self._address_book_payload.address_book_payload
 
         self.debug = self.configuration.debug
         self.log_level = self.configuration.log_level
@@ -77,7 +77,10 @@ class Agent(MESComponentBase):
         self.environment = None
         self.log_actor = self.initialization.log_actor
         self.address_type = "agent"
-        self.address_book = AddressBook(self, self._address_book)
+
+        self.address_book = self._address_book
+        self.address_book.register_component(self)
+        # self.address_book = AddressBook(self, self._address_book)
         self.container = self.initialization.mes_container
 
         # TODO fix for subject startup
@@ -90,7 +93,6 @@ class Agent(MESComponentBase):
             self.prepare()
         except:
             self.exception_logging_handler()
-        logging.info("agent prepare finished...")
 
     # def __init__(self):
     #     self.address_book = AddressBook(self)
