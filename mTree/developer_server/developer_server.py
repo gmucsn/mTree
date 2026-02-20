@@ -1,6 +1,7 @@
 import hashlib
 import importlib
 import logging
+
 # from flask_sqlalchemy import SQLAlchemy
 import os
 import pkgutil
@@ -13,9 +14,12 @@ from logging.handlers import RotatingFileHandler
 import eventlet
 import flask
 import jinja2
+import socketio
+import uvicorn
 from apscheduler import events
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from fastapi import FastAPI
 from flask import (
     Flask,
     render_template,
@@ -26,11 +30,25 @@ from flask import (
 )
 from flask_apscheduler import APScheduler
 from flask_basicauth import BasicAuth
-from flask_socketio import SocketIO, close_room, disconnect, emit, join_room, leave_room, rooms
+from flask_socketio import (
+    SocketIO,
+    close_room,
+    disconnect,
+    emit,
+    join_room,
+    leave_room,
+    rooms,
+)
 from jinja2 import Environment, FileSystemLoader
 from mTree.base.response import Response
 from mTree.components import registry
 from mTree.components.registry import Registry
+from mTree.developer_server.developer_router import developer_router
+from mTree.developer_server.experiment_admin_router import experiment_admin_router
+from mTree.developer_server.socketio_router import sio
+from mTree.developer_server.subject_router import subject_router
+from mTree.developer_server.system_router import base_router
+
 # from mTree.development.development_endpoints import development_area
 # from mTree.development.mtree_configuration import MTreeConfiguration
 # from mTree.development.subject_directory import SubjectDirectory
@@ -38,15 +56,6 @@ from mTree.components.registry import Registry
 # from mTree.server.actor_system_connector import ActorSystemConnector
 # from mTree.simulation.mes_simulation_library import MESSimulationLibrary
 # from mTree.subject_interface.subject_endpoints import subject_area
-
-from fastapi import FastAPI
-import socketio
-import uvicorn
-from mTree.developer.system_router import base_router
-from mTree.developer.subject_router import subject_router
-from mTree.developer.experiment_admin_router import experiment_admin_router
-from mTree.developer.developer_router import developer_router
-from mTree.developer.socketio_router import sio
 
 
 class DeveloperServer(object):
@@ -62,12 +71,12 @@ class DeveloperServer(object):
         self.app.include_router(subject_router, prefix="/subject")
         self.app.include_router(experiment_admin_router, prefix="/admin")
         self.app.include_router(developer_router, prefix="/developer")
-        self.socket_app = socketio.ASGIApp(sio, self.app)        
+        self.socket_app = socketio.ASGIApp(sio, self.app)
 
     def run_server(self):
-        config = uvicorn.Config(self.socket_app, host="0.0.0.0", port=8000, reload=True, use_colors=False)
+        config = uvicorn.Config(
+            self.socket_app, host="0.0.0.0", port=8000, reload=True, use_colors=False
+        )
         server = uvicorn.Server(config)
         server.run()
-        # uvicorn.run("main:server.app", host="0.0.0.0", port=8000, reload=True, use_colors=False) 
-
-    
+        # uvicorn.run("main:server.app", host="0.0.0.0", port=8000, reload=True, use_colors=False)

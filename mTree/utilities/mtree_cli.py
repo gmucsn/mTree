@@ -1,16 +1,23 @@
 import atexit
 import os
 import time
+from pathlib import Path
+from subprocess import PIPE, Popen
 from typing import List
 
 import questionary
 import typer
+from mTree.developer_server.developer_server import DeveloperServer
 from mTree.generator import Generate
 from mTree.simulation import Library
 from mTree.simulation.configuration import Configuration
 from mTree.system.actor_system_connector import ActorSystemConnector
 from mTree.system.actor_system_controller import ActorSystemController
 from mTree.system.mes_simulation_library import MESSimulationLibrary
+from mTree.utilities.console.developer_server_monitor import (
+    DeveloperServerMonitor,
+    runner,
+)
 from mTree.utilities.console.simulation_viewer import SimulationViewer
 from thespian.actors import *
 
@@ -66,11 +73,38 @@ def run_simulation_from_configurations(config_dir, configurations: List[Configur
 
 @app.command()
 def generate():
+    """
+    Generate an mTree project directory using templates
+    """
     Generate()
 
 
 @app.command()
+def developer_server():
+    """
+    Run the mTree developer web server to develop and test human subject experiments
+    """
+
+    # @atexit.register
+    # def shutdown_actor_system():
+    #     ActorSystemController.shutdown()
+    #     print("Goodbye!")
+
+    # actor_system = ActorSystemController.startup()
+    # developer_server = DeveloperServer()
+    # developer_server.run_server()
+
+    current_directory = Path.cwd()
+    developer_server_monitor = DeveloperServerMonitor()
+    developer_server_monitor.run()
+    # runner()
+
+
+@app.command()
 def simulation():
+    """
+    Run an mTree simulation
+    """
     library = Library()
     mes = questionary.select(
         "Which MES would you like to run?",

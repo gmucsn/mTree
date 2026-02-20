@@ -1,44 +1,35 @@
- #!/usr/bin/env python
+#!/usr/bin/env python
 
-from mTree.server.server import Server, MTreeController
-from mTree.server.admin import admin_area
-from mTree.microeconomic_system.agent import Agent
-import pyfiglet
-
-import importlib
-import inspect
-import os
+import atexit
 import glob
-
+import importlib
 import importlib.util
+import inspect
+import logging
+import os
+import signal
 import sys
+import time
 
 # For illustrative purposes.
 import tokenize
-
-import logging
-import pythonjsonlogger
-
-import sys
-from datetime import timedelta
-import os
-import glob
-import time
 import traceback
-from threading import Thread 
-from mTree.server.actor_system_startup import ActorSystemStartup
+from datetime import timedelta
+from threading import Thread
 
-import signal
+import pyfiglet
+import pythonjsonlogger
 from mTree.components import *
-
-
-import atexit
+from mTree.microeconomic_system.agent import Agent
+from mTree.server.actor_system_startup import ActorSystemStartup
+from mTree.server.admin import admin_area
+from mTree.server.server import MTreeController, Server
 from thespian.actors import *
 
 
 @atexit.register
 def goodbye():
-    ActorSystem('multiprocQueueBase').shutdown()
+    ActorSystem("multiprocQueueBase").shutdown()
     time.sleep(2)
 
 
@@ -46,17 +37,18 @@ def exit_gracefully(signum, frame):
     # restore the original signal handler as otherwise evil things will happen
     # in raw_input when CTRL+C is pressed, and our signal handler is not re-entrant
     signal.signal(signal.SIGINT, original_sigint)
-    ActorSystem('multiprocQueueBase').shutdown()
+    ActorSystem("multiprocQueueBase").shutdown()
     try:
-        if raw_input("\nReally quit? (y/n)> ").lower().startswith('y'):
+        if raw_input("\nReally quit? (y/n)> ").lower().startswith("y"):
             sys.exit(1)
 
     except KeyboardInterrupt:
         print("Ok ok, quitting")
         sys.exit(1)
 
-    # restore the exit gracefully handler here    
+    # restore the exit gracefully handler here
     signal.signal(signal.SIGINT, exit_gracefully)
+
 
 original_sigint = signal.getsignal(signal.SIGINT)
 signal.signal(signal.SIGINT, exit_gracefully)
@@ -64,24 +56,26 @@ signal.signal(signal.SIGINT, exit_gracefully)
 ascii_banner = pyfiglet.figlet_format("mTree - Control")
 print(ascii_banner)
 
-import importlib.util
+
 def import_source(module_name):
     module_file_path = module_name.__file__
     module_name = module_name.__name__
 
-    module_spec = importlib.util.spec_from_file_location(
-        module_name, module_file_path)
+    module_spec = importlib.util.spec_from_file_location(module_name, module_file_path)
     module = importlib.util.module_from_spec(module_spec)
     module_spec.loader.exec_module(module)
     print(dir(module))
 
-    msg = 'The {module_name} module has the following methods:' \
-        ' {methods}'
-    print(msg.format(module_name=module_name,
-                     methods=dir(module)))
+    msg = "The {module_name} module has the following methods:" " {methods}"
+    print(msg.format(module_name=module_name, methods=dir(module)))
 
-def import_plugins(plugins_package_directory_path, base_class=None, create_instance=True, filter_abstract=True):
 
+def import_plugins(
+    plugins_package_directory_path,
+    base_class=None,
+    create_instance=True,
+    filter_abstract=True,
+):
 
     print("ATTEMPTING TO LOOK AT THINGS...")
     plugins_package_name = os.path.basename(plugins_package_directory_path)
@@ -108,17 +102,16 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
 
         print("\t\t\t->", module_name, " -- ", plugins_package_name)
 
-        module_spec = importlib.util.spec_from_file_location(module_name, plugin_file_path)
+        module_spec = importlib.util.spec_from_file_location(
+            module_name, plugin_file_path
+        )
         module = importlib.util.module_from_spec(module_spec)
         module_spec.loader.exec_module(module)
         print(dir(module))
 
+        # module = importlib.import_module(module_name)#, package=plugins_package_name)
 
-        #module = importlib.import_module(module_name)#, package=plugins_package_name)
-
-
-
-    '''
+    """
         # -----------------------------
         # Iterate items inside imported python file
 
@@ -141,26 +134,26 @@ def import_plugins(plugins_package_directory_path, base_class=None, create_insta
             # Instantiate / return type (depends on create_instance)
 
             yield value() if create_instance else value
-    '''
+    """
+
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-#SCRIPT_DIR = "/repos/mTree_dev_folder"
-plugins_directory_path = os.path.join(SCRIPT_DIR, 'components')
-#plugins = import_plugins(plugins_directory_path, base_class=Agent)
-plugins = import_plugins(os.path.join(os.getcwd(), 'mes'), base_class=Agent)
+# SCRIPT_DIR = "/repos/mTree_dev_folder"
+plugins_directory_path = os.path.join(SCRIPT_DIR, "components")
+# plugins = import_plugins(plugins_directory_path, base_class=Agent)
+plugins = import_plugins(os.path.join(os.getcwd(), "mes"), base_class=Agent)
 print("\t --> ", plugins)
 
 plugins = import_plugins(plugins_directory_path, base_class=Agent)
 print("\t 2 - --> ", plugins)
 
 
-#def start_thespian():
+# def start_thespian():
 #    actor_system = ActorSystemStartup()
 #    #actor_system = ActorSystem('multiprocQueueBase',logDefs=logcfg)
 
-#thread = Thread(target=start_thespian)
-#thread.start()
-
+# thread = Thread(target=start_thespian)
+# thread.start()
 
 
 print("mTree is launching")
