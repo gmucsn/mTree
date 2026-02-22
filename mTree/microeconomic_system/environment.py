@@ -60,6 +60,8 @@ class Environment(MESComponentBase):
         self.address_book = self._address_book
         self.address_book.register_component(self)
 
+        self.num_agents = self.address_book.num_agents()
+
         self.container = self.initialization.mes_container
         self.debug = self.configuration.debug
         self.log_level = self.configuration.log_level
@@ -85,8 +87,6 @@ class Environment(MESComponentBase):
         # log_basis["data_logging"] = self.initialization_dict["data_logging"]
         # log_basis["simulation_configuration"] = self.initialization_dict["simulation_configuration"]
         self.send(self.log_actor, log_basis)
-
-        test = self.address_book.select_addresses({"address_type": "agent"})
 
         try:
             self.prepare()
