@@ -32,6 +32,41 @@ class AddressBook(BaseModel):
         # else:
         #     self.institutions[address_str] = additional_information
 
+    def create_address_group(self, name=None):
+        if name is None:
+            name = str(uuid.uuid4())
+
+        self.address_groups[name] = []
+
+        return name
+
+    def add_address_to_group(self, groupname, address, role=None):
+        if groupname not in self.address_groups.keys():
+            raise Exception("Groupname must be created before adding addresses")
+        self.address_groups[groupname].append(address)
+        # self.addresses_to_groups[address["address"]] = groupname
+
+    def remove_address_from_group(self, groupname, address):
+        if groupname not in self.address_groups.keys():
+            raise Exception("Groupname must be created before removing addresses")
+        if address not in self.address_groups[groupname]:
+            raise Exception("Address must be in group before removing it")
+        address_index = self.address_groups[groupname].index(address)
+        self.address_groups[groupname].pop(address_index)
+        # self.addresses_to_groups.pop(address["address"])
+
+    def get_all_groups(self):
+        return self.address_groups.items()
+
+    def get_agents(self):
+        return self.agents
+
+    def get_institutions(self):
+        return self.institutions
+
+    def get_environment(self):
+        return self.environment
+
     def get_addresses(self):
         return self.addresses
 
@@ -98,6 +133,12 @@ class AddressBook(BaseModel):
         return new_message
         # address = self.select_addresses(selector)
         # self.base_component.send(address, new_message)
+
+    def num_agents(self):
+        return len(self.agents.keys())
+
+    def num_institutions(self):
+        return len(self.institutions.keys())
 
 
 # class SimulationDescription(BaseModel):
