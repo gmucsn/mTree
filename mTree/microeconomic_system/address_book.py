@@ -22,11 +22,20 @@ class AddressBook(BaseModel):
     addresses_to_groups: Dict[str, ComponentAddress] = {}
     address_groups: Dict[str, List[ComponentAddress]] = {}
     component: object = None
+    agents: Dict[str, ComponentAddress] = {}
+    institutions: Dict[str, ComponentAddress] = {}
+    environment: Dict[str, ComponentAddress] = {}
+        
 
     def add_address(self, address: ComponentAddress, additional_information=None):
         # address_str = str(address)
         # self.addresses[address.short_name] = additional_information
         self.addresses[address.short_name] = address
+        if additional_information["address_type"] == "agent":
+            self.agents[address.short_name] = additional_information
+        else:
+            self.institutions[address.short_name] = additional_information
+
         # if additional_information["address_type"] == "agent":
         #     self.agents[address_str] = additional_information
         # else:
