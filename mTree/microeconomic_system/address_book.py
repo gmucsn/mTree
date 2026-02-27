@@ -31,10 +31,11 @@ class AddressBook(BaseModel):
         # address_str = str(address)
         # self.addresses[address.short_name] = additional_information
         self.addresses[address.short_name] = address
-        if additional_information["address_type"] == "agent":
-            self.agents[address.short_name] = additional_information
-        else:
-            self.institutions[address.short_name] = additional_information
+        if additional_information is not None:
+            if additional_information["address_type"] == "agent":
+                self.agents[address.short_name] = additional_information
+            else:
+                self.institutions[address.short_name] = additional_information
 
         # if additional_information["address_type"] == "agent":
         #     self.agents[address_str] = additional_information
