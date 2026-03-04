@@ -32,3 +32,4 @@ pip-compile-multi
 questionary
 pydantic
 isort
+pydantic_yaml

@@ -1,0 +1,26 @@
+agents:
+- agent_name: basic_auction_agent.AuctionAgent
+  class_name: ''
+  number: 5
+  properties: {}
+data_logging: json
+debug: true
+environment:
+  mes_class: basic_auction_environment.AuctionEnvironment
+  name: basic_auction_institution.AuctionInstitution
+  properties: {}
+file_source: 
+  /workspaces/mTree/examples/human_subject_experiments/config/second_price_auction_simulation.json
+id: '1'
+institutions:
+- class_name: ''
+  institution_name: second_price_auction_institution.SecondPriceAuctionInstitution
+  properties: {}
+log_level: 2
+mes_directory: /workspaces/mTree/examples/human_subject_experiments
+mtree_type: mes_simulation_description
+name: Second Price Auction Simulation
+number_of_iterations: 1
+properties: {}
+simulation_run_id: ''
+source_hash: ''
