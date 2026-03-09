@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from mTree.components.registry import Registry
+from mTree.developer_server.connection_manager import ConnectionManager
 from mTree.system.actor_system_connector import ActorSystemConnector
 from mTree.system.mes_simulation_library import MESSimulationLibrary
 
@@ -21,25 +22,6 @@ templates = Jinja2Templates(directory=templates_folder)
 async def admin_dashboard(request: Request):
     # TODO replace password check
     return templates.TemplateResponse("admin_base.html", {"request": request})
-
-
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: list[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
-
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            await connection.send_text(message)
 
 
 manager = ConnectionManager()
