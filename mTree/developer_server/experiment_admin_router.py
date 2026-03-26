@@ -13,6 +13,8 @@ from mTree.system.mes_simulation_library import MESSimulationLibrary
 experiment_admin_router = APIRouter()
 
 
+manager = ConnectionManager()
+
 templates_folder = pathlib.Path(__file__).parent.joinpath("templates").absolute()
 
 templates = Jinja2Templates(directory=templates_folder)
@@ -21,10 +23,10 @@ templates = Jinja2Templates(directory=templates_folder)
 @experiment_admin_router.get("", tags=["experiment admin"])
 async def admin_dashboard(request: Request):
     # TODO replace password check
-    return templates.TemplateResponse("admin_base.html", {"request": request})
+    return templates.TemplateResponse(
+        "admin_base.html", {"request": request, "manager": manager._instance}
+    )
 
-
-manager = ConnectionManager()
 
 example = """<turbo-stream action="append" target="messages">
   <template>

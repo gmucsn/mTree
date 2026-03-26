@@ -1,4 +1,4 @@
-FROM  continuumio/miniconda3:25.3.1-1
+FROM  continuumio/miniconda3:v25.11.1
 LABEL version="mTree Environment"
 
 RUN apt-get update && apt-get install -y build-essential

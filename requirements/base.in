@@ -33,3 +33,4 @@ questionary
 pydantic
 isort
 pydantic_yaml
+pyyaml

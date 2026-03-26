@@ -30,25 +30,6 @@ templates = Jinja2Templates(directory=templates_folder)
 manager = ConnectionManager()
 
 
-# TODO inject subject_ids
-# SUBJECT_IDS = MTree_configuration.instance.subject_ids
-SUBJECT_IDS = [
-    "A1234",
-    "3fed7",
-    "3ca90",
-    "658bf",
-    "5690d",
-    "8fee6",
-    "60e36",
-    "071b8",
-    "8070b",
-    "87732",
-    "7e80d",
-    "de206",
-    "8d781",
-]
-
-
 example = """<turbo-stream action="append" target="messages">
   <template>
     <div id="message_1">
@@ -75,12 +56,12 @@ async def subject_landing_page(request: Request):
 async def subject_sign_in(
     response: Response, subject_id: Annotated[str, Form()], request: Request
 ):
-    if subject_id in SUBJECT_IDS:
+    if subject_id in manager._instance._subject_list:
         # session['subject-id'] = subject_id
         response.set_cookie(key="subject_id", value=subject_id)
         return templates.TemplateResponse(
             "subject_waiting_screen.html",
-            {"request": request},
+            {"request": request, "subject_id": subject_id},
             headers={"Content-Type": "text/vnd.turbo-stream.html; charset=utf-8"},
         )
     else:
@@ -93,7 +74,7 @@ async def subject_sign_in(
 async def subject_with_id_page(
     response: Response, subject_id: Annotated[str, Form()], request: Request
 ):
-    if subject_id in SUBJECT_IDS:
+    if subject_id in manager._instance._subject_list:
         # session['subject-id'] = subject_id
         response.set_cookie(key="subject_id", value=subject_id)
         return templates.TemplateResponse(

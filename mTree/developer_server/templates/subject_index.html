@@ -10,14 +10,27 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-umd.min.js"></script>
     <script>Turbo.connectStreamSource(new WebSocket(`ws://127.0.0.1:8000/subject/turbo-stream`));</script>
-    <script>            var ws = new WebSocket(`ws://127.0.0.1:8000/subject/experiment_ws`);
-              ws.onmessage = function(event) {
+    <script>            
+            var ws = new WebSocket(`ws://127.0.0.1:8000/subject/experiment_ws`);
+            ws.onmessage = function(event) {
                   var messages = document.getElementById('messages')
                   var message = document.createElement('li')
                   var content = document.createTextNode(event.data)
                   message.appendChild(content)
                   messages.appendChild(message)
-              };</script>
+            };
+    </script>
+    <script type="module">
+      import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
+      window.Stimulus = Application.start()
+      Stimulus.register("subject-controller", class extends Controller {
+        static targets = [ "name" ]
+
+        connect() {
+          console.log("ALKFJ")
+        }
+      })
+  </script>
     <!-- Bootstrap core CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <!-- Custom styles for this template -->
@@ -30,7 +43,7 @@
       <nav class="navbar navbar-expand-lg fixed-top navbar-light bg-light">
         <div class="container-fluid">
           
-          <div class="collapse navbar-collapse justify-content-md-center" id="navbarsExample08">
+          <div class="collapse navbar-collapse justify-content-md-center" id="navbarsExample08" data-controller="subject-controller">
             <ul class="navbar-nav">
               <li class="nav-item">
                 mTree Subject Interface - <span id="global-experiment-name"></span> - Subject ID: 
