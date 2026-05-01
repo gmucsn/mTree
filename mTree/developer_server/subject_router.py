@@ -58,6 +58,7 @@ async def subject_sign_in(
 ):
     if subject_id in manager._instance._subject_list:
         # session['subject-id'] = subject_id
+        # Message start
         response.set_cookie(key="subject_id", value=subject_id)
         return templates.TemplateResponse(
             "subject_waiting_screen.html",
@@ -75,10 +76,11 @@ async def subject_with_id_page(
     response: Response, subject_id: Annotated[str, Form()], request: Request
 ):
     if subject_id in manager._instance._subject_list:
+        # Message start
         # session['subject-id'] = subject_id
         response.set_cookie(key="subject_id", value=subject_id)
         return templates.TemplateResponse(
-            "subject_viewer.html", {"request": request, "subject_id": subject_id}
+            "subject_viewer.html", {"request": request, "subject_id": "faddfgasdgasd"}
         )
     else:
         return templates.TemplateResponse(
@@ -94,11 +96,12 @@ async def subject_with_id_page(
 @subject_router.websocket("/turbo-stream")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
+    # Message start
     try:
         while True:
             data = await websocket.receive_text()
-            await manager.send_personal_message(example, websocket)
-            await manager.broadcast(example)
+            await manager.send_personal_message("message 1", websocket)
+            await manager.broadcast("message b")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast(example)
@@ -107,11 +110,12 @@ async def websocket_endpoint(websocket: WebSocket):
 @subject_router.websocket("/experiment_ws")
 async def experiment_websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
+    # Message start
     try:
         while True:
             data = await websocket.receive_text()
-            await manager.send_personal_message(example, websocket)
-            await manager.broadcast(example)
+            await manager.send_personal_message("message 3", websocket)
+            await manager.broadcast("message 4")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast(example)
