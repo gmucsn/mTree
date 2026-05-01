@@ -5,7 +5,7 @@ A Python library for experimental and computational economics.
 
 ## Documentation
 
-mTree's basic documentation is available inside the docs folder. [View Documentat](./docs/README.md)
+mTree's basic documentation is available inside the docs folder. [View Documentation](./docs/README.md)
 
 mTree uses pdoc to help document its codebase.
 
