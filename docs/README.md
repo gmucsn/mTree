@@ -13,9 +13,12 @@ Below you will find links to a variety of documents on how to use mTree and to b
 
 - [Installing mTree](./how_to_guides/installing_mtree.md)
 - [Using mTree's Command Line Utilities](./how_to_guides/using_cli_utilities.md)
-- [Installing mTree](./how_to_guides/installing_mtree.md)
 - [Generate a new mTree Project Folder](./how_to_guides/generate_a_new_mtree_project_folder.md)
+- [Developing human subject experiment interface screens](./how_to_guides/developing_human_subject_experiment_interface_screens.md)
+
 
 ## Reference Documentation
 
-Use pDoc
+To examine detailed developer documentation for the source code itself, please make use of pdoc. 
+
+Assuming you have mTree installed you should be able to type `pdoc mTree` and the pdoc webserver will start and be available at http://localhost:8080
