@@ -47,7 +47,7 @@ example = """<turbo-stream action="after" target="messages">
 
 @experiment_admin_router.websocket("/turbo-stream")
 async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+    await manager.admin_connect(websocket, "ts")
     try:
         while True:
             data = await websocket.receive_text()
@@ -60,7 +60,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @experiment_admin_router.websocket("/experiment_ws")
 async def experiment_websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+    await manager.admin_connect(websocket, "ws")
     try:
         while True:
             data = await websocket.receive_text()

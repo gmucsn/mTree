@@ -63,7 +63,7 @@ async def subject_sign_in(
         return templates.TemplateResponse(
             "subject_waiting_screen.html",
             {"request": request, "subject_id": subject_id},
-            headers={"Content-Type": "text/vnd.turbo-stream.html; charset=utf-8"},
+            # # headers={"Content-Type": "text/vnd.turbo-stre1am.html; charset=utf-8"},
         )
     else:
         return templates.TemplateResponse(
@@ -93,9 +93,9 @@ async def subject_with_id_page(
 ####
 
 
-@subject_router.websocket("/turbo-stream")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+@subject_router.websocket("/turbo-stream/{subject_id}")
+async def websocket_endpoint(websocket: WebSocket, subject_id: str):
+    await manager.subject_connect(websocket, "ts", subject_id)
     # Message start
     try:
         while True:
@@ -107,9 +107,9 @@ async def websocket_endpoint(websocket: WebSocket):
         await manager.broadcast(example)
 
 
-@subject_router.websocket("/experiment_ws")
-async def experiment_websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+@subject_router.websocket("/experiment_ws/{subject_id}")
+async def experiment_websocket_endpoint(websocket: WebSocket, subject_id: str):
+    await manager.subject_connect(websocket, "ws", subject_id)
     # Message start
     try:
         while True:

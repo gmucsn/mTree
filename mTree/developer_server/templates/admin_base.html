@@ -18,6 +18,30 @@
     integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   <!-- Custom styles for this template -->
   <link href="https://getbootstrap.com/docs/5.3/examples/dashboard/dashboard.css" rel="stylesheet">
+
+
+  <script type="module">
+      import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
+      window.Stimulus = Application.start()
+      Stimulus.register("experiment-controls", class extends Controller {
+        static targets = [ "name" ]
+
+        run_experiment(){
+          console.log("Starting experiment");
+        }
+        
+        pause_experiment(){
+          console.log("Pausing experiment");
+        }
+
+
+
+        connect() {
+          console.log("ALKFJ")
+        }
+      })
+  </script>
+
 </head>
 
 <body>
@@ -65,7 +89,7 @@
                 {% for subject_id in manager._subject_list %}
                 <tr id="subject-row-{{subject_id}}">
                   <th scope="row">{{ subject_id }}</th>
-                  <td>Unknown</td>
+                  <td id="connection-status-{{subject_id}}">Unknown</td>
                   <td></td>
                   <td></td>
                 </tr>  
@@ -76,12 +100,13 @@
             </table>
 
           </div>
-          <div class="col">
+          <div data-controller="experiment-controls" class="col">
             <h3>Experiment Controls</h3>
+            <button id="run_experiment" data-action="experiment-controls#run_experiment" type="button" class="btn btn-success">Run Experiment</button><br>
+            <button id="pause_experiment" data-action="experiment-controls#pause_experiment" type="button" class="btn btn-warning">Pause Experiment</button>
           </div>
       </div>
 
-        <!-- TODO(@messiest) have this populate with the session name -->
         <div class="row placeholders">
           <turbo-stream action="append" target="messages">
             <template>
