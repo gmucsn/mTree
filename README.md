@@ -30,3 +30,8 @@ Once installed, mTree is imported in the standard fashion.
 import mTree
 ```
 
+## UV Commands
+
+uv version --bump patch --bump beta
+uv run ...
+uv pip install -e .

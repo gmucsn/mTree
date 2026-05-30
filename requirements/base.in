@@ -1,10 +1,4 @@
 thespian
-Flask
-Flask-SocketIO
-Flask-APScheduler
-Flask-BasicAuth
-Flask-SQLAlchemy
-eventlet
 pyfiglet
 jsonschema
 requests
@@ -28,9 +22,9 @@ dill
 fastapi-sio
 python-multipart
 typer
-pip-compile-multi
 questionary
 pydantic
 isort
 pydantic_yaml
 pyyaml
+websocket-client

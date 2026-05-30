@@ -23,14 +23,14 @@
       import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
       window.Stimulus = Application.start()
       Stimulus.register("bidding-screen-controller", class extends Controller {
-        static targets = [ "endowment", "estimated-error", "estimated-value",  ]
+        static targets = [ "endowment", "estimated-error", "estimated-value", "bid"  ]
 
         connect() {
           console.log("ALKFJ")
         }
       })
   </script>
-    <div class="bidding-screen">
+    <div id="bidding-screen">
         <div class="auction-card card shadow">
             <div class="card-header bg-primary text-white">
                 <h3 class="mb-0 text-center">Human Subject Auction Experiment</h3>
@@ -45,7 +45,7 @@
                             
                             <div class="mb-3">
                                 <strong>Endowment:</strong>
-                                <span id="endowment" class="fs-4 text-success">100</span>
+                                <span id="endowment" class="fs-4 text-success">{{ endowment}}</span>
                             </div>
                             
                             <div class="mb-3">
@@ -88,7 +88,8 @@
                                 <div class="d-grid">
                                     <button id="bid-button" 
                                             class="btn btn-success btn-lg py-3"
-                                            onclick="submitBid()">
+                                            onclick="submitBid()"
+                                            data-side-effect="display: false">
                                         <strong>SUBMIT BID</strong>
                                     </button>
                                 </div>

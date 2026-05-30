@@ -4,14 +4,13 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-     "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit"
-        },
-        // Optional: set a default formatter (e.g., Black) and enable format on save
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "ms-python.black-formatter" 
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        }
     },
-    // Optional: add arguments for isort (e.g., using the "black" profile for compatibility)
-    "isort.args": ["--profile", "black"]
+
 }

@@ -1,0 +1,195 @@
+from pathlib import Path
+from typing import List
+from mTree.system.actor_system_controller import ActorSystemController
+from mTree.core_actors.websocket_actor import WebsocketActor, Start_Websocket
+import yaml
+from fastapi import WebSocket
+from pydantic import BaseModel, Field
+
+subject_connection_update = """<turbo-stream action="replace" target="messages">
+  <template>
+    <!-- The contents of this template will be added after the
+    the element with ID "current_step". -->
+    <li>New item</li>
+  </template>
+</turbo-stream>"""
+
+
+class MtreeExperimentConfigFile(BaseModel):
+    admin_password: str = Field(min_length=1)
+    subject_ids: List[str] = Field(min_length=1)
+
+
+class ConnectionManager:
+    _instance = None
+    _initialized = False
+    _subject_list = []
+    _admin_password = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.actor_system_ws_connection: WebSocket = None
+            cls._instance.ws_active_connections: list[WebSocket] = []
+            cls._instance.ts_active_connections: list[WebSocket] = []
+            cls._instance.connection_map = {}
+            cls._instance.load_mtree_experiment_config()
+
+        return cls._instance
+
+    def __init__(self, *args, **kwargs):
+        if not self._initialized:
+            self._initialized = True
+        else:
+            print("Instance already initialized.")
+
+    def start_websocket_actor(self):
+        """
+        This method is used to inject a method into the actor system to force the websocket actor to connect
+        """
+        start_msg = "subscribe"
+        ws_addr = "ws://127.0.0.1:8000/admin/actor_system_ws"
+        wsc = ActorSystemController.retrieve_connection().createActor(
+            WebsocketActor, globalName="websocket_actor"
+        )
+        startmsg = Start_Websocket(ws_addr, start_msg, wsc)
+
+        ActorSystemController.retrieve_connection().tell(wsc, startmsg)
+
+    def load_mtree_experiment_config(self):
+        experiment_directory = Path.cwd()
+        with open(experiment_directory / "mtree_experiment_config.yaml", "r") as f:
+            yaml_content = yaml.safe_load(f)
+        experiment_configuration = MtreeExperimentConfigFile.model_validate(
+            yaml_content
+        )
+        self._subject_list = experiment_configuration.subject_ids
+        self._admin_password = experiment_configuration.admin_password
+
+    async def subject_connect(
+        self, websocket: WebSocket, connection_type: str, subject_id: str
+    ):
+        """
+        Method to register websocket connections for subjects
+        """
+        await websocket.accept()
+        if connection_type == "ws":
+            self._instance.ws_active_connections.append(websocket)
+        elif connection_type == "ts":
+            self._instance.ts_active_connections.append(websocket)
+        if subject_id not in self._instance.connection_map.keys():
+            self._instance.connection_map[subject_id] = {}
+        self._instance.connection_map[subject_id][connection_type] = websocket
+        await self.update_subject_connection_status(subject_id, "Connected")
+
+    async def subject_disconnect(
+        self, websocket: WebSocket, connection_type: str, subject_id: str
+    ):
+        """
+        Method to deregister websocket connections for subjects
+        """
+        if connection_type == "ws":
+            self._instance.ws_active_connections.remove(websocket)
+        elif connection_type == "ts":
+            self._instance.ts_active_connections.remove(websocket)
+
+        del self._instance.connection_map[subject_id][connection_type]
+        await self.update_subject_connection_status(subject_id, "Disconnected")
+
+    async def actor_system_connect(self, websocket: WebSocket):
+        """
+        A method used to register the websocket connection used for the actor system
+        """
+        await websocket.accept()
+        self._instance.actor_system_ws_connection = websocket
+        self._instance.actor_system_ws_connection.send_json({"test": "test"})
+
+    async def actor_system_disconnect(self, websocket: WebSocket):
+        """
+        A method used to deregister the actor system's websocket connection
+        """
+        self._instance.actor_system_ws_connection = None
+
+    async def admin_connect(self, websocket: WebSocket, connection_type):
+        await websocket.accept()
+        self.start_websocket_actor()
+        if connection_type == "ws":
+            self._instance.ws_active_connections.append(websocket)
+        elif connection_type == "ts":
+            self._instance.ts_active_connections.append(websocket)
+        if "admin" not in self._instance.connection_map.keys():
+            self._instance.connection_map["admin"] = {}
+        self._instance.connection_map["admin"][connection_type] = websocket
+
+    async def update_subject_connection_status(
+        self, subject_id: str, status_message: str
+    ):
+        """
+        Send a message to the admin user indicating a subject's connections status
+
+        Args:
+            subject_id str identifier of the subject
+
+        """
+        subject_connection_status = f"""<turbo-stream action="replace" target="connection-status-{subject_id}">
+            <template>
+                <td id="connection-status-{subject_id}">{status_message}</td>
+            </template>
+            </turbo-stream>"""
+        await self._instance.connection_map["admin"]["ts"].send_text(
+            subject_connection_status
+        )
+
+    async def send_admin_ws_message(self, message: str):
+        """
+        Send a message to the admin user over the websocket
+
+        Args:
+            message str string to send to the admin user
+
+        """
+        if "ws" in self._instance.connection_map["admin"].keys():
+            await self._instance.connection_map["admin"]["ws"].send_text(message)
+
+    async def send_websocket_actor_message(self, message: str):
+        """
+        Send a message to the websocket actor
+
+        Args:
+            message str string to send to the websocket actor
+
+        """
+        if self._instance.actor_system_ws_connection is not None:
+            await self._instance.actor_system_ws_connection.send_text(message)
+
+    def disconnect(self, websocket: WebSocket):
+        self._instance.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self._instance.active_connections:
+            await connection.send_text(message)
+
+    async def route_actor_system_origin_message(self, message: str):
+        """
+        Send a message to the websocket actor
+
+        Args:
+            message str string to send to the websocket actor
+
+        """
+        if self._instance.actor_system_ws_connection is not None:
+            await self._instance.actor_system_ws_connection.send_text(message)
+
+    async def route_actor_system_destination_message(self, message: str):
+        """
+        Send a message to the websocket actor
+
+        Args:
+            message str string to send to the websocket actor
+
+        """
+        if self._instance.actor_system_ws_connection is not None:
+            await self._instance.actor_system_ws_connection.send_text(message)

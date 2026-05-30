@@ -1,5 +1,4 @@
 import pytest
-from dataclasses import dataclass
 
 from mTree.examples.basic_auctions.mes.basic_auction_agent import BasicAuctionAgent
 
