@@ -100,5 +100,7 @@ ignore = ["E501"]
 
 [dependency-groups]
 dev = [
+    "anyio>=4.13.0",
     "mtree",
+    "pytest>=9.0.3",
 ]

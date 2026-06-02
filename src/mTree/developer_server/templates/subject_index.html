@@ -1,50 +1,121 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Hugo 0.98.0">
-    <title>mTree - Subject Interface Landing Server</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mTree Subject Interface</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --gmu-green: #006633;
+            --gmu-dark-green: #005239;
+            --gmu-gold: #FFCC33;
+        }
 
-    
-    <!-- Bootstrap core CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <!-- Custom styles for this template -->
-    <link href="https://getbootstrap.com/docs/5.3/examples/dashboard/dashboard.css" rel="stylesheet">
+        body {
+            background-color: #f8f9fa;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
 
-    
-  </head>
-  <body>
-    
-      <nav class="navbar navbar-expand-lg fixed-top navbar-light bg-light">
+        /* Top Status Bar */
+        .subject-top-bar {
+            background-color: var(--gmu-green);
+            color: white;
+            padding: 12px 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .subject-top-bar .brand {
+            font-size: 1.35rem;
+            font-weight: 600;
+        }
+
+        .info-item {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .main-content {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Status Bar -->
+    <nav class="subject-top-bar">
         <div class="container-fluid">
-          
-          <div class="collapse navbar-collapse justify-content-md-center" id="navbarsExample08" data-controller="subject-controller">
-            <ul class="navbar-nav">
-              <li class="nav-item">
-                mTree Subject Interface - <span id="global-experiment-name"></span> - Subject ID: 
-                <span id="global-subject-id">{% if subject_id %}
-                  {{ subject_id }}
-              {% endif %}</span>- Total Earnings: <span class="outlet" id="global_total_earnings" data-outlet-value="global_total_earnings"></span>
-              </li>
-            </ul>
-          </div>
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <span class="brand">
+                        <i class="bi bi-tree-fill me-2"></i>mTree Subject Interface
+                    </span>
+                </div>
+                <div class="col-md-8 text-end">
+                    <div class="d-inline-flex gap-3">
+                        <div class="info-item">
+                            <strong>Subject ID:</strong> 
+                            <span id="subjectIdDisplay">MT-78492</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Total Earnings:</strong> 
+                            <span id="earningsDisplay" class="text-warning fw-bold">$12.50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </nav>
+    </nav>
 
-      <main class="container">
-        {% block content %}
-                 
-        {% endblock %}
-      </main>
-      
-  </body>
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="card">
+            <div class="card-body p-5">
+                <h3 class="text-center mb-4 text-success">Welcome to the Experiment</h3>
+                <p class="text-center text-muted lead">
+                    Please follow the instructions on the screen.<br>
+                    Your responses are important for our research.
+                </p>
+
+                <!-- Placeholder for actual experiment content -->
+                <div class="mt-5">
+                    <div class="text-center">
+                        <button class="btn btn-lg" 
+                                style="background-color: var(--gmu-green); color: white; padding: 12px 40px;">
+                            <i class="bi bi-play-circle me-2"></i>Begin Trial
+                        </button>
+                    </div>
+                </div>
+
+                <!-- You can replace the area above with your actual experiment UI -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Example: You can dynamically update these values
+        function updateSubjectInfo(subjectId, earnings) {
+            document.getElementById('subjectIdDisplay').textContent = subjectId;
+            document.getElementById('earningsDisplay').textContent = '$' + earnings.toFixed(2);
+        }
+
+        // Demo update
+        // updateSubjectInfo("MT-78492", 12.50);
+    </script>
+</body>
 </html>
-
-
-
-
-
-

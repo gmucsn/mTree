@@ -4,14 +4,15 @@ import os
 import uuid
 from zipfile import ZipFile
 
+from thespian.actors import *
+
 from mTree.components.registry import Registry
 from mTree.core_actors.admin_message import AdminMessage
-from mTree.core_actors.dispatcher import Dispatcher
 from mTree.microeconomic_system.message import Message
 from mTree.simulation.configuration import Configuration
 from mTree.simulation.run import Run
 from mTree.system.actor_system_controller import ActorSystemController
-from thespian.actors import *
+from mTree.system.actors.dispatcher_actor import DispatcherActor
 
 # # from mTree.microeconomic_system.live_dispatcher import LiveDispatcher
 # # from mTree.microeconomic_system.outconnect import OutConnect

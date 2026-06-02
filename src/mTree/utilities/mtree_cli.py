@@ -4,16 +4,16 @@ from typing import List
 
 import questionary
 import typer
+from thespian.actors import *
+
 from mTree.generator import Generate
 from mTree.simulation import Library
 from mTree.simulation.configuration import Configuration
 from mTree.system.actor_system_connector import ActorSystemConnector
 from mTree.system.actor_system_controller import ActorSystemController
-from mTree.utilities.console.developer_server_monitor import (
-    DeveloperServerMonitor,
-)
+from mTree.utilities.console.developer_server_monitor import \
+    DeveloperServerMonitor
 from mTree.utilities.console.simulation_viewer import SimulationViewer
-from thespian.actors import *
 
 """
 Basic mTree CLI
@@ -79,12 +79,12 @@ def developer_server():
     Run the mTree developer web server to develop and test human subject experiments
     """
 
-    # @atexit.register
-    # def shutdown_actor_system():
-    #     ActorSystemController.shutdown()
-    #     print("Goodbye!")
+    @atexit.register
+    def shutdown_actor_system():
+        ActorSystemController.shutdown()
+        print("Goodbye!")
 
-    # actor_system = ActorSystemController.startup()
+    actor_system = ActorSystemController.startup()
     # developer_server = DeveloperServer()
     # developer_server.run_server()
 

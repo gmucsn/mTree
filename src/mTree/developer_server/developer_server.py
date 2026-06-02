@@ -4,8 +4,9 @@
 import socketio
 import uvicorn
 from fastapi import FastAPI
+
+from mTree.developer_server.admin_router import admin_router
 from mTree.developer_server.developer_router import developer_router
-from mTree.developer_server.experiment_admin_router import experiment_admin_router
 from mTree.developer_server.socketio_router import sio
 from mTree.developer_server.subject_router import subject_router
 from mTree.developer_server.system_router import base_router
@@ -34,7 +35,7 @@ class DeveloperServer(object):
         # self.app.mount("/comm_socket", self.socket_app)
         self.app.include_router(base_router)
         self.app.include_router(subject_router, prefix="/subject")
-        self.app.include_router(experiment_admin_router, prefix="/admin")
+        self.app.include_router(admin_router, prefix="/admin")
         self.app.include_router(developer_router, prefix="/developer")
         self.socket_app = socketio.ASGIApp(sio, self.app)
 

@@ -1,9 +1,11 @@
 import pathlib
+
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
+
 from mTree.developer_server.connection_manager import ConnectionManager
 
-experiment_admin_router = APIRouter()
+admin_router = APIRouter()
 
 
 manager = ConnectionManager()
@@ -13,7 +15,7 @@ templates_folder = pathlib.Path(__file__).parent.joinpath("templates").absolute(
 templates = Jinja2Templates(directory=templates_folder)
 
 
-@experiment_admin_router.get("", tags=["experiment admin"])
+@admin_router.get("", tags=["experiment admin"])
 async def admin_dashboard(request: Request):
     # TODO replace password check
     return templates.TemplateResponse(
@@ -38,7 +40,7 @@ example = """<turbo-stream action="after" target="messages">
 </turbo-stream>"""
 
 
-@experiment_admin_router.websocket("/turbo-stream")
+@admin_router.websocket("/turbo-stream")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.admin_connect(websocket, "ts")
     try:
@@ -48,19 +50,21 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
-@experiment_admin_router.websocket("/experiment_ws")
+@admin_router.websocket("/experiment_ws")
 async def experiment_websocket_endpoint(websocket: WebSocket):
     await manager.admin_connect(websocket, "ws")
+    # await manager.admin_connect(websocket, "ts")
 
     try:
+        await websocket.send_json({"msg": "Connected to admin router"})
         while True:
             data = await websocket.receive_text()
-            await manager.route_actor_system_destination_message(data)
+            # await manager.route_actor_system_destination_message(data)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
 
-@experiment_admin_router.websocket("/actor_system_ws")
+@admin_router.websocket("/actor_system_ws")
 async def actor_system_websocket_endpoint(websocket: WebSocket):
     """
     This route manages the websocket connection between the web server and the actor system
@@ -68,6 +72,7 @@ async def actor_system_websocket_endpoint(websocket: WebSocket):
     await manager.actor_system_connect(websocket)
     try:
         while True:
+            await websocket.send_json({"msg": "Connected to admin router"})
             data = await websocket.receive_text()
             await manager.route_actor_system_origin_message(data)
     except WebSocketDisconnect:

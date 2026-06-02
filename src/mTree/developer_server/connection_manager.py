@@ -1,10 +1,12 @@
 from pathlib import Path
 from typing import List
-from mTree.system.actor_system_controller import ActorSystemController
-from mTree.core_actors.websocket_actor import WebsocketActor, Start_Websocket
+
 import yaml
 from fastapi import WebSocket
 from pydantic import BaseModel, Field
+
+from mTree.system.actor_system_controller import ActorSystemController
+from mTree.system.actors.websocket_actor import Start_Websocket, WebsocketActor
 
 subject_connection_update = """<turbo-stream action="replace" target="messages">
   <template>
@@ -23,8 +25,11 @@ class MtreeExperimentConfigFile(BaseModel):
 class ConnectionManager:
     _instance = None
     _initialized = False
+    _experiment_configuration = None
+    _yaml_content = None
+    _experiment_configuration_yaml = None
     _subject_list = []
-    _admin_password = None
+    _admin_password = "password"
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -58,13 +63,15 @@ class ConnectionManager:
 
     def load_mtree_experiment_config(self):
         experiment_directory = Path.cwd()
+
         with open(experiment_directory / "mtree_experiment_config.yaml", "r") as f:
-            yaml_content = yaml.safe_load(f)
-        experiment_configuration = MtreeExperimentConfigFile.model_validate(
-            yaml_content
+            self._yaml_content = f.read() 
+        self._experiment_configuration_yaml = yaml.safe_load(self._yaml_content)
+        self._experiment_configuration = MtreeExperimentConfigFile.model_validate(
+            self._experiment_configuration_yaml
         )
-        self._subject_list = experiment_configuration.subject_ids
-        self._admin_password = experiment_configuration.admin_password
+        self._subject_list = self._experiment_configuration.subject_ids
+        self._admin_password = self._experiment_configuration.admin_password
 
     async def subject_connect(
         self, websocket: WebSocket, connection_type: str, subject_id: str
@@ -102,7 +109,7 @@ class ConnectionManager:
         """
         await websocket.accept()
         self._instance.actor_system_ws_connection = websocket
-        self._instance.actor_system_ws_connection.send_json({"test": "test"})
+        await self._instance.actor_system_ws_connection.send_json({"test": "test"})
 
     async def actor_system_disconnect(self, websocket: WebSocket):
         """
@@ -115,6 +122,7 @@ class ConnectionManager:
         self.start_websocket_actor()
         if connection_type == "ws":
             self._instance.ws_active_connections.append(websocket)
+            self._instance.ts_active_connections.append(websocket)
         elif connection_type == "ts":
             self._instance.ts_active_connections.append(websocket)
         if "admin" not in self._instance.connection_map.keys():
@@ -136,7 +144,7 @@ class ConnectionManager:
                 <td id="connection-status-{subject_id}">{status_message}</td>
             </template>
             </turbo-stream>"""
-        await self._instance.connection_map["admin"]["ts"].send_text(
+        await self._instance.connection_map["admin"]["ws"].send_text(
             subject_connection_status
         )
 
@@ -163,8 +171,11 @@ class ConnectionManager:
             await self._instance.actor_system_ws_connection.send_text(message)
 
     def disconnect(self, websocket: WebSocket):
-        self._instance.active_connections.remove(websocket)
-
+        try:
+            self._instance.active_connections.remove(websocket)
+        except:
+            pass
+        
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
 

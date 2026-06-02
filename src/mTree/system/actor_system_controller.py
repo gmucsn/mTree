@@ -1,10 +1,11 @@
 import os
 
-from mTree.core_actors.dispatcher import Dispatcher
-from mTree.core_actors.system_status_actor import SystemStatusActor
-from mTree.server.log_config import logcfg
 from thespian.actors import *
-from mTree.core_actors.websocket_actor import WebsocketActor
+
+from mTree.server.log_config import logcfg
+from mTree.system.actors.dispatcher_actor import DispatcherActor
+from mTree.system.actors.system_status_actor import SystemStatusActor
+from mTree.system.actors.websocket_actor import WebsocketActor
 
 
 class ActorSystemController:
@@ -32,7 +33,7 @@ class ActorSystemController:
         actor_system.tell(system_status_actor, "starting")
         ActorSystemController.admin_actors.append("SystemStatusActor")
 
-        dispatcher = actor_system.createActor(Dispatcher, globalName="Dispatcher")
+        dispatcher = actor_system.createActor(DispatcherActor, globalName="Dispatcher")
         actor_system.tell(dispatcher, "starting")
         ActorSystemController.admin_actors.append("Dispatcher")
 

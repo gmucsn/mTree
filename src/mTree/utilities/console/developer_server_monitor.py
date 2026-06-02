@@ -5,16 +5,13 @@ import sys
 from pathlib import Path
 from subprocess import PIPE, STDOUT, Popen
 
-from mTree.development.mtree_configuration import MTreeConfiguration
 from rich.markdown import Markdown
 from textual import work
 from textual.app import App, ComposeResult
 from textual.screen import Screen
-from textual.widgets import (
-    Footer,
-    Log,
-    Markdown,
-)
+from textual.widgets import Footer, Log, Markdown
+
+from mTree.development.mtree_configuration import MTreeConfiguration
 
 # from textual.widgets.option_list import Option, Separator
 
@@ -22,7 +19,7 @@ from textual.widgets import (
 def start_developer_server():
     command = [
         sys.executable,
-        "/workspaces/mTree/mTree/utilities/background_mtree_server.py",
+        "/workspaces/mTree/src/mTree/utilities/background_mtree_server.py",
         "Hello, World!",
     ]
 
@@ -69,7 +66,7 @@ async def run_process():
 
     proc = await asyncio.create_subprocess_exec(
         sys.executable,
-        "/workspaces/mTree/mTree/utilities/background_mtree_server.py",
+        "/workspaces/mTree/src/mTree/utilities/background_mtree_server.py",
         "Hello, World!",
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
@@ -150,7 +147,7 @@ class DeveloperServerMonitor(App):
 
         args = [
             sys.executable,
-            "/workspaces/mTree/mTree/utilities/background_mtree_server.py",
+            "/workspaces/mTree/src/mTree/utilities/background_mtree_server.py",
             "Hello, World!",
         ]
 

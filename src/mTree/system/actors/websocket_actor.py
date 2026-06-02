@@ -1,13 +1,20 @@
 from __future__ import absolute_import, division, print_function
 
-import select
+import datetime
 import logging as log
-from datetime import timedelta
+import os
+import select
 from collections import namedtuple
+from datetime import timedelta
 
 import websocket
+from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 from websocket import ABNF
-from thespian.actors import ActorExitRequest, WakeupMessage, Actor
+
+from mTree.microeconomic_system.message import Message
+from mTree.simulation.library import Library
+from mTree.simulation.run import Run
+from mTree.system.actors.dispatcher_actor import DispatcherActor
 
 # Message to send to open the connection
 Start_Websocket = namedtuple("Start_Websocket", "ws_addr start_msg upstream")
@@ -21,13 +28,6 @@ Websocket_Input = namedtuple("Websocket_Input", "msg")
 # messages in the log output
 MAX_MSGS_PER_READ = 50
 
-from thespian.actors import Actor, ActorExitRequest
-from mTree.microeconomic_system.message import Message
-from mTree.simulation.run import Run
-from mTree.simulation.run import Run
-from mTree.simulation.library import Library
-import datetime
-import os
 
 
 class MessageRouter:
@@ -156,13 +156,16 @@ class WebsocketActor(Actor):
         self.ws.close()
 
     def receiveMessage(self, m, sender):
-        handler = {
-            WakeupMessage: self.receiveMsg_WakeupMessage,
-            Start_Websocket: self.receiveMsg_Start_Websocket,
-            Websocket_Input: self.receiveMsg_Websocket_Input,
-            ActorExitRequest: self.receiveMsg_ActorExitRequest,
-        }.get(type(m), None)
-        if handler is None:
-            log.error("Unhandled message %r from %r", m, sender)
-            return
-        handler(m, sender)
+        try:
+            handler = {
+                WakeupMessage: self.receiveMsg_WakeupMessage,
+                Start_Websocket: self.receiveMsg_Start_Websocket,
+                Websocket_Input: self.receiveMsg_Websocket_Input,
+                ActorExitRequest: self.receiveMsg_ActorExitRequest,
+            }.get(type(m), None)
+            if handler is None:
+                log.error("Unhandled message %r from %r", m, sender)
+                return
+            handler(m, sender)
+        except:
+            pass

@@ -1,6 +1,6 @@
 {
     "build": { "dockerfile": "Dockerfile" },
-    "onCreateCommand": "pip install -e /workspaces/mTree",
+    "onCreateCommand": "pip install uv; pip install -e /workspaces/mTree[dev]",
     "customizations": {
       "vscode": {
         "extensions": [
@@ -12,5 +12,5 @@
       }
     },
 
-    "forwardPorts": [3000, 8080, 8000]
+    "forwardPorts": [8000]
   }

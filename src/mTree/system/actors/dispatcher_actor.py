@@ -4,19 +4,20 @@ from dataclasses import dataclass, field
 
 # import numpy as np
 import setproctitle
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.initialization_messages import MESConfigurationPayload
+from mTree.microeconomic_system.initialization_messages import \
+    MESConfigurationPayload
 from mTree.microeconomic_system.mes_container import MESContainer
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message
 from mTree.simulation.iteration import Iteration
 from mTree.simulation.run import Run
 from mTree.simulation.simulation_run import SimulationRun
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
 
 # from mTree.microeconomic_system.web_socket_router_actor import WebSocketRouterActor
 

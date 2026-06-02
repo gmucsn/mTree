@@ -2,18 +2,17 @@ import glob
 import logging
 import os
 
+from thespian.actors import *
+
 from mTree.microeconomic_system import *
 from mTree.microeconomic_system.admin_message import AdminMessage
-
-# from mTree.server.websocket_router import WebsocketRouter
-# from mTree.microeconomic_system.dispatcher import Dispatcher
-from mTree.core_actors.dispatcher import Dispatcher
-from mTree.core_actors.system_status_actor import SystemStatusActor
-
 # from mTree.microeconomic_system.system_status_actor import SystemStatusActor
 # from mTree.microeconomic_system.web_socket_router_actor import WebSocketRouterActor
 from mTree.server.log_config import logcfg
-from thespian.actors import *
+# from mTree.server.websocket_router import WebsocketRouter
+# from mTree.microeconomic_system.dispatcher import Dispatcher
+from mTree.system.actors.dispatcher_actor import DispatcherActor
+from mTree.system.actors.system_status_actor import SystemStatusActor
 
 # class actorLogFilter(logging.Filter):
 #     def filter(self, logrecord):
@@ -130,7 +129,7 @@ class ActorSystemStartup:
         self.actor_system.tell(self.system_status_actor_address, "starting")
 
         logging.info("Dispatcher ACTOR STARTING... ")
-        dispatcher = self.actor_system.createActor(Dispatcher, globalName="Dispatcher")
+        dispatcher = self.actor_system.createActor(DispatcherActor, globalName="Dispatcher")
         self.actor_system.tell(dispatcher, "starting")
 
         # self.actor_system.tell(
@@ -155,7 +154,7 @@ class ActorSystemStartup:
         # ActorSystemController.admin_actors.append("SystemStatusActor")
 
         print("starting dispatcher")
-        dispatcher = self.actor_system.createActor(Dispatcher, globalName="Dispatcher")
+        dispatcher = self.actor_system.createActor(DispatcherActor, globalName="Dispatcher")
         self.actor_system.tell(dispatcher, "starting")
         # ActorSystemController.admin_actors.append("Dispatcher")
 

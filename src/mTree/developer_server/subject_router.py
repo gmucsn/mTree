@@ -1,15 +1,10 @@
 import pathlib
 from typing import Annotated
 
-from fastapi import (
-    APIRouter,
-    Form,
-    Request,
-    Response,
-    WebSocket,
-    WebSocketDisconnect,
-)
+from fastapi import (APIRouter, Form, Request, Response, WebSocket,
+                     WebSocketDisconnect)
 from fastapi.templating import Jinja2Templates
+
 from mTree.developer_server.connection_manager import ConnectionManager
 
 subject_router = APIRouter()
@@ -102,6 +97,7 @@ async def experiment_websocket_endpoint(websocket: WebSocket, subject_id: str):
     # Message start
     try:
         while True:
+            await websocket.send_json({"msg": "Connected to subject router"})
             data = await websocket.receive_text()
             await manager.route_actor_system_destination_message(data)
     except WebSocketDisconnect:
