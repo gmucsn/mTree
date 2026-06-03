@@ -1,18 +1,19 @@
 import json
 from pathlib import Path
+
 import yaml
+
 from mTree.simulation.configuration import Configuration
 from mTree.simulation.mes_description import MESDescription
 
 
 class Library:
-    def __init__(self, scan_current_directory=True):
-        self.scan = False
+    def __init__(self, starting_directory=None):
+        self.starting_directory = starting_directory
         self.mes_library = {}
-
-        if scan_current_directory is not None:
-            self.scan = scan_current_directory
-            self.load_libraries_from_directories()
+        if starting_directory is None:
+            self.starting_directory = Path.cwd()
+        self.load_libraries_from_directories()
 
     @staticmethod
     def load_configuration_from_path(path_to_config):
@@ -21,18 +22,7 @@ class Library:
         """
 
         config_file_path = Path(path_to_config)
-        if config_file_path.suffix == ".json":
-            with open(config_file_path, "r") as f:
-                json_content = json.load(f)
-                experiment_configuration = Configuration.model_validate_json(
-                    json_content
-                )
-        elif config_file_path.suffix == ".yaml":
-            with open(config_file_path, "r") as f:
-                yaml_content = yaml.safe_load(f)
-                experiment_configuration = Configuration.model_validate(yaml_content)
-        else:
-            raise Exception("Invalid Configuration file type")
+        experiment_configuration = Configuration.load_from_file(config_file_path)
         return experiment_configuration
 
     @property
@@ -58,11 +48,10 @@ class Library:
 
     def generate_mes_description(self, mes_directory: Path):
         config_directory = mes_directory / "config"
-        config_files = [config_file for config_file in config_directory.glob("*.json")]
+        config_files = [config_file for config_file in config_directory.iterdir() if config_file.suffix in [".json", ".yaml"]]
         configurations = []
         for config_file in config_files:
-            input_json = config_file.read_text()
-            configuration = Configuration.model_validate_json(input_json)
+            configuration = Configuration.load_from_file(config_file)
             configuration.file_source = config_file
             configuration.mes_directory = mes_directory
             configurations.append(configuration)
@@ -71,9 +60,8 @@ class Library:
         )
 
     def find_mes_directories(self):
-        starting_directory = Path.cwd()
         mes_directories = []
-        for root, dirs, files in starting_directory.walk(top_down=True):
+        for root, dirs, files in self.starting_directory.walk(top_down=True):
             if "mes" in dirs and "config" in dirs:
                 # assume it is a real MES
                 mes_directories.append(root)

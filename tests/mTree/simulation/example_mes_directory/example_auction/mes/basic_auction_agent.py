@@ -5,7 +5,7 @@ from mTree.microeconomic_system.message import Message
 
 
 @directive_enabled_class
-class AuctionAgent(Agent):
+class BasicAuctionAgent(Agent):
     def prepare(self):
         self.endowment = None
         self.institution = None
@@ -20,11 +20,6 @@ class AuctionAgent(Agent):
             self.log_message("DEBUG TESTING...")
 
         self.log_message("TESTING THIS...", target="trial")
-
-    def display_bidding_screen(self, message: Message):
-        self.display_screen(
-            "bidding_screen.html", {"estimated-value": 10, "estimated-error": 0.2}
-        )
 
     @directive_decorator("set_endowment")
     def set_endowment(self, message: Message):

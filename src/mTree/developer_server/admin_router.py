@@ -58,8 +58,8 @@ async def experiment_websocket_endpoint(websocket: WebSocket):
     try:
         await websocket.send_json({"msg": "Connected to admin router"})
         while True:
-            data = await websocket.receive_text()
-            # await manager.route_actor_system_destination_message(data)
+            data = await websocket.receive_text() # receiving the next message from the websocket connection to the admin browser
+            await manager.route_actor_system_destination_message(data) # send the message along to the actor system
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 

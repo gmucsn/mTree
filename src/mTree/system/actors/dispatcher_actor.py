@@ -575,7 +575,7 @@ class DispatcherActor(Actor):
                 self.send(environment_address, ActorExitRequest())
 
     def receiveMessage(self, message, sender):
-        logging.info("DISPATCHER actor message received -> ", message)
+        logging.info(f"DISPATCHER actor message received -> {message}")
         # outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
         # self.send(outconnect, message)
         # logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)

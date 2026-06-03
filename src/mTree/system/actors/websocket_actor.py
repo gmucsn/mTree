@@ -29,8 +29,9 @@ Websocket_Input = namedtuple("Websocket_Input", "msg")
 MAX_MSGS_PER_READ = 50
 
 
+# TODO need to out ws message outflow
 
-class MessageRouter:
+class CommandHandler:
     def __init__(self):
         self.experiment = None
 
@@ -80,11 +81,15 @@ class WebsocketActor(Actor):
         self.running = False
         self.ws = None
 
+
+    def message_handler(self, ws_origin_message):
+        log.info(f"WS Message received: {ws_origin_message}")
+    
+
     def check_websocket(self):
         msgs = 0
         events = self.epoll.poll(0)
         while events and msgs < MAX_MSGS_PER_READ:
-            log.info("Looking for WS messages")
             for fileno, event in events:
 
                 if not (event & select.EPOLLIN):
@@ -96,10 +101,7 @@ class WebsocketActor(Actor):
                     pass  # ignore
                 else:
                     msgs += 1
-                    log.info("Another messages pulled from ")
-                    log.info(frame.data)
-                    t = MessageRouter()
-                    t.start_experiment(self)
+                    self.message_handler(frame.data)
                     # self.send(self.config.upstream, Websocket_Output(frame.data))
             events = self.epoll.poll(0)
         if msgs >= MAX_MSGS_PER_READ:
@@ -116,12 +118,7 @@ class WebsocketActor(Actor):
 
         # open the connection
         websocket.enableTrace(False)
-        log.info("Trying to connect")
-        log.info(m)
-        log.info(m.ws_addr)
         self.ws = websocket.create_connection(m.ws_addr)
-        log.info("Websocket Connected")
-
         # set up the socket monitoring
         self.epoll = select.epoll()
         mask = select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR

@@ -2,11 +2,12 @@ import json
 import logging
 import os
 import sys
-
-# from socketIO_client import SocketIO, LoggingNamespace
 import traceback
 
 import setproctitle
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
+
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.initialization_messages import *
@@ -14,8 +15,6 @@ from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.sequence_event import SequenceEvent
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
 
 EXPERIMENT_DATA = 27
 
@@ -431,12 +430,12 @@ class LogActor(Actor):
         except:
             pass
 
-        if len(list(self.targets.keys())) > 0:
-            try:
+        try:
+            if len(list(self.targets.keys())) > 0:
                 for target in self.targets.keys():
                     self.complete_log_target(target)
-            except:
-                logging.info("ISSUE ON CLOSING LOGS")
+        except:
+            logging.info("ISSUE ON CLOSING LOGS")
 
     def receiveMessage(self, message, sender):
         # outconnect = self.createActor(OutConnect, globalName = "OutConnect")

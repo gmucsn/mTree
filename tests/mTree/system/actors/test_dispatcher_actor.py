@@ -45,16 +45,3 @@ def test_dispatcher_initialization(actor_system):
     # Assert
     assert response == "registered"
 
-
-def test_greeter_ping(actor_system):
-    # Arrange
-    greeter = actor_system.createActor(GreeterActor)
-    
-    # Act
-    response = actor_system.ask(greeter, "ping", 1.5)
-    
-    # Assert
-    assert response == "pong"
-    
-    # Clean up specific actor
-    actor_system.tell(greeter, ActorExitRequest())

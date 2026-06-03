@@ -1,40 +1,38 @@
+import random
 
 from mTree.microeconomic_system.agent import Agent
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.message import Message
 
 
+# @state_variables(["value","earnings"])
 @directive_enabled_class
-class AuctionAgent(Agent):
-    def prepare(self):
+class RandomResponseAuctionAgent(Agent):
+    def prepare_agent(self):
         self.endowment = None
         self.institution = None
 
         self.bid = None
 
         self.auction_history = []
-        self.log_message("10 TESTING THIS...", target="trial", level=10)
-        self.log_message("66 TESTING THIS...", target="trial", level=66)
-        if self.debug:
-            self.log_message("10 TESTING THIS...", level=10)
-            self.log_message("DEBUG TESTING...")
-
-        self.log_message("TESTING THIS...", target="trial")
-
-    def display_bidding_screen(self, message: Message):
-        self.display_screen(
-            "bidding_screen.html", {"estimated-value": 10, "estimated-error": 0.2}
-        )
 
     @directive_decorator("set_endowment")
     def set_endowment(self, message: Message):
+        self.prepare_agent()
         self.endowment = message.get_payload()["endowment"]
 
     @directive_decorator("start_bidding")
     def start_bidding(self, message: Message):
-        self.log_message("Agent got auction start")
-        self.value_estimate = message.get_payload()["value_estimate"]
+        self.need_to_bid = True
+        seconds_to_bid = random.randint(0, 300)
+        new_message = message
+        new_message.set_directive("finalize_bid")
+        self.reminder(seconds_to_bid, new_message)
 
+    @directive_decorator("finalize_bid")
+    def finalize_bid(self, message: Message):
+        self.log_message("Agent starting to actually bid")
+        self.value_estimate = message.get_payload()["value_estimate"]
         self.error = message.get_payload()["error"]
         self.institution = message.get_sender()
         self.make_bid()

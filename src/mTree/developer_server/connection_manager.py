@@ -196,7 +196,7 @@ class ConnectionManager:
 
     async def route_actor_system_destination_message(self, message: str):
         """
-        Send a message to the websocket actor
+        Send a message to the websocket actor inside the actor ssystem
 
         Args:
             message str string to send to the websocket actor

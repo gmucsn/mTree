@@ -37,9 +37,9 @@ class ActorSystemController:
         actor_system.tell(dispatcher, "starting")
         ActorSystemController.admin_actors.append("Dispatcher")
 
-        subject_websocket_actor = actor_system.createActor(
-            WebsocketActor, globalName="websocket_actor"
-        )
+        # subject_websocket_actor = actor_system.createActor(
+        #     WebsocketActor, globalName="websocket_actor"
+        # )
 
         return actor_system
 

@@ -1,17 +1,16 @@
-from fastapi import APIRouter
-from fastapi import Request, Response
+import os
+import pathlib
+from typing import Annotated
+
+from fastapi import APIRouter, Form, Request, Response
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from fastapi import Form
-from typing import Annotated
-import pathlib
-from fastapi.responses import RedirectResponse
-import os
+
 developer_router = APIRouter()
 
 from mTree.components.registry import Registry
-from mTree.system.mes_simulation_library import MESSimulationLibrary
 from mTree.development.mtree_configuration import MTreeConfiguration
+from mTree.system.mes_simulation_library import MESSimulationLibrary
 
 templates_folder = pathlib.Path(__file__).parent.joinpath("templates").absolute()
 
@@ -33,7 +32,7 @@ SUBJECT_IDS = MTree_configuration.instance.subject_ids
 @developer_router.get("", tags=["developer"])
 def login_landing(request: Request):
     return templates.TemplateResponse(
-            "admin_login.html", {"request": request}
+            "developer_base.html", {"request": request}
     )
 
 @developer_router.post("", tags=["developer"])
