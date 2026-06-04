@@ -15,6 +15,8 @@ from mTree.microeconomic_system.initialization_messages import \
 from mTree.microeconomic_system.mes_container import MESContainer
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message
+from mTree.simulation.human_subject_experiment_message import \
+    HumanSubjectExperimentMessage
 from mTree.simulation.iteration import Iteration
 from mTree.simulation.run import Run
 from mTree.simulation.simulation_run import SimulationRun
@@ -823,6 +825,11 @@ class DispatcherActor(Actor):
         ####
         # get the source hash for the newly loaded MES components
         ####
+        ws_actor = self.createActor(Actor, globalName="websocket_actor")
+        out_message = HumanSubjectExperimentMessage(action="send_to_subject", source="dispatcher", destination=configuration.subject_ids[-1], payload={"test":"send to subject"})
+        self.send(ws_actor, out_message)
+        return 
+
         source_hash = configuration["source_hash"]
 
         logging.info("Booting dispatched")

@@ -12,6 +12,10 @@ from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 from websocket import ABNF
 
 from mTree.microeconomic_system.message import Message
+from mTree.simulation.configuration import Configuration
+from mTree.simulation.human_subject_experiment_message import \
+    HumanSubjectExperimentMessage
+from mTree.simulation.human_subject_run import HumanSubjectRun
 from mTree.simulation.library import Library
 from mTree.simulation.run import Run
 from mTree.system.actors.dispatcher_actor import DispatcherActor
@@ -40,6 +44,9 @@ class CommandHandler:
 
         run_message = Message()
         run_message.set_directive("simulation_configurations")
+        
+        
+        
         filepath = "/workspaces/mTree/examples/human_subject_auction/config/basic_human_subject_auction.yaml"
         configuration = Library.load_configuration_from_path(filepath)
         config_base_name = os.path.basename(filepath).split(".")[0]
@@ -82,9 +89,30 @@ class WebsocketActor(Actor):
         self.ws = None
 
 
-    def message_handler(self, ws_origin_message):
-        log.info(f"WS Message received: {ws_origin_message}")
-    
+    def message_handler(self, str_origin_message: str):
+        log.info(f"WS Message received: {str_origin_message}")
+        ws_origin_message = HumanSubjectExperimentMessage.model_validate_json(str_origin_message)
+        log.info(f"WS loaded Message received: {ws_origin_message}")
+        match ws_origin_message.action:
+            case "start_experiment":
+                dispatcher = self.createActor(Actor, globalName="Dispatcher")
+
+                run_message = Message()
+                run_message.set_directive("human_subject_configuration")
+                nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+                configuration = Configuration.model_validate(ws_origin_message.payload["configuration"])
+                simulation_run_id = configuration.name + "-" + nowtime_filename
+                run = HumanSubjectRun(configuration=configuration, simulation_run_id=simulation_run_id, subject_ids=ws_origin_message.payload["subject_ids"])
+                run_message.set_payload(run)
+                self.send(
+                    dispatcher, run_message
+                )  # createActor(Dispatcher, globalName = "Dispatcher")
+            case "send_to_subject":
+
+                self.ws.send(m.start_msg)
+
+            
+        
 
     def check_websocket(self):
         msgs = 0
@@ -152,6 +180,10 @@ class WebsocketActor(Actor):
         self.epoll.close()
         self.ws.close()
 
+    def receiveMsg_HumanSubjectExperimentMessage(self, m, sender):
+        log.info(f"sending a websocket message upstream {m}")
+        self.ws.send_text(m.model_dump_json())
+
     def receiveMessage(self, m, sender):
         try:
             handler = {
@@ -159,6 +191,7 @@ class WebsocketActor(Actor):
                 Start_Websocket: self.receiveMsg_Start_Websocket,
                 Websocket_Input: self.receiveMsg_Websocket_Input,
                 ActorExitRequest: self.receiveMsg_ActorExitRequest,
+                HumanSubjectExperimentMessage: self.receiveMsg_HumanSubjectExperimentMessage,
             }.get(type(m), None)
             if handler is None:
                 log.error("Unhandled message %r from %r", m, sender)

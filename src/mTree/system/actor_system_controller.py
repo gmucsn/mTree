@@ -5,7 +5,6 @@ from thespian.actors import *
 from mTree.server.log_config import logcfg
 from mTree.system.actors.dispatcher_actor import DispatcherActor
 from mTree.system.actors.system_status_actor import SystemStatusActor
-from mTree.system.actors.websocket_actor import WebsocketActor
 
 
 class ActorSystemController:

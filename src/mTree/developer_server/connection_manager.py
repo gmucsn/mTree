@@ -1,10 +1,16 @@
+import json
 from pathlib import Path
-from typing import List
+from typing import List, Literal, Union
 
 import yaml
 from fastapi import WebSocket
 from pydantic import BaseModel, Field
 
+from mTree.simulation.configuration import Configuration
+from mTree.simulation.human_subject_experiment_message import \
+    HumanSubjectExperimentMessage
+from mTree.simulation.human_subject_experiment_startup import \
+    HumanSubjectExperimentStartup
 from mTree.system.actor_system_controller import ActorSystemController
 from mTree.system.actors.websocket_actor import Start_Websocket, WebsocketActor
 
@@ -22,12 +28,16 @@ class MtreeExperimentConfigFile(BaseModel):
     subject_ids: List[str] = Field(min_length=1)
 
 
+
+
+
 class ConnectionManager:
     _instance = None
     _initialized = False
     _experiment_configuration = None
+    _simulation_configuration = None
     _yaml_content = None
-    _experiment_configuration_yaml = None
+    _experiment_configuration_yaml:Configuration = None
     _subject_list = []
     _admin_password = "password"
 
@@ -70,6 +80,7 @@ class ConnectionManager:
         self._experiment_configuration = MtreeExperimentConfigFile.model_validate(
             self._experiment_configuration_yaml
         )
+        self._simulation_configuration = Configuration.load_from_file(experiment_directory / "config" / "basic_human_subject_auction.yaml")
         self._subject_list = self._experiment_configuration.subject_ids
         self._admin_password = self._experiment_configuration.admin_password
 
@@ -109,7 +120,7 @@ class ConnectionManager:
         """
         await websocket.accept()
         self._instance.actor_system_ws_connection = websocket
-        await self._instance.actor_system_ws_connection.send_json({"test": "test"})
+        # await self._instance.actor_system_ws_connection.send_json({"test": "test"})
 
     async def actor_system_disconnect(self, websocket: WebSocket):
         """
@@ -191,10 +202,13 @@ class ConnectionManager:
             message str string to send to the websocket actor
 
         """
-        if self._instance.actor_system_ws_connection is not None:
-            await self._instance.actor_system_ws_connection.send_text(message)
+        final_message = json.loads(message)
+        
+        await self._instance.connection_map[final_message["destination"]]["ws"].send_text("round trip....")
+        # if self._instance.actor_system_ws_connection is not None:
+        #     await self._instance.actor_system_ws_connection.send_text(message)
 
-    async def route_actor_system_destination_message(self, message: str):
+    async def route_actor_system_destination_message(self, message_content: str):
         """
         Send a message to the websocket actor inside the actor ssystem
 
@@ -203,4 +217,11 @@ class ConnectionManager:
 
         """
         if self._instance.actor_system_ws_connection is not None:
-            await self._instance.actor_system_ws_connection.send_text(message)
+            message = json.loads(message_content)
+            match message["action"]:
+                case "start_experiment":
+                    startup = HumanSubjectExperimentStartup(configuration=self._instance._simulation_configuration, subject_ids=self._instance.connection_map.keys())
+                    final_message = HumanSubjectExperimentMessage(action="start_experiment", source="admin", destination="admin", payload=startup)
+                    print(" stuff")
+                    print(final_message.model_dump_json())
+                    await self._instance.actor_system_ws_connection.send_text(final_message.model_dump_json())
