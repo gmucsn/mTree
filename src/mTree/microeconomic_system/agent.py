@@ -1,7 +1,12 @@
 import json
+import logging as log
 import os
 
+import jinja2
 import setproctitle
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
+
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.directive_decorators import *
@@ -12,17 +17,9 @@ from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message
 from mTree.simulation.component_initialization import ComponentInitialization
 from mTree.simulation.configuration import Configuration
+from mTree.simulation.human_subject_experiment_message import \
+    HumanSubjectExperimentMessage
 from mTree.simulation.iteration import Iteration
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
-
-
-def is_jsonable(x):
-    try:
-        json.dumps(x)
-        return True
-    except:
-        return False
 
 
 @initializing_messages(
@@ -42,13 +39,16 @@ class Agent(MESComponentBase):
     def invoke_prepare(self):
         # TODO should provide unique id in proctitle for review
         setproctitle.setproctitle("mTree - Agent")
-
+        log.info(f"trying to setup an agent")
+            
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
         message = AdminMessage(directive="register_pid", payload=pid)
         self.send(system_status_actor, message)
 
         self.initialization: ComponentInitialization = self._component_initialization
+        log.info(f"Agent initialization : {self.initialization}")
+        log.info(f"Agent initialization : {self.initialization.subject_id}")
         self.iteration: Iteration = self.initialization.iteration
         self.configuration: Configuration = self.iteration.configuration
 
@@ -74,14 +74,32 @@ class Agent(MESComponentBase):
 
         # TODO fix for subject startup
         # self.outlets = {}
-        # self.subject_id = None
-        # if "subject_id" in self.initialization_dict.keys():
-        #     self.subject_id = self.initialization_dict["subject_id"]
+        self.subject_id = self.initialization.subject_id
+        if self.subject_id is not None:
+            ws_actor = self.createActor(Actor, globalName="websocket_actor")
+            out_message = HumanSubjectExperimentMessage(action="agent_to_subject_mapping", source="agent", destination=self.subject_id, payload={"subject_id":self.subject_id, "actor_address": self.myAddress})
+            log.info(f"sending agent to subject mapping informationm {out_message}")
+            self.send(ws_actor, out_message)
 
         try:
             self.prepare()
         except:
             self.exception_logging_handler()
+
+
+    def send_screen_update(self, action, target, template_name, properties):
+        """Method to control hotwire messages to the screen
+        """
+        ws_actor = self.createActor(Actor, globalName="websocket_actor")
+        out_message = HumanSubjectExperimentMessage(action="hotwire_message", 
+                                                    source="agent", 
+                                                    destination=self.subject_id, 
+                                                    payload={"target":target, 
+                                                             "action": action,
+                                                             "template": template_name})
+        self.send(ws_actor, out_message)
+
+        
 
     # def __init__(self):
     #     self.address_book = AddressBook(self)
@@ -161,8 +179,10 @@ class Agent(MESComponentBase):
         seconds_to_reminder = message.get_payload()["seconds_to_reminder"]
         self.reminder(seconds_to_reminder, reminder_message)
 
+
+
     # def __setattr__(self, key, value):
-    #     """
+    #     """ho2
     #     magic function that passes change to the root object
     #     :param key:
     #     :param value:

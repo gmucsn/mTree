@@ -95,6 +95,9 @@ class ActorSystemConnector:
 
     @staticmethod
     def load_base_mes(mes_base_dir):
+        """This method is used to load the content of the MES into the actor system.
+        
+        """
         script_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "..", "microeconomic_system"
         )
@@ -172,8 +175,6 @@ class ActorSystemConnector:
         actor_system = ActorSystemController.retrieve_connection()
         dispatcher = actor_system.createActor(Actor, globalName="Dispatcher")
 
-        run_message = Message()
-        run_message.set_directive("simulation_configurations")
 
         config_base_name = os.path.basename(configuration.file_source).split(".")[0]
         # Simulation Run ID Generator - TODO consolidate with subject ID generation
@@ -184,7 +185,10 @@ class ActorSystemConnector:
         # configuration.simulation_run_id = simulation_run_id
         run = Run(configuration=configuration, simulation_run_id=simulation_run_id)
 
+        run_message = Message()
+        run_message.set_directive("simulation_configurations")
         run_message.set_payload(run)
+
         actor_system.tell(
             dispatcher, run_message
         )  # createActor(Dispatcher, globalName = "Dispatcher")

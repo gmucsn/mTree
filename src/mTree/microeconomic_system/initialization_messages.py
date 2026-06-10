@@ -14,6 +14,8 @@ class AddressBookPayload:
 @dataclass
 class MESConfigurationPayload:
     mes_configuration_payload: dict
+    human_subject_configuration: object = None
+    dispatcher: object = None
 
 
 @dataclass

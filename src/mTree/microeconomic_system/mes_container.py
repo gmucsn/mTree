@@ -1,11 +1,15 @@
+import datetime
 import logging
 import os
 
 import setproctitle
-from mTree.core_actors.admin_message import AdminMessage
-from mTree.microeconomic_system.address_book import AddressBook, ComponentAddress
-from mTree.microeconomic_system.directive_decorators import *
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
 
+from mTree.core_actors.admin_message import AdminMessage
+from mTree.microeconomic_system.address_book import (AddressBook,
+                                                     ComponentAddress)
+from mTree.microeconomic_system.directive_decorators import *
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.log_actor import LogActor
@@ -13,10 +17,8 @@ from mTree.microeconomic_system.mes_exceptions import *
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message
 from mTree.simulation.component_initialization import ComponentInitialization
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
-
-# from socketIO_client import SocketIO, LoggingNamespace
+from mTree.simulation.human_subject_run import HumanSubjectRun
+from mTree.simulation.iteration import Iteration
 
 
 @initializing_messages(
@@ -28,12 +30,23 @@ class MESContainer(Actor):
     def prepare_mes_container(self):
         # Sets the Iteration object for easy access
         self.iteration = self._mes_container_configuration.mes_configuration_payload
+        
         # Set the Configuration object for easy access
         self.configuration = (
             self._mes_container_configuration.mes_configuration_payload.configuration
         )
-
+        self.human_subject_configuration = None
+        self.subject_ids = []
         self.simulation_id = self.configuration.id
+        if type(self.iteration) == HumanSubjectRun:
+            self.human_subject_configuration = self.iteration
+            nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+            simulation_run_id = (
+                self.human_subject_configuration.configuration.name + "-" + nowtime_filename
+            )  
+            self.iteration = Iteration(simulation_run_id=simulation_run_id, configuration=self.human_subject_configuration.configuration, iteration_number=1)
+            self.subject_ids = self.human_subject_configuration.subject_ids
+            self.subject_ids.remove("admin")
         self.iteration_id = self.iteration.iteration_id
         self.simulation_run = self.iteration.iteration_number
 
@@ -52,30 +65,38 @@ class MESContainer(Actor):
         self.global_properties = (
             self._mes_container_configuration.mes_configuration_payload.configuration.properties
         )
-        self.dispatcher = (
-            self._mes_container_configuration.mes_configuration_payload.dispatcher
-        )
+        if type(self.human_subject_configuration) == HumanSubjectRun:
+            self.dispatcher = (
+                self._mes_container_configuration.dispatcher
+            )
+        else:
+            self.dispatcher = (
+                self._mes_container_configuration.mes_configuration_payload.dispatcher
+            )
 
+        
         self.source_hash = self.simulation_configuration.source_hash
         self.iteration_number = None
 
         self.debug = self.simulation_configuration.debug
         self.log_level = self.simulation_configuration.log_level
 
-        self.iteration_number = (
-            self._mes_container_configuration.mes_configuration_payload.iteration_number
-        )
+        self.iteration_number = self.simulation_run
 
-        self.run_code = (
-            self._mes_container_configuration.mes_configuration_payload.run_code
-        )
-        self.status = self._mes_container_configuration.mes_configuration_payload.status
+        if type(self.human_subject_configuration) == HumanSubjectRun:
+            self.run_code = self.simulation_run
+        else:
+            self.run_code = (
+                self._mes_container_configuration.mes_configuration_payload.run_code
+            )
+
+        # self.status = self._mes_container_configuration.mes_configuration_payload.status
 
         self.data_logging = None
 
-        self.data_logging = (
-            self._mes_container_configuration.mes_configuration_payload.configuration.data_logging
-        )
+        # self.data_logging = (
+        #     self._mes_container_configuration.mes_configuration_payload.configuration.data_logging
+        # )
 
         # TODO fix subjects
         # if (
@@ -85,6 +106,7 @@ class MESContainer(Actor):
         #     self.subjects = self._mes_container_configuration.mes_configuration_payload[
         #         "subjects"
         #     ]
+        self.subject_map = {}
 
         self.configuration_object = (
             self._mes_container_configuration.mes_configuration_payload.configuration
@@ -294,6 +316,10 @@ class MESContainer(Actor):
         # This preps configuration, but won't intitiate instantiation
         ####
 
+        subject_ids = []
+        if self.human_subject_configuration is not None:
+            subject_ids = self.human_subject_configuration.subject_ids
+
         agents = []
         agent_requests = []
         for agent_d in self.simulation_configuration.agents:
@@ -330,7 +356,10 @@ class MESContainer(Actor):
             # for i in range(0, agent_count):
             #     agents.append((agent_type, 1))
 
-        for agent_configuration in agents:
+        for agent_index, agent_configuration in enumerate(agents):
+            if self.human_subject_configuration is not None:
+                if agent_index < len(self.human_subject_configuration.subject_ids):
+                    agent_configuration["subject_id"] = self.human_subject_configuration.subject_ids[agent_index]
             self.create_agent(agent_configuration)
 
     def create_agent(self, agent_configuration):
@@ -378,9 +407,16 @@ class MESContainer(Actor):
             if "run_number" in dir(self):
                 startup_payload["run_number"] = self.run_number
 
-            if "subjects" in dir(self):
-                startup_payload["subject_id"] = self.subjects[i]["subject_id"]
-                self.subject_map[self.subjects[i]["subject_id"]] = new_agent
+            # if "subjects" in dir(self):
+            #     startup_payload["subject_id"] = self.subjects[i]["subject_id"]
+            #     self.subject_map[self.subjects[i]["subject_id"]] = new_agent
+
+            # logging.info(f"dispatch {self.human_subject_configuration}")
+            # logging.info(f"dispatch subject ids  {self.human_subject_configuration.subject_ids}")
+            # if self.human_subject_configuration is not None:
+            #     if i < len(self.human_subject_configuration.subject_ids):
+            #         startup_payload["subject_id"] = self.subject_ids[i]
+            #         self.subject_map[self.human_subject_configuration.subject_ids[i]] = new_agent
 
             ###
             # Agent Initialization Message #2
@@ -393,6 +429,11 @@ class MESContainer(Actor):
                 initialization=None,
                 mes_container=self.myAddress,
             )
+            if self.human_subject_configuration is not None:
+                if i < len(self.human_subject_configuration.subject_ids):
+                    agent_initialization.subject_id = self.subject_ids[i]
+                    self.subject_map[self.human_subject_configuration.subject_ids[i]] = new_agent
+
             self.send(new_agent, agent_initialization)
 
             ###

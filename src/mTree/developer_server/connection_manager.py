@@ -11,6 +11,7 @@ from mTree.simulation.human_subject_experiment_message import \
     HumanSubjectExperimentMessage
 from mTree.simulation.human_subject_experiment_startup import \
     HumanSubjectExperimentStartup
+from mTree.system.actor_system_connector import ActorSystemConnector
 from mTree.system.actor_system_controller import ActorSystemController
 from mTree.system.actors.websocket_actor import Start_Websocket, WebsocketActor
 
@@ -80,7 +81,9 @@ class ConnectionManager:
         self._experiment_configuration = MtreeExperimentConfigFile.model_validate(
             self._experiment_configuration_yaml
         )
+        # TODO Fix the reference to the configuration file
         self._simulation_configuration = Configuration.load_from_file(experiment_directory / "config" / "basic_human_subject_auction.yaml")
+
         self._subject_list = self._experiment_configuration.subject_ids
         self._admin_password = self._experiment_configuration.admin_password
 
@@ -202,9 +205,9 @@ class ConnectionManager:
             message str string to send to the websocket actor
 
         """
-        final_message = json.loads(message)
         
-        await self._instance.connection_map[final_message["destination"]]["ws"].send_text("round trip....")
+        final_message = json.loads(message)
+        await self._instance.connection_map[final_message["destination"]]["ws"].send_text(json.dumps(final_message))
         # if self._instance.actor_system_ws_connection is not None:
         #     await self._instance.actor_system_ws_connection.send_text(message)
 
@@ -220,7 +223,10 @@ class ConnectionManager:
             message = json.loads(message_content)
             match message["action"]:
                 case "start_experiment":
-                    startup = HumanSubjectExperimentStartup(configuration=self._instance._simulation_configuration, subject_ids=self._instance.connection_map.keys())
+                    # Load the current MES into the system
+                    source_hash = ActorSystemConnector.load_base_mes(self._instance._simulation_configuration.mes_directory)
+                    self._instance._simulation_configuration.source_hash = source_hash
+                    startup = HumanSubjectExperimentStartup(configuration=self._instance._simulation_configuration, subject_ids=self._instance.connection_map.keys(), source_hash=source_hash)
                     final_message = HumanSubjectExperimentMessage(action="start_experiment", source="admin", destination="admin", payload=startup)
                     print(" stuff")
                     print(final_message.model_dump_json())

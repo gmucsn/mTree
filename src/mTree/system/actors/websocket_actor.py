@@ -87,6 +87,7 @@ class WebsocketActor(Actor):
         self.started = False
         self.running = False
         self.ws = None
+        self.subject_to_actor_mapping = {}
 
 
     def message_handler(self, str_origin_message: str):
@@ -181,11 +182,22 @@ class WebsocketActor(Actor):
         self.ws.close()
 
     def receiveMsg_HumanSubjectExperimentMessage(self, m, sender):
-        log.info(f"sending a websocket message upstream {m}")
-        self.ws.send_text(m.model_dump_json())
+        log.info(f"received a human subject message {m}")
+        match m.action:
+            case "agent_to_subject_mapping":
+                subject_id = m.payload["subject_id"]
+                actor_address = m.payload["actor_address"]
+                # Changing to avoid serialization
+                m.payload["actor_address"] = "local"
+                self.subject_to_actor_mapping[subject_id] = actor_address
+                log.info(f"sending a websocket message upstream {m}")
+                self.ws.send_text(m.model_dump_json())
+            case _:
+                pass
+        
 
     def receiveMessage(self, m, sender):
-        try:
+        # try:
             handler = {
                 WakeupMessage: self.receiveMsg_WakeupMessage,
                 Start_Websocket: self.receiveMsg_Start_Websocket,
@@ -197,5 +209,5 @@ class WebsocketActor(Actor):
                 log.error("Unhandled message %r from %r", m, sender)
                 return
             handler(m, sender)
-        except:
-            pass
+        # except:
+        #     pass

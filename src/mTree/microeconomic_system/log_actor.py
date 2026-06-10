@@ -296,19 +296,24 @@ class LogActor(Actor):
         """
         Method to take limited information about the status of the mes and write to the hidden status file
         """
-        if "status" in status_dict.keys() and status_dict["status"] == "Exception!":
-            self.write_mes_exception(status_dict["exception_payload"])
 
-        status_file = open(self.mtree_mes_status_file, "r")
-        mes_information = json.loads(status_file.read())
-        status_file.close()
+        try:    
 
-        # for key in status_dict.keys():
-        #     mes_information[key] = status_dict[key]
-        mes_information.update(status_dict)
+            if "status" in status_dict.keys() and status_dict["status"] == "Exception!":
+                self.write_mes_exception(status_dict["exception_payload"])
 
-        with open(os.path.join(self.mtree_mes_status_file), "w") as file_object:
-            file_object.write(json.dumps(mes_information, indent=4))
+            status_file = open(self.mtree_mes_status_file, "r")
+            mes_information = json.loads(status_file.read())
+            status_file.close()
+
+            # for key in status_dict.keys():
+            #     mes_information[key] = status_dict[key]
+            mes_information.update(status_dict)
+
+            with open(os.path.join(self.mtree_mes_status_file), "w") as file_object:
+                file_object.write(json.dumps(mes_information, indent=4))
+        except:
+            pass
 
     def finalize_mes_status(self, status_dict):
 

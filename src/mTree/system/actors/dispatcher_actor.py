@@ -451,6 +451,13 @@ class DispatcherActor(Actor):
         logging.info("Simulation environment should have started")
 
     def prepare_simulation_run_iteration(self, run: Run):
+        """A method to prepare a set of simulations for execution in the actor system.
+
+        This will take a Run object and then determine the number of iterations requested.
+        With this it will then separate the configuration into a set of different configurations
+        that can then be used to control each separate iteration of the run.
+        
+        """
         if run.configuration.number_of_iterations > 1:
             total_iterations = run.configuration.number_of_runs
             for run_iteration_number in range(1, total_iterations + 1):
@@ -576,86 +583,6 @@ class DispatcherActor(Actor):
                 self.send(run.mes_base_address, message)
                 self.send(environment_address, ActorExitRequest())
 
-    def receiveMessage(self, message, sender):
-        logging.info(f"DISPATCHER actor message received -> {message}")
-        # outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
-        # self.send(outconnect, message)
-        # logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
-        # with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
-        #     file_object.write("SHOULD BE RUNNING SIMULATION" + str(message) +  "\n")
-        if not isinstance(message, ActorSystemMessage):
-            if isinstance(message, AdminMessage):
-                if message.get_request() == "system_status":
-                    self.return_admin_status()
-                elif message.get_request() == "kill_run_by_id":
-                    self.kill_run_by_id(message)
-            elif isinstance(message, dict):
-                # agent action processing...
-                new_message = Message()
-                new_message.set_directive("agent_action_forward")
-                new_message.set_sender(self.myAddress)
-                payload = message
-                new_message.set_payload(payload["payload"])
-
-                # TODO targeting the only known human subject container...
-                self.send(self.human_subject_container, new_message)
-            elif isinstance(message, str):
-                pass
-            else:
-                if message.get_directive() == "simulation_configurations":
-                    self.configurations_pending = message.get_payload()
-                    self.prepare_simulation_run_iteration(message.get_payload())
-                    self.begin_simulation_run_iterations()  # simulation run iterations
-
-                elif message.get_directive() == "human_subject_configuration":
-                    self.run_human_subject_experiment(message.get_payload())
-
-                elif message.get_directive() == "check_status":
-                    self.get_status(sender)
-                elif message.get_directive() == "kill_run_by_id":
-                    self.kill_run_by_id(message)
-
-                elif message.get_directive() == "end_round":
-                    self.agent_memory = []
-                    self.agents_to_wait = len(message.get_payload()["agents"])
-                elif message.get_directive() == "shutdown_mes":
-                    self.shutdown_mes(sender)
-                elif message.get_directive() == "excepted_mes":
-                    self.excepted_mes_shutdown(sender, message.get_payload())
-                elif message.get_directive() == "update_mes_status":
-                    self.update_mes_status(sender, message.get_payload())
-                elif message.get_directive() == "update_mes_run_information":
-                    self.update_mes_run_information(sender, message.get_payload())
-
-                elif message.get_directive() == "request_system_status":
-                    self.request_system_status()
-
-                elif message.get_directive() == "register_dispatcher":
-                    pass
-                    # system_status_actor = self.createActor(Actor, globalName = "SystemStatusActor")
-                    # message = AdminMessage(request="register_dispatcher")
-                    # self.send(system_status_actor, message)
-
-                elif message.get_directive() == "register_websocket_router":
-                    # registering the dispatcher at the system status actor to prevent starting another
-
-                    self.websocket_router = sender
-                    self.send(self.websocket_router, "SLAMBACK")
-                elif message.get_directive() == "store_agent_memory":
-                    if self.agents_to_wait > 1:
-                        self.agents_to_wait -= 1
-                        self.agent_memory.append(message.get_payload()["agent_memory"])
-                        self.send(sender, ActorExitRequest())
-
-                    else:
-                        self.agent_memory.append(message.get_payload()["agent_memory"])
-                        self.agents_to_wait -= 1
-                        self.agent_memory_prepared = True
-
-                        self.send(sender, ActorExitRequest())
-
-                        self.end_round()
-                        self.next_simulation_iteration()
 
     def old_run_human_subject_experiment(
         self, configuration, run_number=None, configuration_obect=None
@@ -820,14 +747,26 @@ class DispatcherActor(Actor):
         logging.info("Simulation environment should have started")
 
     def run_human_subject_experiment(
-        self, configuration, run_number=None, configuration_obect=None
+        self, configuration: Message
     ):
+        """Method that will pass the necessary human subject experiment configuration to an
+        MES Container that can start up the experiment.
+
+        Args: 
+            configuration: A Message object, with a paylod of a HumanSubjectRun
+        """
+
+        mes_container = self.createActor(MESContainer)
+        self.send(
+            mes_container,
+            MESConfigurationPayload(mes_configuration_payload=configuration, human_subject_configuration=configuration, dispatcher=self.myAddress)
+        )
         ####
         # get the source hash for the newly loaded MES components
         ####
-        ws_actor = self.createActor(Actor, globalName="websocket_actor")
-        out_message = HumanSubjectExperimentMessage(action="send_to_subject", source="dispatcher", destination=configuration.subject_ids[-1], payload={"test":"send to subject"})
-        self.send(ws_actor, out_message)
+        # ws_actor = self.createActor(Actor, globalName="websocket_actor")
+        # out_message = HumanSubjectExperimentMessage(action="send_to_subject", source="dispatcher", destination=configuration.subject_ids[-1], payload={"test":"send to subject"})
+        # self.send(ws_actor, out_message)
         return 
 
         source_hash = configuration["source_hash"]
@@ -918,3 +857,86 @@ class DispatcherActor(Actor):
         ### CHANGE THIS TO THE CONTAINER
         if configuration_obect is not None:
             configuration_obect.set_mes_base_address(mes_container)
+
+
+
+    def receiveMessage(self, message, sender):
+        logging.info(f"DISPATCHER actor message received -> {message}")
+        # outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
+        # self.send(outconnect, message)
+        # logging.info("MESSAGE RCVD: %s DIRECTIVE: %s SENDER: %s", self, message, sender)
+        # with open("/Users/Shared/repos/mTree_auction_examples/sample_output", "a") as file_object:
+        #     file_object.write("SHOULD BE RUNNING SIMULATION" + str(message) +  "\n")
+        if not isinstance(message, ActorSystemMessage):
+            if isinstance(message, AdminMessage):
+                if message.get_request() == "system_status":
+                    self.return_admin_status()
+                elif message.get_request() == "kill_run_by_id":
+                    self.kill_run_by_id(message)
+            elif isinstance(message, dict):
+                # agent action processing...
+                new_message = Message()
+                new_message.set_directive("agent_action_forward")
+                new_message.set_sender(self.myAddress)
+                payload = message
+                new_message.set_payload(payload["payload"])
+
+                # TODO targeting the only known human subject container...
+                self.send(self.human_subject_container, new_message)
+            elif isinstance(message, str):
+                pass
+            else:
+                if message.get_directive() == "simulation_configurations":
+                    self.configurations_pending = message.get_payload()
+                    self.prepare_simulation_run_iteration(message.get_payload())
+                    self.begin_simulation_run_iterations()  # simulation run iterations
+
+                elif message.get_directive() == "human_subject_configuration":
+                    self.run_human_subject_experiment(message.get_payload())
+
+                elif message.get_directive() == "check_status":
+                    self.get_status(sender)
+                elif message.get_directive() == "kill_run_by_id":
+                    self.kill_run_by_id(message)
+
+                elif message.get_directive() == "end_round":
+                    self.agent_memory = []
+                    self.agents_to_wait = len(message.get_payload()["agents"])
+                elif message.get_directive() == "shutdown_mes":
+                    self.shutdown_mes(sender)
+                elif message.get_directive() == "excepted_mes":
+                    self.excepted_mes_shutdown(sender, message.get_payload())
+                elif message.get_directive() == "update_mes_status":
+                    self.update_mes_status(sender, message.get_payload())
+                elif message.get_directive() == "update_mes_run_information":
+                    self.update_mes_run_information(sender, message.get_payload())
+
+                elif message.get_directive() == "request_system_status":
+                    self.request_system_status()
+
+                elif message.get_directive() == "register_dispatcher":
+                    pass
+                    # system_status_actor = self.createActor(Actor, globalName = "SystemStatusActor")
+                    # message = AdminMessage(request="register_dispatcher")
+                    # self.send(system_status_actor, message)
+
+                elif message.get_directive() == "register_websocket_router":
+                    # registering the dispatcher at the system status actor to prevent starting another
+
+                    self.websocket_router = sender
+                    self.send(self.websocket_router, "SLAMBACK")
+                elif message.get_directive() == "store_agent_memory":
+                    if self.agents_to_wait > 1:
+                        self.agents_to_wait -= 1
+                        self.agent_memory.append(message.get_payload()["agent_memory"])
+                        self.send(sender, ActorExitRequest())
+
+                    else:
+                        self.agent_memory.append(message.get_payload()["agent_memory"])
+                        self.agents_to_wait -= 1
+                        self.agent_memory_prepared = True
+
+                        self.send(sender, ActorExitRequest())
+
+                        self.end_round()
+                        self.next_simulation_iteration()
