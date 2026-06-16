@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import datetime
+import json
 import logging as log
 import os
 import select
@@ -109,8 +110,22 @@ class WebsocketActor(Actor):
                     dispatcher, run_message
                 )  # createActor(Dispatcher, globalName = "Dispatcher")
             case "send_to_subject":
-
                 self.ws.send(m.start_msg)
+            case "send_to_agent":
+                agent_address = self.subject_to_actor_mapping[ws_origin_message.destination]
+                payload = ws_origin_message.payload
+                new_message = Message()  # declare message
+                new_message.set_sender(
+                    self.myAddress
+                )  # set the sender of message to this actor
+                new_message.set_directive(
+                    payload["directive"]
+                )  # Set the directive (refer to 3. Make Messages) - has to match receiver decorator
+                new_message.set_payload(payload)
+                self.send(
+                    agent_address, new_message
+                )
+                
 
             
         
@@ -192,6 +207,26 @@ class WebsocketActor(Actor):
                 self.subject_to_actor_mapping[subject_id] = actor_address
                 log.info(f"sending a websocket message upstream {m}")
                 self.ws.send_text(m.model_dump_json())
+            case "hotwire_message":
+                subject_id = m.payload["subject_id"]
+                actor_address = m.payload["actor_address"]
+                # Changing to avoid serialization
+                m.payload["actor_address"] = "local"
+                self.subject_to_actor_mapping[subject_id] = actor_address
+                log.info(f"sending a websocket message upstream {m}")
+                final_hotwire_message = f"""<turbo-stream action="{m.payload["action"]}" target="{m.payload["target"]}">
+                <template>
+                                            {m.payload["template"]}
+                </template>
+                </turbo-stream>
+                """
+                final_message = {
+                    "destination": subject_id,
+                    "message_kind": "hotwire_message",
+                    "content": final_hotwire_message
+                }
+ 
+                self.ws.send_text(json.dumps(final_message))
             case _:
                 pass
         

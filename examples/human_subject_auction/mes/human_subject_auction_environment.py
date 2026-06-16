@@ -19,7 +19,7 @@ class AuctionEnvironment(Environment):
         self.start_auction()
 
     def provide_endowment(self):
-        endowment = 30
+        endowment = 60
         new_message = Message()  # declare message
         new_message.set_sender(
             self.myAddress

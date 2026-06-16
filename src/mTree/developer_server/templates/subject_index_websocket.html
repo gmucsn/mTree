@@ -53,20 +53,29 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-umd.min.js"></script>
-    <script>            
+    <meta name="turbo-cache-control" content="no-cache">
+
+    <script type="module">            
+    
+            import hotwiredturbo from 'https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/+esm'
+            import { renderStreamMessage } from 'https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/+esm';
+
+            console.log("Starting websocket connection...");
+            // const ws = new WebSocket('wss://your-websocket-url');
             var ws = new WebSocket(`ws://127.0.0.1:8000/subject/experiment_ws/{{ subject_id }}`);
-            Turbo.connectStreamSource(ws);
-            ws.onmessage = function(event) {
-                  var messages = document.getElementById('messages')
-                  var message = document.createElement('li')
-                  var content = document.createTextNode(event.data)
-                  message.appendChild(content)
-                  messages.appendChild(message)
-            };
+            
+            ws.addEventListener('message', (event) => {
+            if (typeof event.data === 'string' && event.data.includes('<turbo-stream')) {
+                renderStreamMessage(JSON.parse(event.data).message);
+            } else {
+                // Handle your custom non-Turbo messages here (e.g., JSON chat data)
+                console.log('Ignoring or handling as custom message:', event.data);
+            }
+            });
+            window.globalWS = ws;
     </script>
     <script type="module">
-      import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
+      import { Application, Controller } from 'https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/+esm'
       window.Stimulus = Application.start()
       Stimulus.register("subject-controller", class extends Controller {
         static targets = [ "name" ]
@@ -92,11 +101,11 @@
                     <div class="d-inline-flex gap-3">
                         <div class="info-item">
                             <strong>Subject ID:</strong> 
-                            <span id="subjectIdDisplay">MT-78492</span>
+                            <span id="subjectIdDisplay">{{ subject_id }}</span>
                         </div>
                         <div class="info-item">
                             <strong>Total Earnings:</strong> 
-                            <span id="earningsDisplay" class="text-warning fw-bold">$12.50</span>
+                            <span id="earningsDisplay" class="text-warning fw-bold">0.00</span>
                         </div>
                     </div>
                 </div>
@@ -106,25 +115,27 @@
 
     <!-- Main Content Area -->
     <div class="main-content">
-        <div class="card">
-            <div class="card-body p-5">
-                <h3 class="text-center mb-4 text-success">Welcome to the Experiment</h3>
-                <p class="text-center text-muted lead">
-                    Please follow the instructions on the screen.<br>
-                    Your responses are important for our research.
-                </p>
+        <div id="subject-area">
+            <div class="card">
+                <div class="card-body p-5">
+                    <h3 class="text-center mb-4 text-success">Welcome to the Experiment</h3>
+                    <p class="text-center text-muted lead">
+                        Please follow the instructions on the screen.<br>
+                        Your responses are important for our research.
+                    </p>
 
-                <!-- Placeholder for actual experiment content -->
-                <div class="mt-5">
-                    <div class="text-center">
-                        <button class="btn btn-lg" 
-                                style="background-color: var(--gmu-green); color: white; padding: 12px 40px;">
-                            <i class="bi bi-play-circle me-2"></i>Begin Trial
-                        </button>
+                    <!-- Placeholder for actual experiment content -->
+                    <div class="mt-5" id="message_1">
+                        <div class="text-center">
+                            <button class="btn btn-lg" 
+                                    style="background-color: var(--gmu-green); color: white; padding: 12px 40px;">
+                                <i class="bi bi-play-circle me-2"></i>Begin Trial
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- You can replace the area above with your actual experiment UI -->
+                    <!-- You can replace the area above with your actual experiment UI -->
+                </div>
             </div>
         </div>
     </div>

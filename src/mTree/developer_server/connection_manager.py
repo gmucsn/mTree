@@ -207,13 +207,18 @@ class ConnectionManager:
         """
         
         final_message = json.loads(message)
-        await self._instance.connection_map[final_message["destination"]]["ws"].send_text(json.dumps(final_message))
+        if "message_kind" in final_message.keys():
+            if final_message["message_kind"]== "hotwire_message":
+                hotwire_message = {"message": final_message["content"]}
+                await self._instance.connection_map[final_message["destination"]]["ws"].send_text(json.dumps(hotwire_message))
+        else:
+            await self._instance.connection_map[final_message["destination"]]["ws"].send_text(json.dumps(final_message))
         # if self._instance.actor_system_ws_connection is not None:
         #     await self._instance.actor_system_ws_connection.send_text(message)
 
     async def route_actor_system_destination_message(self, message_content: str):
         """
-        Send a message to the websocket actor inside the actor ssystem
+        Send a message to the websocket actor inside the actor system
 
         Args:
             message str string to send to the websocket actor
@@ -228,6 +233,19 @@ class ConnectionManager:
                     self._instance._simulation_configuration.source_hash = source_hash
                     startup = HumanSubjectExperimentStartup(configuration=self._instance._simulation_configuration, subject_ids=self._instance.connection_map.keys(), source_hash=source_hash)
                     final_message = HumanSubjectExperimentMessage(action="start_experiment", source="admin", destination="admin", payload=startup)
-                    print(" stuff")
-                    print(final_message.model_dump_json())
                     await self._instance.actor_system_ws_connection.send_text(final_message.model_dump_json())
+    
+    async def route_actor_system_destination_message_from_subject(self, subject_id: str, message_content: str):
+        """
+        Send a message to the websocket actor inside the actor system destined for a subject
+
+        Args:
+            subject_id str the subject id to send the message to
+            message str string to send to the websocket actor
+
+        """
+        if self._instance.actor_system_ws_connection is not None:
+            message = json.loads(message_content)
+            final_message = HumanSubjectExperimentMessage(action="send_to_agent", source=f"{subject_id}", destination=f"{subject_id}", payload=message)
+            await self._instance.actor_system_ws_connection.send_text(final_message.model_dump_json())
+                    

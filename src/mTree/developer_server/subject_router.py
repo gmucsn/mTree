@@ -99,6 +99,6 @@ async def experiment_websocket_endpoint(websocket: WebSocket, subject_id: str):
         while True:
             await websocket.send_json({"msg": "Connected to subject router"})
             data = await websocket.receive_text()
-            await manager.route_actor_system_destination_message(data)
+            await manager.route_actor_system_destination_message_from_subject(subject_id, data)
     except WebSocketDisconnect:
         await manager.subject_disconnect(websocket, "ws", subject_id)

@@ -108,9 +108,9 @@ class AuctionInstitution(Institution):
 
         # raise Exception("TESTING")
 
-        new_message = Message()  # declare message
-        new_message.set_sender(
-            self.myAddress
-        )  # set the sender of message to this actor
-        new_message.set_directive("start_auction")
-        self.send(self.myAddress, new_message)  # receiver_of_message, message
+        # new_message = Message()  # declare message
+        # new_message.set_sender(
+        #     self.myAddress
+        # )  # set the sender of message to this actor
+        # new_message.set_directive("start_auction")
+        # self.send(self.myAddress, new_message)  # receiver_of_message, message

@@ -2,8 +2,8 @@ import json
 import logging as log
 import os
 
-import jinja2
 import setproctitle
+from jinja2 import Environment, FileSystemLoader
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 
@@ -90,13 +90,21 @@ class Agent(MESComponentBase):
     def send_screen_update(self, action, target, template_name, properties):
         """Method to control hotwire messages to the screen
         """
+        log.info("trying to prepare a template for sending...")
+        env = Environment(loader = FileSystemLoader(self.configuration.mes_directory / 'ui' ))
+        template = env.get_template(template_name)
+        output = template.render(**properties)
+
         ws_actor = self.createActor(Actor, globalName="websocket_actor")
         out_message = HumanSubjectExperimentMessage(action="hotwire_message", 
                                                     source="agent", 
                                                     destination=self.subject_id, 
-                                                    payload={"target":target, 
+                                                    payload={
+                                                        "subject_id": self.subject_id,
+                                                        "actor_address": self.myAddress,
+                                                        "target":target, 
                                                              "action": action,
-                                                             "template": template_name})
+                                                             "template": output})
         self.send(ws_actor, out_message)
 
         

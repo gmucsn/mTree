@@ -45,24 +45,10 @@
                             
                             <div class="mb-3">
                                 <strong>Endowment:</strong>
-                                <span id="endowment" class="fs-4 text-success">100</span>
+                                <span id="endowment" class="fs-4 text-success">{{endowment}}</span>
                             </div>
+                                                        
                             
-                            <div class="mb-3">
-                                <strong>Estimate of Value:</strong>
-                                <span id="estimated-value" class="fs-4">25</span>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <strong>Estimate Error:</strong>
-                                <span id="estimated-error" class="fs-4">0.10</span>
-                            </div>
-                            
-                            
-                            <div>
-                                <strong>Time Remaining:</strong>
-                                <span id="auction-timer" class="fs-5 text-warning">2:00</span>
-                            </div>
                         </div>
                     </div>
                     
@@ -73,7 +59,7 @@
                                 <h4 class="card-title text-center mb-4">Your result: </h4>
                                 
                                 <div class="mb-4">
-                                    <label for="bid-input" class="form-label fw-bold">You won the auction!</label>
+                                    <label for="bid-input" class="form-label fw-bold">{{result_message}}</label>
                                     
                                 </div>
                                 

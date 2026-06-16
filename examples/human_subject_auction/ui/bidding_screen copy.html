@@ -19,8 +19,18 @@
             overflow-y: auto;
         }
     </style>
+<script type="module">
+      import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
+      window.Stimulus = Application.start()
+      Stimulus.register("bidding-screen-controller", class extends Controller {
+        static targets = [ "endowment", "estimated-error", "estimated-value", "bid"  ]
 
-    <div id="bidding-screen" data-controller="biddingScreen">
+        connect() {
+          console.log("ALKFJ")
+        }
+      })
+  </script>
+    <div id="bidding-screen">
         <div class="auction-card card shadow">
             <div class="card-header bg-primary text-white">
                 <h3 class="mb-0 text-center">Human Subject Auction Experiment</h3>
@@ -35,20 +45,21 @@
                             
                             <div class="mb-3">
                                 <strong>Endowment:</strong>
-                                <span id="endowment" class="fs-4 text-success" data-biddingScreen-target="endowment">{{ endowment}}</span>
+                                <span id="endowment" class="fs-4 text-success">{{ endowment}}</span>
                             </div>
                             
                             <div class="mb-3">
                                 <strong>Estimate of Value:</strong>
-                                <span id="estimated-value" class="fs-4">{{value_estimate}}</span>
+                                <span id="estimated-value" class="fs-4">25</span>
                             </div>
                             
                             <div class="mb-3">
                                 <strong>Estimate Error:</strong>
-                                <span id="estimated-error" class="fs-4">{{ estimate_error}}</span>
+                                <span id="estimated-error" class="fs-4">0.10</span>
                             </div>
                             
-
+                            
+                            
                         </div>
                     </div>
                     
@@ -63,21 +74,19 @@
                                     <div class="input-group input-group-lg">
                                         <span class="input-group-text">$</span>
                                         <input type="number" 
-                                               id="bidInput" 
+                                               id="bid-input" 
                                                class="form-control bid-input text-center"
                                                placeholder="0"
                                                min="0"
-                                               step="1"
-                                               data-biddingScreen-target="bidInput"
-                                               data-action="input->biddingScreen#bid_value_update">
+                                               step="1">
                                     </div>
                                 </div>
                                 
                                 <div class="d-grid">
                                     <button id="bid-button" 
                                             class="btn btn-success btn-lg py-3"
-                                            data-biddingScreen-target="submitBidButton"                                        
-                                            data-action="click->biddingScreen#submit_bid">
+                                            onclick="submitBid()"
+                                            data-side-effect="display: false">
                                         <strong>SUBMIT BID</strong>
                                     </button>
                                 </div>
@@ -90,42 +99,7 @@
             
         </div>
     </div>
-<script type="module">
-    console.log("Loaded the next javascript....");
-      import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
-      Stimulus.register("biddingScreen", class extends Controller {
-        static targets = [ "endowment", "estimatedError", "estimatedValue", "bidInput", "submitBidButton"  ]
 
-        connect() {
-          console.log("ALKFJ")
-        }
-
-        bid_value_update(event){
-            var endowmentValue = parseInt(this.endowmentTarget.textContent, 10);
-            var bidValue = parseInt(this.bidInputTarget.value, 10);
-            if (bidValue < 0) {
-                this.bidInputTarget.value = 0;
-            }
-            if (bidValue > endowmentValue) {
-                this.bidInputTarget.value = endowmentValue;
-            } 
-        }
-
-        submit_bid(event){
-            var bidValue = parseInt(this.bidInputTarget.value, 10);
-            this.submitBidButtonTarget.disabled = true;
-            this.bidInputTarget.disabled = true;
-            const payload = {
-                bid: bidValue,
-                action: "subject_action",
-                directive: "submit_bid"
-            };
-
-            window.globalWS.send(JSON.stringify(payload));
-            
-        }
-      })
-  </script>
 
 </body>
 </html>
