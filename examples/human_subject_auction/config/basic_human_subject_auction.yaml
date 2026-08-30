@@ -1,0 +1,18 @@
+agents:
+- agent_name: human_subject_auction_agent.AuctionAgent
+  class_name: ''
+  number: 2
+  properties:
+    strategy: reasonable
+data_logging: json
+debug: true
+environment:
+  mes_class: human_subject_auction_environment.AuctionEnvironment
+  name: human_subject__auction_institution.AuctionInstitution
+id: '1'
+institutions:
+- class_name: human_subject_auction_institution.AuctionInstitution
+  institution_name: human_subject__auction_institution.AuctionInstitution
+mtree_type: mes_human_subject_experiment
+name: Human Subject Auction Example
+number_of_iterations: 1

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>{{ message }}</h1>
+    <script src="/static/script.js"></script>
+
+    MES Listing:
+    <table>
+        <tr>
+            <td>MES ID</td>
+            <td>Location</td>
+            <td>Action</td>
+        </tr>
+        {% for mes_details in mes %}
+            <tr>
+                <td>{{ mes_details[0] }}</td>
+                <td>{{ mes_details[1] }}</td>
+                <td>Action</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script>
+        const socket = io('ws://localhost:8000/', { transports: ["websocket"] });
+        socket.on("response", function (data) {
+            $('#id2').val($('#id2').val() + '\n' + $('#id1').val() + '->' + data)
+        });
+
+    </script>
+
+</body>
+</html>

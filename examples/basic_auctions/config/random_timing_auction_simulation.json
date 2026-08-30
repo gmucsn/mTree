@@ -1,0 +1,9 @@
+{"mtree_type": "mes_simulation_description",
+  "name":"Random Timing Auction Run",
+  "id": "1",
+  "environment": {"name":"basic_auction_institution.AuctionInstitution", "mes_class":"basic_auction_environment.AuctionEnvironment" },
+  "institutions": [{"institution_name":"basic_auction_institution.AuctionInstitution" }],
+  "number_of_iterations": 20,
+  "agents": [{"agent_name": "random_response_auction_agent.RandomResponseAuctionAgent", "number": 5}],
+  "properties": {}
+}
