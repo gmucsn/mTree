@@ -1,0 +1,148 @@
+{% extends 'subject_index.html' %}
+
+
+
+{% block content %}
+
+<div class="container">
+  <div class="bg-light p-5 rounded" id="subject-view">
+    Waiting for experiment to commence....
+  </div>
+</div>
+
+<!-- JavaScript Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+
+<script type="text/javascript" charset="utf-8">
+  window.subject_id = "{{subject_id}}";
+
+
+  class MTreeSubjectConnection{
+        constructor(){
+          if(! MTreeSubjectConnection.instance){
+
+            this.connect();
+
+            this._data = [];
+            MTreeSubjectConnection.instance = this;
+          }
+
+          return MTreeSubjectConnection.instance;
+
+        }
+
+        connect(){
+          console.log("Setting up WebSocket connection");
+          this.namespace = '/subject';
+          this.subject_id = '{{subject_id}}';
+          this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + this.namespace);
+          console.log(this.socket);
+          // register
+          this.socket.on('connect', () => {
+              this.connected();
+            });
+          this.socket.on('log_message', (msg) => this.logMessage(msg));
+          this.socket.on('system_status', (msg) => this.logMessage(msg));
+
+          this.socket.on('subject_message', (message) => {
+            this.logMessage(message);
+          });
+
+          this.socket.on('display_ui', (message) => {
+            console.log("About to update UI Screen");
+            this.display_ui(message);
+          });
+
+
+          this.socket.on('update_data', (message) => {
+            this.update_data(message);
+          });
+
+          this.socket.on('execute_method', (message) => {
+            console.log("About to execute method");
+            this.execute_method(message);
+          });
+
+
+        }
+
+        display_ui(message){
+          $("#subject-view").html(message.ui_content);
+        }
+       
+        update_data(message){
+          window.ui_manager.update_property(message.property, message.value);
+        }
+
+        execute_method(message){
+          console.log("Trying to execute method...");
+          console.log(message);
+          if ("parameters" in message){
+            window.ui_manager[message.method](message.parameters);
+          } else {
+            window.ui_manager[message.method]();
+          }         
+          
+        }
+
+        logMessage(msg){
+          console.log("LOG MESSAGE RECEIVED");
+          console.log(msg);
+        }
+
+        connected(){
+          console.log("Subject connected...");
+          this.socket.emit('json', {command: 'register_subject_id', payload: {subject_id: this.subject_id}});
+          
+        }
+
+        status(){
+          console.log("mTreeConnection object available");
+        }
+
+        send_status_request(){
+          this.socket.emit("get_system_status", {});
+        }
+
+        send_admin_message(message){
+          this.socket.emit("admin_mes_message", message);
+        }
+
+        send_agent_action(message){
+          console.log("Sending an agent action: " + message)
+          this.socket.emit('json', {command: 'agent_action', payload: message});          
+        }
+
+        send(action, data){
+          this.socket.emit(action, {data: data});
+        }
+
+      }
+
+        $(document).ready(() => {
+
+          window.mTree_subject_connection = new MTreeSubjectConnection();
+          console.log(window.mTree_subject_connection);
+          
+           
+
+        });
+
+
+
+  // $(document).ready(function() {
+  //     namespace = '/subject';
+  //     var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+  //     socket.on('connect', function() {
+  //         socket.emit('my_event', {data: 'I\'m connected!'});
+  //     });
+
+</script>
+
+
+
+{% endblock %}

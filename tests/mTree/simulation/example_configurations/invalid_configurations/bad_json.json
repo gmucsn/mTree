@@ -1,0 +1,10 @@
+{"mtree_type": "mes_simulation_description",
+  "name":"Basic Auction Simulation",
+  "id": "1",
+  "environment": {"name":"basic_auction_institution.AuctionInstitution", "mes_class":"basic_auction_environment.AuctionEnvironment" },
+  "institutions": [{"institution_name":"basic_auction_institution.AuctionInstitution" , "class_name":"basic_auction_institution.AuctionInstitution" }],
+  "number_of_iterations": 1,
+  "agents": [{"agent_name": "basic_auction_agent.BasicAuctionAgent", "properties": { "strategy": "reasonable" }, "number": 4}, 
+    {"agent_name": "basic_auction_agent.BasicAuctionAgent", "properties": { "strategy": "aggressive"}, "number": 4}],
+  "properties": {
+}

@@ -1,0 +1,26 @@
+agents:
+- agent_name: random_response_auction_agent.RandomResponseAuctionAgent
+  class_name: ''
+  number: 5
+  properties: {}
+data_logging: json
+debug: true
+environment:
+  mes_class: basic_auction_environment.AuctionEnvironment
+  name: basic_auction_institution.AuctionInstitution
+  properties: {}
+file_source: 
+  /workspaces/mTree/examples/basic_auctions/config/random_timing_auction_simulation.json
+id: '1'
+institutions:
+- class_name: ''
+  institution_name: basic_auction_institution.AuctionInstitution
+  properties: {}
+log_level: 2
+mes_directory: /workspaces/mTree/examples/basic_auctions
+mtree_type: mes_simulation_description
+name: Random Timing Auction Run
+number_of_iterations: 20
+properties: {}
+simulation_run_id: ''
+source_hash: ''

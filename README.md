@@ -1,6 +1,22 @@
 # mTree
 
-Documentation can be found [here](http://mtree.readthedocs.io/en/latest/).
+A Python library for experimental and computational economics.
+
+
+## Documentation
+
+mTree's basic documentation is available inside the docs folder. [View Documentation](./docs/README.md)
+
+mTree uses pdoc to help document its codebase.
+
+
+## Developer Documentation
+
+mTree makes use of pdoc to document the code inside this repository. Assuming you have mTree installed you should be able to type `pdoc mTree` and the pdoc webserver will start and be available at http://localhost:8080
+
+Killing unnecessary processes: kill $(ps aux | grep 'cto' | awk '{print $2}')
+
+## Basic Installation
 
 mTree can be installed using the `pip` installer.
 
@@ -14,39 +30,8 @@ Once installed, mTree is imported in the standard fashion.
 import mTree
 ```
 
-# Development
+## UV Commands
 
-Running the set up:
-
-Go to the directory and enter the following:
-
-```commandline
-python setup.py develop
-```
-
-If you are using macOS:
-```commandline
-python3.6 setup.py bdist_egg
-```
-
-For Windows:
-```commandline
-python setup.py bdist_egg
-```
-
-After building this you will need to install locally:
-
-```commandline
-easy_install dist/mTree-x-py3.6.egg
-```
-
-
-To test this, open python3 in either Terminal or Command Prompt, and try importing mTree with:
-
-```python
-import mTree
-```
-
-If there are no error messages, the build was successful.
-You can now access mTree as you would any other python package.
-
+uv version --bump patch --bump beta
+uv run ...
+uv pip install -e .

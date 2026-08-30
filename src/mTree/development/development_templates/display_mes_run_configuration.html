@@ -1,0 +1,58 @@
+{% extends 'index.html' %}
+
+
+{% block mesnav %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ title }}</h1>
+  </div>
+{% endblock %}
+
+
+{% block content %}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="row">
+              <dl class="row">
+            <dt class="col-sm-3">Simulation Name</dt>
+            <dd class="col-sm-9">{{ simulation.name }}</dd>
+
+                  <dt class="col-sm-3">Simulation ID</dt>
+            <dd class="col-sm-9">{{ simulation.id }}</dd>
+
+                  <dt class="col-sm-3">Simulation Description</dt>
+            <dd class="col-sm-9">{{ simulation.description }}</dd>
+
+                  <dt class="col-sm-3">Environment</dt>
+            <dd class="col-sm-9">{{ simulation.environment }}</dd>
+
+                  <dt class="col-sm-3">Institution(s)</dt>
+            <dd class="col-sm-9">
+              {% for institution in simulation.institutions %}
+              <dl class="row">
+                <dt class="col-sm-4">Institution Type</dt>
+                <dd class="col-sm-8">{{institution }}</dd>
+              </dl>
+              {% endfor %}
+
+              </dd>
+
+                <dt class="col-sm-3">Agents</dt>
+            <dd class="col-sm-9">
+              {% for agent in simulation.agents %}
+              <dl class="row">
+                <dt class="col-sm-4">Agent Type</dt>
+                <dd class="col-sm-8">{{agent.agent_name }}</dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-4">Agent Number</dt>
+                <dd class="col-sm-8">{{agent.number }}</dd>
+              </dl>
+              {% endfor %}
+            </dd>
+            </dl>
+          </div>
+
+
+        </div>
+    </div>
+
+{% endblock %}

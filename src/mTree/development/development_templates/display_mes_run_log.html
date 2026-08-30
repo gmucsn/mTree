@@ -1,0 +1,42 @@
+{% extends 'index.html' %}
+
+
+{% block mesnav %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ title }}</h1>
+  </div>
+{% endblock %}
+
+
+{% block content %}
+<link href="https://unpkg.com/bootstrap-table@1.19.1/dist/bootstrap-table.min.css" rel="stylesheet">
+
+<script src="https://unpkg.com/bootstrap-table@1.19.1/dist/bootstrap-table.min.js"></script>
+
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row">
+            <table id="table"
+            data-toolbar=".toolbar"
+            data-height="800"
+            data-virtual-scroll="true"
+            data-show-columns="true">
+              <thead>
+                <tr>
+                  <th data-field="timestamp">Timestamp</th>
+                  <th data-field="message">Log Message</th>
+                </tr>
+              </thead>
+            </table>
+            
+          </div>
+          <script>
+            var $table = $('#table')
+          
+            $(function() {
+              var data = {{ mes_run_log | safe}}
+              $table.bootstrapTable({data: data})
+            })
+          </script>
+    </div>
+
+{% endblock %}

@@ -3,13 +3,20 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+examples/**/logs
+
+system.log
+*.log
+*.log.old
+THESPIAN_OUT.LOG
+
 # C extensions
 *.so
 
 # Distribution / packaging
 .Python
 env/
-build/
+#build/
 develop-eggs/
 dist/
 downloads/

@@ -1,0 +1,418 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v3.8.5">
+    <title>mTree - Developer Server</title>
+
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@latest/dist/turbo.es2017-esm.min.js"></script>
+    <script type="module">
+        import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
+        window.Stimulus = Application.start()
+
+        Stimulus.register("hello", class extends Controller {
+          static targets = [ "name" ]
+
+          connect() {
+          }
+        })
+      </script>    
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+    <script type="module">
+    import monacoEditor from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/+esm'
+    </script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/socket.io@4.8.3/client-dist/socket.io.min.js"></script>
+
+
+    <script type="text/javascript" charset="utf-8">
+      
+      class MTreeConnection{
+        constructor(){
+          if(! MTreeConnection.instance){
+
+            this.connect();
+
+            this._data = [];
+            MTreeConnection.instance = this;
+          }
+
+          return MTreeConnection.instance;
+
+        }
+
+        connect(){
+          console.log("Setting up WebSocket connection");
+          this.namespace = '/developer';
+          this.user_id = '';
+          // this.socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + this.namespace);
+          this.socket = io('/developer');
+          console.log(this.socket);
+          // register
+          this.socket.on('connect', () => {
+            console.log("A connection has occurred");
+            console.log(this.socket.id);
+            this.connected();
+          });
+          this.socket.on('log_message', (msg) => this.logMessage(msg));
+          this.socket.on('system_status', (msg) => this.logMessage(msg));
+
+          this.socket.on('mes_response', (msg) => {
+              if (msg.response == "system_status"){
+                this.update_status_table(msg);
+              }
+
+            });
+
+          
+          this.socket.on('subject_message', (message) => {
+            console.log("Subject Message received")
+            if (message.response == "subject_connection"){
+              this.process_subject_message(message);
+            }
+            if (message.response == "subject_ui_details"){
+              this.process_subject_ui_details(message);
+            }
+            
+          });
+
+          this.socket.on('experiment_status_message', (message) => {
+            if (message.response == "status"){
+              this.process_experiment_status_message(message);
+            }
+            
+          });
+
+
+          this.socket.on('message',  (message) => {
+            console.log(message);
+          });
+
+
+        }
+
+        connected(){
+          console.log("Admin connected...");
+          this.socket.emit('json', {command: 'register_admin', payload: {}});
+          console.log("admin registration sent");
+        }
+
+        kill_run(run_code) {
+          this.send_admin_message({"request": "kill_run_by_id", "payload": {"run_id": run_code}});
+        }
+
+        update_status_table(message){
+          $("#status-body").empty()
+          var status = message.payload.status;
+          
+          if (status.length == 0){
+            var row = $('<tr>');
+            row.append($('<td>').text("No runs available"));
+            $("#status-body").append(row);
+            
+
+          } else {
+            for(var i=0; i< status.length; i++){
+                var row = $('<tr>');
+                row.append($('<td>').text(status[i][0]));
+                row.append($('<td>').text(status[i][1]));
+                row.append($('<td>').text(status[i][2]));
+                row.append($('<td>').text(status[i][3]));
+                row.append($('<td>').text(status[i][4]));
+                var action_cell = $('<td>');
+                if (status[i][3] == "Running"){
+                  var kill_button = $('<button>').attr({
+                         type: "button",
+                         class: "btn btn-danger",
+                         id: "kill-" + status[i][0],
+                         value: "Kill Run",
+                    }).text("Kill Run").on("click", (evt) => {
+                      var run_code = evt.currentTarget.id.split("-")[1]
+                      this.kill_run(run_code);
+                    });
+                    action_cell.append(kill_button);
+                }
+                else {
+                  var results_link = $('<a>').attr({
+                         type: "button",
+                         class: "btn btn-success",
+                         href: "/view_system_run_output?run_code=" + status[i][0],
+                         id: "results-" + status[i][0],
+                    }).text("View Results");
+                    action_cell.append(results_link);
+ 
+                }
+                row.append(action_cell);
+                $("#status-body").append(row);
+            }
+
+          }
+          
+
+        }
+
+        process_experiment_status_message(message){
+
+            $("#experiment_status").html("")
+            $("#experiment_status").html(message.payload.status)
+          }
+
+        process_subject_ui_details(message){
+          //<button id="start_experiment" class="btn btn-success" type="submit"><span class="glyphicon glyphicon-play"></span>Advance Round</button>
+
+// ui-methods
+
+// <button id="developer_display_ui" class="btn btn-success" type="submit"><span class="glyphicon glyphicon-play"></span>Display UI</button>
+          $("#ui-methods").empty()
+          var subject_ui_methods = message.payload.ui_methods;
+          for(var i=0; i< subject_ui_methods.length; i++){
+            let subject_method_name = subject_ui_methods[i];
+            var newButton = $('<button/>', {
+                text: subject_method_name,
+                id: subject_method_name, 
+                class: 'btn btn-success',
+                on: {
+                  click: ()=>{
+              message = {command: 'developer_execute_ui_method', payload: {"method": subject_method_name}};
+              console.log("Display UI Method Fire");
+              console.log(message);
+              const local_mTreeConnection = new MTreeConnection();
+              local_mTreeConnection.send_control_message(message);
+                }
+                // ,
+                // onclick: "newButtonClickListener()"
+            } });
+            // newButton.click(()=>{
+            //   message = {command: 'developer_execute_ui_method', payload: {"method": subject_ui_methods[i]}};
+            //   console.log("Display UI Method Fire");
+            //   console.log(message);
+            //   const local_mTreeConnection = new MTreeConnection();
+            //   local_mTreeConnection.send_control_message(message);
+
+            // });
+
+                        
+
+            $('#ui-methods').append(newButton);
+          }
+
+
+          $("#subject-ui-properties-body").empty()
+          var subject_ui_properties = message.payload.ui_properties;
+          for(var i=0; i< subject_ui_properties.length; i++){
+              var row = $('<tr>');        
+              row.append($('<td>').text(subject_ui_properties[i]));
+              row.append($('<td>'));
+              $("#subject-ui-properties-body").append(row);
+          }
+
+        }
+
+
+        process_subject_message(message){
+
+          $("#subject-body").empty()
+          console.log(message);
+          
+          var subjects = message.payload.subjects;
+          
+          if (subjects.length == 0){
+            var row = $('<tr>');
+            row.append($('<td>').text("No subjects connected"));
+            $("#subject-body").append(row);
+            
+
+          } else {
+            for(var i=0; i< subjects.length; i++){
+                var row = $('<tr>');        
+                row.append($('<td>').text(subjects[i].subject_id));
+                row.append($('<td>').text(subjects[i].websocket_id));
+                row.append($('<td>').text(subjects[i].status));
+                row.append($('<td>'));
+                row.append($('<td>'));
+                $("#subject-body").append(row);
+            }
+
+          }
+
+
+
+
+        }
+
+        logMessage(msg){
+          console.log("LOG MESSAGE RECEIVED");
+          console.log(msg);
+        }
+
+
+
+        status(){
+          console.log("mTreeConnection object available");
+        }
+
+        send_status_request(){
+          this.socket.emit("get_system_status", {});
+        }
+
+        send_admin_message(message){
+          this.socket.emit("admin_mes_message", message);
+        }
+
+        send_control_message(message){
+          this.socket.emit('json', message);
+        }
+
+        send(action, data){
+          this.socket.emit(action, {data: data});
+        }
+
+      }
+
+        $(document).ready(() => {
+
+          const mTreeConnection = new MTreeConnection();
+          console.log(mTreeConnection);
+
+          {% if configuration %}
+          const configuration = '{{configuration}}';
+          {% endif %}
+          mTreeConnection.status();
+
+          $('button').click(function(){
+                    var button_pressed = this.id;
+                    message = {};
+                    
+                    switch(button_pressed){
+                    case "developer_display_ui":
+                        message = {command: 'developer_display_ui', payload: {}};
+                        break;
+                    
+                    
+                    case "start_experiment":
+                        message = {command: 'start_subject_experiment', payload: {configuration: configuration}};
+                        break;
+                    case "pause_experiment":
+                        message = {command: 'pause_subject_experiment', payload: {}};
+                        break;
+                    case "stop_experiment":
+                        message = {command: 'stop_subject_experiment', payload: {}};
+                        break;
+                    }
+                    console.log("Admin Message sent. ");
+                    console.log(message);
+                    mTreeConnection.send_control_message(message);
+
+                }
+            );
+
+
+        });
+    </script>
+    <!-- Custom styles for this template -->
+    <link href="https://getbootstrap.com/docs/5.1/examples/dashboard/dashboard.css" rel="stylesheet">
+  </head>
+  <body>
+    <body>
+    
+      <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">mTree Developer Server</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+        <div class="navbar-nav">
+          <div class="nav-item text-nowrap">
+            <a class="nav-link px-3" href="#">Sign out</a>
+          </div>
+        </div>
+      </header>
+      
+      <div class="container-fluid">
+        <div class="row">
+          <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+              <ul class="nav flex-column">
+                <li class="nav-item">
+                  <a class="nav-link active" href="/developer/">
+                    <span data-feather="home"></span>
+                    MES Library <span class="sr-only">(current)</span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="/developer/status">
+                    <span data-feather="home"></span>
+                    System Status
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="/developer/system_runs">
+                    <span data-feather="home"></span>
+                    MES System Runs
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="/developer/subject_runs">
+                    <span data-feather="home"></span>
+                    Human Subject Controller
+                  </a>
+                </li>
+                <!--
+                <li class="nav-item">
+                  <a class="nav-link active" href="/simulation_builder">
+                    <span data-feather="home"></span>
+                    Simulation Builder
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="/simulation_library">
+                    <span data-feather="home"></span>
+                    Simulation Library
+                  </a>
+                </li>
+                -->
+              </ul>
+            </div>
+          </nav>
+            
+            <main role="main" class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              {% block mesnav %}{% endblock %}
+              
+              {% block content %}
+                 
+               {% endblock %}
+             </main>
+
+        </div>
+      </div>
+      
+        </body>
+
+
+
+

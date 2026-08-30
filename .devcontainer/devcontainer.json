@@ -1,0 +1,17 @@
+{
+    "build": { "dockerfile": "Dockerfile" },
+    "onCreateCommand": "pip install uv; pip install -e /workspaces/mTree[dev]",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "dbaeumer.vscode-eslint", 
+          "ms-python.isort",
+          "ms-python.python",
+          "ms-python.vscode-pylance",
+          "ms-python.black-formatter",
+          "charliermarsh.ruff"]
+      }
+    },
+
+    "forwardPorts": [8000]
+  }
