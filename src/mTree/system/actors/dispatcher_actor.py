@@ -10,13 +10,10 @@ from thespian.initmsgs import initializing_messages
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.directive_decorators import *
-from mTree.microeconomic_system.initialization_messages import \
-    MESConfigurationPayload
+from mTree.microeconomic_system.initialization_messages import MESConfigurationPayload
 from mTree.microeconomic_system.mes_container import MESContainer
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message
-from mTree.simulation.human_subject_experiment_message import \
-    HumanSubjectExperimentMessage
 from mTree.simulation.iteration import Iteration
 from mTree.simulation.run import Run
 from mTree.simulation.simulation_run import SimulationRun
@@ -186,7 +183,6 @@ class DispatcherActor(Actor):
 
         self.send(web_socket_router_actor, message)
 
-    # TODO Change to start iteration or something
     def run_simulation_iteration(
         self, iteration: Iteration
     ):  # configuration, run_number=None, configuration_obect=None):
@@ -420,7 +416,6 @@ class DispatcherActor(Actor):
         #         self.send(environment, message)
         # else:
 
-        # TODO replace with agent requests
         for agent in agents:
             message = Message()
             message.set_directive("setup_agents")
@@ -456,7 +451,7 @@ class DispatcherActor(Actor):
         This will take a Run object and then determine the number of iterations requested.
         With this it will then separate the configuration into a set of different configurations
         that can then be used to control each separate iteration of the run.
-        
+
         """
         if run.configuration.number_of_iterations > 1:
             total_iterations = run.configuration.number_of_runs
@@ -582,7 +577,6 @@ class DispatcherActor(Actor):
                 message.set_payload(payload)
                 self.send(run.mes_base_address, message)
                 self.send(environment_address, ActorExitRequest())
-
 
     def old_run_human_subject_experiment(
         self, configuration, run_number=None, configuration_obect=None
@@ -746,20 +740,22 @@ class DispatcherActor(Actor):
         self.send(environment, start_message)
         logging.info("Simulation environment should have started")
 
-    def run_human_subject_experiment(
-        self, configuration: Message
-    ):
+    def run_human_subject_experiment(self, configuration: Message):
         """Method that will pass the necessary human subject experiment configuration to an
         MES Container that can start up the experiment.
 
-        Args: 
+        Args:
             configuration: A Message object, with a paylod of a HumanSubjectRun
         """
 
         mes_container = self.createActor(MESContainer)
         self.send(
             mes_container,
-            MESConfigurationPayload(mes_configuration_payload=configuration, human_subject_configuration=configuration, dispatcher=self.myAddress)
+            MESConfigurationPayload(
+                mes_configuration_payload=configuration,
+                human_subject_configuration=configuration,
+                dispatcher=self.myAddress,
+            ),
         )
         ####
         # get the source hash for the newly loaded MES components
@@ -767,7 +763,7 @@ class DispatcherActor(Actor):
         # ws_actor = self.createActor(Actor, globalName="websocket_actor")
         # out_message = HumanSubjectExperimentMessage(action="send_to_subject", source="dispatcher", destination=configuration.subject_ids[-1], payload={"test":"send to subject"})
         # self.send(ws_actor, out_message)
-        return 
+        return
 
         source_hash = configuration["source_hash"]
 
@@ -784,7 +780,6 @@ class DispatcherActor(Actor):
         # Startup the MES Container that will contain this simulation
         ####
         mes_container = self.createActor(MESContainer)
-        # TODO this only lets us run one human subject experiment at a time... BEWARE
         self.human_subject_container = mes_container
 
         ####
@@ -858,8 +853,6 @@ class DispatcherActor(Actor):
         if configuration_obect is not None:
             configuration_obect.set_mes_base_address(mes_container)
 
-
-
     def receiveMessage(self, message, sender):
         logging.info(f"DISPATCHER actor message received -> {message}")
         # outconnect = ActorSystem("multiprocTCPBase").createActor(OutConnect, globalName = "OutConnect")
@@ -881,7 +874,6 @@ class DispatcherActor(Actor):
                 payload = message
                 new_message.set_payload(payload["payload"])
 
-                # TODO targeting the only known human subject container...
                 self.send(self.human_subject_container, new_message)
             elif isinstance(message, str):
                 pass

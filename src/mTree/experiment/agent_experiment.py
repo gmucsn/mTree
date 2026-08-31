@@ -3,8 +3,9 @@ import os
 import sys
 from uuid import *
 
-import mTree.base.response as response
 import yaml
+
+import mTree.base.response as response
 from mTree.base.recorder import Recorder
 from mTree.base.user import User
 
@@ -15,14 +16,10 @@ class AgentExperiment:
         if self.debug:
             print("Initialized")
         self.willow_response = None
-        self.experiment_running = (
-            False  # TODO: This needs to have various possible states
-        )
+        self.experiment_running = False
         self.experiment_state = None
 
-        self.sessions = (
-            {}
-        )  # TODO(@messiest) Think of how this can be used with multiple sessions
+        self.sessions = {}
         self.session = None
 
         self.subjects = {}  # subjects is now the experiment level object for users...
@@ -113,9 +110,9 @@ class AgentExperiment:
         self.user_state[user_id] = {}
         self.user_state[user_id]["running"] = False
         self.user_state[user_id]["current"] = "Start Screen"
-        self.user_state[user_id][
-            "join_time"
-        ] = datetime.datetime.now()  # adds the user's start time to the data
+        self.user_state[user_id]["join_time"] = (
+            datetime.datetime.now()
+        )  # adds the user's start time to the data
         self.user_state[user_id]["sid"] = sid
         self.user_state[user_id]["total_earnings"] = None
 
@@ -137,7 +134,6 @@ class AgentExperiment:
         self.user_objects[user_id] = new_user
         self.sid_dict[sid] = user_id
 
-        # TODO What other things do we need for the user_state variables?
         # self.response.update_admin_status(msg_data)
         return user_id
 

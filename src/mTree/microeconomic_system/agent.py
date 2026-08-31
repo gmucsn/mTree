@@ -1,4 +1,3 @@
-import json
 import logging as log
 import os
 
@@ -17,8 +16,9 @@ from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import Message
 from mTree.simulation.component_initialization import ComponentInitialization
 from mTree.simulation.configuration import Configuration
-from mTree.simulation.human_subject_experiment_message import \
-    HumanSubjectExperimentMessage
+from mTree.simulation.human_subject_experiment_message import (
+    HumanSubjectExperimentMessage,
+)
 from mTree.simulation.iteration import Iteration
 
 
@@ -32,15 +32,13 @@ from mTree.simulation.iteration import Iteration
 )
 @directive_enabled_class
 class Agent(MESComponentBase):
-
     def prepare(self):
         pass
 
     def invoke_prepare(self):
-        # TODO should provide unique id in proctitle for review
         setproctitle.setproctitle("mTree - Agent")
-        log.info(f"trying to setup an agent")
-            
+        log.info("trying to setup an agent")
+
         system_status_actor = self.createActor(Actor, globalName="SystemStatusActor")
         pid = os.getpid()
         message = AdminMessage(directive="register_pid", payload=pid)
@@ -72,12 +70,19 @@ class Agent(MESComponentBase):
         # self.address_book = AddressBook(self, self._address_book)
         self.container = self.initialization.mes_container
 
-        # TODO fix for subject startup
         # self.outlets = {}
         self.subject_id = self.initialization.subject_id
         if self.subject_id is not None:
             ws_actor = self.createActor(Actor, globalName="websocket_actor")
-            out_message = HumanSubjectExperimentMessage(action="agent_to_subject_mapping", source="agent", destination=self.subject_id, payload={"subject_id":self.subject_id, "actor_address": self.myAddress})
+            out_message = HumanSubjectExperimentMessage(
+                action="agent_to_subject_mapping",
+                source="agent",
+                destination=self.subject_id,
+                payload={
+                    "subject_id": self.subject_id,
+                    "actor_address": self.myAddress,
+                },
+            )
             log.info(f"sending agent to subject mapping informationm {out_message}")
             self.send(ws_actor, out_message)
 
@@ -86,28 +91,29 @@ class Agent(MESComponentBase):
         except:
             self.exception_logging_handler()
 
-
     def send_screen_update(self, action, target, template_name, properties):
-        """Method to control hotwire messages to the screen
-        """
+        """Method to control hotwire messages to the screen"""
         log.info("trying to prepare a template for sending...")
-        env = Environment(loader = FileSystemLoader(self.configuration.mes_directory / 'ui' ))
+        env = Environment(
+            loader=FileSystemLoader(self.configuration.mes_directory / "ui")
+        )
         template = env.get_template(template_name)
         output = template.render(**properties)
 
         ws_actor = self.createActor(Actor, globalName="websocket_actor")
-        out_message = HumanSubjectExperimentMessage(action="hotwire_message", 
-                                                    source="agent", 
-                                                    destination=self.subject_id, 
-                                                    payload={
-                                                        "subject_id": self.subject_id,
-                                                        "actor_address": self.myAddress,
-                                                        "target":target, 
-                                                             "action": action,
-                                                             "template": output})
+        out_message = HumanSubjectExperimentMessage(
+            action="hotwire_message",
+            source="agent",
+            destination=self.subject_id,
+            payload={
+                "subject_id": self.subject_id,
+                "actor_address": self.myAddress,
+                "target": target,
+                "action": action,
+                "template": output,
+            },
+        )
         self.send(ws_actor, out_message)
-
-        
 
     # def __init__(self):
     #     self.address_book = AddressBook(self)
@@ -186,8 +192,6 @@ class Agent(MESComponentBase):
         reminder_message = message.get_payload()["reminder_message"]
         seconds_to_reminder = message.get_payload()["seconds_to_reminder"]
         self.reminder(seconds_to_reminder, reminder_message)
-
-
 
     # def __setattr__(self, key, value):
     #     """ho2

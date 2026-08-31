@@ -3,7 +3,6 @@ import types
 import uuid
 
 
-
 class Experiment:
     treatments = []  # list to store different experiment treatments
 
@@ -11,19 +10,15 @@ class Experiment:
         if debug:
             print("Initialized")
         self.name = name
-        self.experiment_running = (
-            False  # TODO: This needs to have various possible states
-        )
+        self.experiment_running = False
         self.experiment_state = None
         self.treatment_assignment = None
 
         self.treatments = {}
-        self.users = {}  # TODO(@messiest) change users to subjects IN the environment
+        self.users = {}
         self.user_state = None
 
-        self.experiment_running = (
-            False  # TODO: This needs to have various possible states
-        )
+        self.experiment_running = False
 
         self.willow_response = None
 
@@ -37,7 +32,7 @@ class Experiment:
         self.scheduler = None
 
         self.logger = open(
-            "{}.csv".format(self.name), "a"
+            f"{self.name}.csv", "a"
         )  # need to come up with stable naming
         self.logger.flush()
 
@@ -89,9 +84,7 @@ class Experiment:
         self.sid = sid
         # self.response = response.Response().set_user_id(user_id)
 
-    def remove_user(
-        self, sid
-    ):  # TODO(@messiest) remove print statements after completion
+    def remove_user(self, sid):
 
         # print("\nBefore: %s" % str(self.users))
 

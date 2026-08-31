@@ -2,8 +2,9 @@ import hashlib
 import random
 from datetime import datetime
 
-from mTree.simulation.configuration import Configuration
 from pydantic import BaseModel, computed_field
+
+from mTree.simulation.configuration import Configuration
 
 
 class Iteration(BaseModel):
@@ -23,7 +24,7 @@ class Iteration(BaseModel):
 
     @computed_field
     @property
-    def run_code(self) -> float:  # TODO Change to iteration code
+    def run_code(self) -> float:
         hash_basis = (
             str(self.configuration.name)
             + "-"

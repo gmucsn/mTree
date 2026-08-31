@@ -1,16 +1,12 @@
 class PlayerController:  # was originally the SubjectController()
-    def __init__(
-        self, player, data=None, title=None
-    ):  # TODO(@messiest) Rethink what's needed for init...
+    def __init__(self, player, data=None, title=None):
         self.player = player
         self.subject = self.player.subject
         self.user = self.player.user
         self.user_id = self.user.user_id
         self.experiment = self.player.experiment
         try:
-            self.session = (
-                self.player.institution.environment.period.session
-            )  # TODO(@messiest) Do this in a less hacky way
+            self.session = self.player.institution.environment.period.session
         except:
             pass
         self.recorder = self.experiment.recorder
@@ -41,7 +37,7 @@ class PlayerController:  # was originally the SubjectController()
             self.total_periods = 1
 
         if data:
-            print("Data: {}".format(data))
+            print(f"Data: {data}")
         # self.recorder("PLAYER CONTROLLER", self.__class__.__name__, self.user_id)
         # self.initializer(data)  # I don't believe this needs to be passed data...
         self.initializer()
@@ -65,7 +61,7 @@ class PlayerController:  # was originally the SubjectController()
                 # print("LETTING: " + str(self.user) + " -- " + str(self.outlets[key]) + " -- " + str(value))
 
                 self.response.let_user(self.user_id, self.outlets[key], value)
-                # TODO(@messiest) Figure out if this is needed...
+
                 """if flask.has_app_context():
                     self.response.let_user(self.user, self.outlets[key], value)
                 else:
@@ -106,7 +102,5 @@ class PlayerController:  # was originally the SubjectController()
         output = ",".join(str(arg) for arg in args)
         self.recorder(self.__class__.__name__, output)
 
-    def exit_experiment(
-        self, data
-    ):  # TODO(@messiest) Why does this method not fire with the button press??
+    def exit_experiment(self, data):
         print("Exit Experiment")

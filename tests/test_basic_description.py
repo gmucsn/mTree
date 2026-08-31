@@ -1,8 +1,9 @@
 import json
 
 import pytest
-from mTree.simulation.description import SimulationDescription
 from pydantic import ValidationError
+
+from mTree.simulation.description import SimulationDescription
 
 
 @pytest.fixture(scope="function")

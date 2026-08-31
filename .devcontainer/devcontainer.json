@@ -4,12 +4,16 @@
     "customizations": {
       "vscode": {
         "extensions": [
-          "dbaeumer.vscode-eslint", 
-          "ms-python.isort",
-          "ms-python.python",
-          "ms-python.vscode-pylance",
-          "ms-python.black-formatter",
-          "charliermarsh.ruff"]
+            "dbaeumer.vscode-eslint",
+            "ms-python.isort",
+            "ms-python.python",
+            "ms-python.vscode-pylance",
+            "ms-python.black-formatter",
+            "charliermarsh.ruff",
+            "FanaticPythoner.better-todo-tree",
+            "njpwerner.autodocstring",
+            "rodolphebarbanneau.python-docstring-highlighter"
+        ]
       }
     },
 

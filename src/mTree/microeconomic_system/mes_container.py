@@ -7,9 +7,9 @@ from thespian.actors import *
 from thespian.initmsgs import initializing_messages
 
 from mTree.core_actors.admin_message import AdminMessage
-from mTree.microeconomic_system.address_book import (AddressBook,
-                                                     ComponentAddress)
+from mTree.microeconomic_system.address_book import AddressBook, ComponentAddress
 from mTree.microeconomic_system.directive_decorators import *
+
 # from mTree.microeconomic_system.admin_message import AdminMessage
 from mTree.microeconomic_system.initialization_messages import *
 from mTree.microeconomic_system.log_actor import LogActor
@@ -26,11 +26,10 @@ from mTree.simulation.iteration import Iteration
     initdone="prepare_mes_container",
 )
 class MESContainer(Actor):
-
     def prepare_mes_container(self):
         # Sets the Iteration object for easy access
         self.iteration = self._mes_container_configuration.mes_configuration_payload
-        
+
         # Set the Configuration object for easy access
         self.configuration = (
             self._mes_container_configuration.mes_configuration_payload.configuration
@@ -42,9 +41,15 @@ class MESContainer(Actor):
             self.human_subject_configuration = self.iteration
             nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
             simulation_run_id = (
-                self.human_subject_configuration.configuration.name + "-" + nowtime_filename
-            )  
-            self.iteration = Iteration(simulation_run_id=simulation_run_id, configuration=self.human_subject_configuration.configuration, iteration_number=1)
+                self.human_subject_configuration.configuration.name
+                + "-"
+                + nowtime_filename
+            )
+            self.iteration = Iteration(
+                simulation_run_id=simulation_run_id,
+                configuration=self.human_subject_configuration.configuration,
+                iteration_number=1,
+            )
             self.subject_ids = self.human_subject_configuration.subject_ids
             self.subject_ids.remove("admin")
         self.iteration_id = self.iteration.iteration_id
@@ -62,19 +67,14 @@ class MESContainer(Actor):
             self._mes_container_configuration.mes_configuration_payload.configuration
         )
         self.mes_directory = self.simulation_configuration.mes_directory
-        self.global_properties = (
-            self._mes_container_configuration.mes_configuration_payload.configuration.properties
-        )
+        self.global_properties = self._mes_container_configuration.mes_configuration_payload.configuration.properties
         if type(self.human_subject_configuration) == HumanSubjectRun:
-            self.dispatcher = (
-                self._mes_container_configuration.dispatcher
-            )
+            self.dispatcher = self._mes_container_configuration.dispatcher
         else:
             self.dispatcher = (
                 self._mes_container_configuration.mes_configuration_payload.dispatcher
             )
 
-        
         self.source_hash = self.simulation_configuration.source_hash
         self.iteration_number = None
 
@@ -98,7 +98,6 @@ class MESContainer(Actor):
         #     self._mes_container_configuration.mes_configuration_payload.configuration.data_logging
         # )
 
-        # TODO fix subjects
         # if (
         #     "subjects"
         #     in self._mes_container_configuration.mes_configuration_payload.keys()
@@ -226,12 +225,10 @@ class MESContainer(Actor):
         ):
             order = index + 1
             if "number" in institution_configuration.properties.keys():
-
                 num_institutions = institution_configuration["number"]
                 for i in range(num_institutions):
                     self.create_institution(institution_configuration, i + 1)
             else:
-
                 self.create_institution(institution_configuration)
 
     def create_institution(self, institution_configuration, number=None):
@@ -359,7 +356,9 @@ class MESContainer(Actor):
         for agent_index, agent_configuration in enumerate(agents):
             if self.human_subject_configuration is not None:
                 if agent_index < len(self.human_subject_configuration.subject_ids):
-                    agent_configuration["subject_id"] = self.human_subject_configuration.subject_ids[agent_index]
+                    agent_configuration["subject_id"] = (
+                        self.human_subject_configuration.subject_ids[agent_index]
+                    )
             self.create_agent(agent_configuration)
 
     def create_agent(self, agent_configuration):
@@ -432,7 +431,9 @@ class MESContainer(Actor):
             if self.human_subject_configuration is not None:
                 if i < len(self.human_subject_configuration.subject_ids):
                     agent_initialization.subject_id = self.subject_ids[i]
-                    self.subject_map[self.human_subject_configuration.subject_ids[i]] = new_agent
+                    self.subject_map[
+                        self.human_subject_configuration.subject_ids[i]
+                    ] = new_agent
 
             self.send(new_agent, agent_initialization)
 
@@ -611,7 +612,6 @@ class MESContainer(Actor):
     def receiveMessage(self, message, sender):
         if not isinstance(message, ActorSystemMessage):
             if isinstance(message, Message):
-
                 if message.get_directive() == "excepted_mes":
                     logging.info(
                         "RECEVIED AN EXCEPTION REQUEST:" + str(message.get_payload())

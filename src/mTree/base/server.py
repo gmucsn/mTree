@@ -6,29 +6,18 @@ from logging.handlers import RotatingFileHandler
 import eventlet
 import jinja2
 from apscheduler.triggers.interval import IntervalTrigger
-from flask import (
-    Flask,
-    render_template,
-    request,
-    send_from_directory,
-)
+from flask import Flask, render_template, request, send_from_directory
 from flask_apscheduler import APScheduler
 from flask_basicauth import BasicAuth
 from flask_socketio import SocketIO, emit, join_room
 from jinja2 import Environment, FileSystemLoader
+
 from mTree.base.response import Response
 
 eventlet.monkey_patch()
 
 
-
-
-
-
-
-
-
-class Server(object):
+class Server:
     app = None
 
     def __init__(self):
@@ -127,9 +116,7 @@ class Server(object):
                     "subject_base.html", async_mode=self.socketio.async_mode
                 )
 
-        @self.app.route(
-            "/<string:experiment_id>/<request_page>"
-        )  # TODO(@skunath) This is where it's failing. What's happening?
+        @self.app.route("/<string:experiment_id>/<request_page>")
         def pageHandler(template):
             return render_template(template)
 
@@ -206,7 +193,7 @@ class Server(object):
             user_id = self.experiment.create_user(request.sid)
 
             join_room(user_id)
-            print("\nCONNECTED\nUser: {}\n\n".format(user_id))
+            print(f"\nCONNECTED\nUser: {user_id}\n\n")
 
             self.experiment.user_objects[
                 user_id
@@ -219,9 +206,7 @@ class Server(object):
         @self.socketio.on("disconnect", namespace="/subject")
         def subject_disconnect():
             print("CLIENT DISCONNECTED")
-            self.experiment.remove_user(
-                request.sid
-            )  # TODO(@messiest) Think of a better way to remove users
+            self.experiment.remove_user(request.sid)
 
 
 if __name__ == "__main__":

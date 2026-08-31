@@ -1,13 +1,12 @@
 import atexit
 import os
 import sys
+
 # from thespian.actors import *
 from subprocess import Popen
 
 import pyfiglet
 from mTree.server.actor_system_connector import ActorSystemConnector
-# from mTree.runner.runner import Runner
-from mTree.server.actor_system_startup import ActorSystemStartup
 from mTree.utilities.mtree_run_simulation_screen import MTreeRunSimulationScreen
 from mTree.utilities.mtree_system_status_screen import MTreeSystemStatusScreen
 from rich import print
@@ -25,10 +24,10 @@ from textual.widgets import (
     Static,
 )
 
+# from mTree.runner.runner import Runner
+from mTree.server.actor_system_startup import ActorSystemStartup
+
 # import subprocess
-
-
-
 
 
 @atexit.register
@@ -76,7 +75,7 @@ def configuration_files():
 def load_config_file(config_file):
     config_directory = os.path.join(os.getcwd(), "config")
     read_file = ""
-    with open(os.path.join(config_directory, config_file), "r") as i:
+    with open(os.path.join(config_directory, config_file)) as i:
         read_file = i.read()
 
     return read_file
@@ -175,7 +174,6 @@ class Simulations(Static):
         # )
 
 
-
 title = pyfiglet.figlet_format("mTree Console", font="slant")
 # print(f'[magenta]{title}[/magenta]')
 
@@ -191,7 +189,6 @@ class Window(Container):
 
 
 class LabelItem(ListItem):
-
     def __init__(self, label: str) -> None:
         super().__init__()
         self.label = label
@@ -201,7 +198,6 @@ class LabelItem(ListItem):
 
 
 class SimulationsScreen(Screen):
-
     def compose(self) -> ComposeResult:
         with Container(id="app-grid"):
             with VerticalScroll(id="left-pane"):
@@ -232,8 +228,6 @@ class HelpScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Placeholder("Help Screen")
         yield Footer()
-
-
 
 
 class MTreeConsole(App):
@@ -276,7 +270,6 @@ class MTreeConsole(App):
 def main():
     # Set Thespian log file location so we can track issues...
     os.environ["THESPLOG_FILE"] = os.path.join(os.getcwd(), "thespian.log")
-    # TODO Fix and make this selectable from the command line
     os.environ["THESPLOG_THRESHOLD"] = "DEBUG"
 
     background_actor_py = os.path.join(
@@ -304,5 +297,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()

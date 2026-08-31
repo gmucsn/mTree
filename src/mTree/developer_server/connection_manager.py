@@ -1,16 +1,17 @@
 import json
 from pathlib import Path
-from typing import List, Literal, Union
 
 import yaml
 from fastapi import WebSocket
 from pydantic import BaseModel, Field
 
 from mTree.simulation.configuration import Configuration
-from mTree.simulation.human_subject_experiment_message import \
-    HumanSubjectExperimentMessage
-from mTree.simulation.human_subject_experiment_startup import \
-    HumanSubjectExperimentStartup
+from mTree.simulation.human_subject_experiment_message import (
+    HumanSubjectExperimentMessage,
+)
+from mTree.simulation.human_subject_experiment_startup import (
+    HumanSubjectExperimentStartup,
+)
 from mTree.system.actor_system_connector import ActorSystemConnector
 from mTree.system.actor_system_controller import ActorSystemController
 from mTree.system.actors.websocket_actor import Start_Websocket, WebsocketActor
@@ -26,10 +27,7 @@ subject_connection_update = """<turbo-stream action="replace" target="messages">
 
 class MtreeExperimentConfigFile(BaseModel):
     admin_password: str = Field(min_length=1)
-    subject_ids: List[str] = Field(min_length=1)
-
-
-
+    subject_ids: list[str] = Field(min_length=1)
 
 
 class ConnectionManager:
@@ -38,7 +36,7 @@ class ConnectionManager:
     _experiment_configuration = None
     _simulation_configuration = None
     _yaml_content = None
-    _experiment_configuration_yaml:Configuration = None
+    _experiment_configuration_yaml: Configuration = None
     _subject_list = []
     _admin_password = "password"
 
@@ -75,14 +73,16 @@ class ConnectionManager:
     def load_mtree_experiment_config(self):
         experiment_directory = Path.cwd()
 
-        with open(experiment_directory / "mtree_experiment_config.yaml", "r") as f:
-            self._yaml_content = f.read() 
+        with open(experiment_directory / "mtree_experiment_config.yaml") as f:
+            self._yaml_content = f.read()
         self._experiment_configuration_yaml = yaml.safe_load(self._yaml_content)
         self._experiment_configuration = MtreeExperimentConfigFile.model_validate(
             self._experiment_configuration_yaml
         )
-        # TODO Fix the reference to the configuration file
-        self._simulation_configuration = Configuration.load_from_file(experiment_directory / "config" / "basic_human_subject_auction.yaml")
+
+        self._simulation_configuration = Configuration.load_from_file(
+            experiment_directory / "config" / "basic_human_subject_auction.yaml"
+        )
 
         self._subject_list = self._experiment_configuration.subject_ids
         self._admin_password = self._experiment_configuration.admin_password
@@ -189,7 +189,7 @@ class ConnectionManager:
             self._instance.active_connections.remove(websocket)
         except:
             pass
-        
+
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
 
@@ -205,14 +205,18 @@ class ConnectionManager:
             message str string to send to the websocket actor
 
         """
-        
+
         final_message = json.loads(message)
         if "message_kind" in final_message.keys():
-            if final_message["message_kind"]== "hotwire_message":
+            if final_message["message_kind"] == "hotwire_message":
                 hotwire_message = {"message": final_message["content"]}
-                await self._instance.connection_map[final_message["destination"]]["ws"].send_text(json.dumps(hotwire_message))
+                await self._instance.connection_map[final_message["destination"]][
+                    "ws"
+                ].send_text(json.dumps(hotwire_message))
         else:
-            await self._instance.connection_map[final_message["destination"]]["ws"].send_text(json.dumps(final_message))
+            await self._instance.connection_map[final_message["destination"]][
+                "ws"
+            ].send_text(json.dumps(final_message))
         # if self._instance.actor_system_ws_connection is not None:
         #     await self._instance.actor_system_ws_connection.send_text(message)
 
@@ -229,13 +233,28 @@ class ConnectionManager:
             match message["action"]:
                 case "start_experiment":
                     # Load the current MES into the system
-                    source_hash = ActorSystemConnector.load_base_mes(self._instance._simulation_configuration.mes_directory)
+                    source_hash = ActorSystemConnector.load_base_mes(
+                        self._instance._simulation_configuration.mes_directory
+                    )
                     self._instance._simulation_configuration.source_hash = source_hash
-                    startup = HumanSubjectExperimentStartup(configuration=self._instance._simulation_configuration, subject_ids=self._instance.connection_map.keys(), source_hash=source_hash)
-                    final_message = HumanSubjectExperimentMessage(action="start_experiment", source="admin", destination="admin", payload=startup)
-                    await self._instance.actor_system_ws_connection.send_text(final_message.model_dump_json())
-    
-    async def route_actor_system_destination_message_from_subject(self, subject_id: str, message_content: str):
+                    startup = HumanSubjectExperimentStartup(
+                        configuration=self._instance._simulation_configuration,
+                        subject_ids=self._instance.connection_map.keys(),
+                        source_hash=source_hash,
+                    )
+                    final_message = HumanSubjectExperimentMessage(
+                        action="start_experiment",
+                        source="admin",
+                        destination="admin",
+                        payload=startup,
+                    )
+                    await self._instance.actor_system_ws_connection.send_text(
+                        final_message.model_dump_json()
+                    )
+
+    async def route_actor_system_destination_message_from_subject(
+        self, subject_id: str, message_content: str
+    ):
         """
         Send a message to the websocket actor inside the actor system destined for a subject
 
@@ -246,6 +265,12 @@ class ConnectionManager:
         """
         if self._instance.actor_system_ws_connection is not None:
             message = json.loads(message_content)
-            final_message = HumanSubjectExperimentMessage(action="send_to_agent", source=f"{subject_id}", destination=f"{subject_id}", payload=message)
-            await self._instance.actor_system_ws_connection.send_text(final_message.model_dump_json())
-                    
+            final_message = HumanSubjectExperimentMessage(
+                action="send_to_agent",
+                source=f"{subject_id}",
+                destination=f"{subject_id}",
+                payload=message,
+            )
+            await self._instance.actor_system_ws_connection.send_text(
+                final_message.model_dump_json()
+            )

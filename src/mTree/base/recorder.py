@@ -10,11 +10,9 @@ class Recorder:
 
     class __Recorder:
         def __init__(self, args):
-            self.file = None  # TODO(@messiest) use class method to set this...
-            self.path = "data/"  # TODO(@messiest) think of how this can be set...
-            self.logger = open(
-                self.path + "experiment_log.csv", "a"
-            )  # TODO(@messiest) How are file names going to be handled?
+            self.file = None
+            self.path = "data/"
+            self.logger = open(self.path + "experiment_log.csv", "a")
             self.logger.flush()
             self.write(args)
 
@@ -24,7 +22,7 @@ class Recorder:
         def write(self, args):
             output = str(datetime.datetime.now())
             for arg in args:
-                output += ", {}".format(arg)
+                output += f", {arg}"
             self.logger.write(output + "\n")
             self.logger.flush()
 

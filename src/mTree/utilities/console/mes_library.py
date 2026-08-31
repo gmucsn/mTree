@@ -1,19 +1,13 @@
 import os
 
-# from thespian.actors import *
-
-from mTree.system.actor_system_connector import ActorSystemConnector
-from mTree.system.mes_simulation_library import MESSimulationLibrary
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.timer import Timer
-from textual.widgets import (
-    Button,
-    Footer,
-    SelectionList,
-    Static,
-    Tree,
-)
+from textual.widgets import Button, Footer, SelectionList, Static, Tree
+
+# from thespian.actors import *
+from mTree.system.actor_system_connector import ActorSystemConnector
+from mTree.system.mes_simulation_library import MESSimulationLibrary
 
 # from textual.widgets.option_list import Option, Separator
 
@@ -23,6 +17,8 @@ from textual.widgets import (
 
 
 # import subprocess
+
+# TODO build tests and modularize
 
 
 def run_simulation_from_configurations(config_dir, configurations):

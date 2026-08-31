@@ -5,9 +5,7 @@ class Subject:
         self.pay = 0.0  # total dollar amount the subject has earned in the experiment
         self.experiment = experiment  # the experiment the subject is attached to
         self.recorder = self.experiment.recorder
-        self.session = (
-            None  # TODO(@messiest) Find a way to associate a subject with a session...
-        )
+        self.session = None
         self.assigned = (
             False  # whether the subject is currently assigned to an institution
         )
@@ -36,7 +34,7 @@ class Subject:
 
     def get_pay(self, debug=False):
         if debug:
-            print("Subject {} Pay: {}".format(self.id, self.pay))
+            print(f"Subject {self.id} Pay: {self.pay}")
         return self.pay
 
     def record(self, *args):

@@ -4,10 +4,11 @@ import traceback
 from datetime import timedelta
 
 import dill
+from thespian.actors import *
+
 from mTree.microeconomic_system.log_message import LogMessage
 from mTree.microeconomic_system.message_space import Message
 from mTree.microeconomic_system.probe_messages import ProbeMessage
-from thespian.actors import *
 
 
 def is_jsonable(x):
@@ -71,7 +72,6 @@ class MESComponentBase(Actor):
             if type(seconds_to_reminder) is timedelta:
                 self.wakeupAfter(seconds_to_reminder, payload=message)
             else:
-                # TODO if not seconds then reject
                 self.wakeupAfter(
                     timedelta(seconds=seconds_to_reminder), payload=message
                 )
@@ -261,7 +261,7 @@ class MESComponentBase(Actor):
                         wakeup_message.get_directive()
                     )
                     directive_handler(self, wakeup_message)
-                except Exception as e:
+                except Exception:
                     error_type, error, tb = sys.exc_info()
                     error_message = "MES AGENT CRASHING WAKING UP- EXCEPTION FOLLOWS \n"
                     error_message += "\tSource Message: " + str(message) + "\n"
@@ -309,7 +309,7 @@ class MESComponentBase(Actor):
                     #     )
                     # except:
                     #     pass
-                except Exception as e:
+                except Exception:
                     self.exception_logging_handler()
             case ActorExitRequest():
                 return

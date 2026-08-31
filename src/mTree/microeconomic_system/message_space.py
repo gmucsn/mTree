@@ -1,7 +1,7 @@
 from mTree.microeconomic_system.message import Message
 
 
-class MessageSpace(object):
+class MessageSpace:
     def __init__(self, message_type):
         self.message_type = message_type
         self.message_action = None
@@ -30,7 +30,7 @@ class MessageSpace(object):
         message = Message(
             sender="Environment", recipients="Institution", directive="agent_list"
         )
-        message.set_payload(agent_list)  # TODO include the payoad in the message init
+        message.set_payload(agent_list)
         return message
 
     @classmethod

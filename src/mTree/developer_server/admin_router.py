@@ -17,7 +17,7 @@ templates = Jinja2Templates(directory=templates_folder)
 
 @admin_router.get("", tags=["experiment admin"])
 async def admin_dashboard(request: Request):
-    # TODO replace password check
+
     return templates.TemplateResponse(
         "admin_base.html", {"request": request, "manager": manager._instance}
     )
@@ -58,8 +58,10 @@ async def experiment_websocket_endpoint(websocket: WebSocket):
     try:
         await websocket.send_json({"msg": "Connected to admin router"})
         while True:
-            data = await websocket.receive_text() # receiving the next message from the websocket connection to the admin browser
-            await manager.route_actor_system_destination_message(data) # send the message along to the actor system
+            data = await websocket.receive_text()  # receiving the next message from the websocket connection to the admin browser
+            await manager.route_actor_system_destination_message(
+                data
+            )  # send the message along to the actor system
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 

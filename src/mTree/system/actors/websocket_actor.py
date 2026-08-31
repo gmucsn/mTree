@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import datetime
 import json
 import logging as log
@@ -14,12 +12,12 @@ from websocket import ABNF
 
 from mTree.microeconomic_system.message import Message
 from mTree.simulation.configuration import Configuration
-from mTree.simulation.human_subject_experiment_message import \
-    HumanSubjectExperimentMessage
+from mTree.simulation.human_subject_experiment_message import (
+    HumanSubjectExperimentMessage,
+)
 from mTree.simulation.human_subject_run import HumanSubjectRun
 from mTree.simulation.library import Library
 from mTree.simulation.run import Run
-from mTree.system.actors.dispatcher_actor import DispatcherActor
 
 # Message to send to open the connection
 Start_Websocket = namedtuple("Start_Websocket", "ws_addr start_msg upstream")
@@ -34,8 +32,6 @@ Websocket_Input = namedtuple("Websocket_Input", "msg")
 MAX_MSGS_PER_READ = 50
 
 
-# TODO need to out ws message outflow
-
 class CommandHandler:
     def __init__(self):
         self.experiment = None
@@ -45,9 +41,7 @@ class CommandHandler:
 
         run_message = Message()
         run_message.set_directive("simulation_configurations")
-        
-        
-        
+
         filepath = "/workspaces/mTree/examples/human_subject_auction/config/basic_human_subject_auction.yaml"
         configuration = Library.load_configuration_from_path(filepath)
         config_base_name = os.path.basename(filepath).split(".")[0]
@@ -90,10 +84,11 @@ class WebsocketActor(Actor):
         self.ws = None
         self.subject_to_actor_mapping = {}
 
-
     def message_handler(self, str_origin_message: str):
         log.info(f"WS Message received: {str_origin_message}")
-        ws_origin_message = HumanSubjectExperimentMessage.model_validate_json(str_origin_message)
+        ws_origin_message = HumanSubjectExperimentMessage.model_validate_json(
+            str_origin_message
+        )
         log.info(f"WS loaded Message received: {ws_origin_message}")
         match ws_origin_message.action:
             case "start_experiment":
@@ -102,9 +97,15 @@ class WebsocketActor(Actor):
                 run_message = Message()
                 run_message.set_directive("human_subject_configuration")
                 nowtime_filename = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-                configuration = Configuration.model_validate(ws_origin_message.payload["configuration"])
+                configuration = Configuration.model_validate(
+                    ws_origin_message.payload["configuration"]
+                )
                 simulation_run_id = configuration.name + "-" + nowtime_filename
-                run = HumanSubjectRun(configuration=configuration, simulation_run_id=simulation_run_id, subject_ids=ws_origin_message.payload["subject_ids"])
+                run = HumanSubjectRun(
+                    configuration=configuration,
+                    simulation_run_id=simulation_run_id,
+                    subject_ids=ws_origin_message.payload["subject_ids"],
+                )
                 run_message.set_payload(run)
                 self.send(
                     dispatcher, run_message
@@ -112,7 +113,9 @@ class WebsocketActor(Actor):
             case "send_to_subject":
                 self.ws.send(m.start_msg)
             case "send_to_agent":
-                agent_address = self.subject_to_actor_mapping[ws_origin_message.destination]
+                agent_address = self.subject_to_actor_mapping[
+                    ws_origin_message.destination
+                ]
                 payload = ws_origin_message.payload
                 new_message = Message()  # declare message
                 new_message.set_sender(
@@ -122,20 +125,13 @@ class WebsocketActor(Actor):
                     payload["directive"]
                 )  # Set the directive (refer to 3. Make Messages) - has to match receiver decorator
                 new_message.set_payload(payload)
-                self.send(
-                    agent_address, new_message
-                )
-                
-
-            
-        
+                self.send(agent_address, new_message)
 
     def check_websocket(self):
         msgs = 0
         events = self.epoll.poll(0)
         while events and msgs < MAX_MSGS_PER_READ:
             for fileno, event in events:
-
                 if not (event & select.EPOLLIN):
                     self.send(self.myAddress, ActorExitRequest())
                 op_code, frame = self.ws.recv_data_frame(True)
@@ -223,26 +219,26 @@ class WebsocketActor(Actor):
                 final_message = {
                     "destination": subject_id,
                     "message_kind": "hotwire_message",
-                    "content": final_hotwire_message
+                    "content": final_hotwire_message,
                 }
- 
+
                 self.ws.send_text(json.dumps(final_message))
             case _:
                 pass
-        
 
     def receiveMessage(self, m, sender):
         # try:
-            handler = {
-                WakeupMessage: self.receiveMsg_WakeupMessage,
-                Start_Websocket: self.receiveMsg_Start_Websocket,
-                Websocket_Input: self.receiveMsg_Websocket_Input,
-                ActorExitRequest: self.receiveMsg_ActorExitRequest,
-                HumanSubjectExperimentMessage: self.receiveMsg_HumanSubjectExperimentMessage,
-            }.get(type(m), None)
-            if handler is None:
-                log.error("Unhandled message %r from %r", m, sender)
-                return
-            handler(m, sender)
-        # except:
-        #     pass
+        handler = {
+            WakeupMessage: self.receiveMsg_WakeupMessage,
+            Start_Websocket: self.receiveMsg_Start_Websocket,
+            Websocket_Input: self.receiveMsg_Websocket_Input,
+            ActorExitRequest: self.receiveMsg_ActorExitRequest,
+            HumanSubjectExperimentMessage: self.receiveMsg_HumanSubjectExperimentMessage,
+        }.get(type(m), None)
+        if handler is None:
+            log.error("Unhandled message %r from %r", m, sender)
+            return
+        handler(m, sender)
+
+    # except:
+    #     pass

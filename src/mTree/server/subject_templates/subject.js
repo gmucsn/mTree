@@ -62,7 +62,7 @@ var socket = "";
 
          decorate($("#" + msg["new_div_id"]));
 
-        //TODO flag for append/prepend
+        
     }
 
     function del_content(item, msg){

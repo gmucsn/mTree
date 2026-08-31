@@ -1,25 +1,27 @@
-import socketio
 import os
 
+import socketio
+
 from mTree.components import registry
+from mTree.development.subject_directory import SubjectDirectory
+
 # from mTree.server.component_registrar import ComponentRegistrar
 from mTree.server.configuration_scanner import ConfigurationScanner
 from mTree.server.simulation_controller import SimulationController
 from mTree.server.subject_pool import SubjectPool
-from mTree.development.subject_directory import SubjectDirectory
 
-
-sio=socketio.AsyncServer(cors_allowed_origins='*',async_mode='asgi')
+sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="asgi")
 SubjectPool().register_flask_outlet(sio)
+
 
 @sio.on("connect")
 async def connect(sid, env):
-    print("New Client Connected to This id :"+" "+str(sid))
+    print("New Client Connected to This id :" + " " + str(sid))
+
 
 @sio.on("disconnect")
 async def disconnect(sid):
-    print("Client Disconnected: "+" "+str(sid))
-
+    print("Client Disconnected: " + " " + str(sid))
 
 
 class SubjectNamespace(socketio.AsyncNamespace):
@@ -27,10 +29,9 @@ class SubjectNamespace(socketio.AsyncNamespace):
         self.subject_pool = SubjectPool()
         super(socketio.AsyncNamespace, self).__init__(namespace)
 
-
     async def on_connect(self, sid, environ):
         self.subject_pool.attempt_add(sid)
-        await self.emit('hello', {})
+        await self.emit("hello", {})
 
     def on_disconnect(self, sid, reason):
         self.subject_pool.attempt_remove(sid)
@@ -53,7 +54,7 @@ class SubjectNamespace(socketio.AsyncNamespace):
             # await self.join_room("all_subjects")
             await self.enter_room(sid, payload["subject_id"])
             await self.enter_room(sid, "all_subjects")
-            
+
             await self.emit(
                 "subject_message",
                 {"response": "Another Subject Connected "},
@@ -81,7 +82,6 @@ class SubjectNamespace(socketio.AsyncNamespace):
                         to="admin",
                     )
 
-            # TODO for 
             # actor_system = ActorSystemConnector()
             # actor_system.send_agent_action(json)
 
@@ -91,11 +91,10 @@ class AdminNamespace(socketio.AsyncNamespace):
         self.admin_sid = None
         self.component_registry = registry.Registry()
         self.subject_pool = SubjectPool()
-        
+
         self.configuration_scanner = ConfigurationScanner()
         super(socketio.AsyncNamespace, self).__init__(namespace)
         # self.subject_pool.register_flask_outlet(self)
-        
 
     async def on_connect(self, sid, environ):
         # self.subject_pool.attempt_add(request.sid)
@@ -148,18 +147,15 @@ class AdminNamespace(socketio.AsyncNamespace):
         await self.emit("response", response)
 
 
-
 class DeveloperNamespace(socketio.AsyncNamespace):
     # def __init__(self, namespace=None):
     #     self.subject_pool = SubjectPool()
     #     super(socketio.AsyncNamespace, self).__init__(namespace)
 
-
     async def on_connect(self, sid, environ):
         await self.emit("subject_message", {"response": "connected"})
         # namespace="/developer",
         await self.emit("log_message", {"data": "Received by server."})
-        
 
     def on_disconnect(self, sid, reason):
         # self.subject_pool.attempt_remove(sid)
@@ -175,25 +171,24 @@ class DeveloperNamespace(socketio.AsyncNamespace):
         payload = json["payload"]
 
         if command == "developer_execute_ui_method":
-                await self.emit(
-                    "execute_method",
-                    payload,
-                    namespace="/subject",
-                    to="all_subjects",
-                )
+            await self.emit(
+                "execute_method",
+                payload,
+                namespace="/subject",
+                to="all_subjects",
+            )
         if command == "developer_display_ui":
-                ui_file = os.path.join(os.getcwd(), "ui", "seller_interface.html")
-                ui_content = None
-                with open(ui_file, "r") as t_file:
-                    ui_content = t_file.read()
-                
-                await self.emit(
-                    "display_ui",
-                    {"ui_content": ui_content},
-                    namespace="/subject",
-                    
-                    to="all_subjects",
-                )
+            ui_file = os.path.join(os.getcwd(), "ui", "seller_interface.html")
+            ui_content = None
+            with open(ui_file) as t_file:
+                ui_content = t_file.read()
+
+            await self.emit(
+                "display_ui",
+                {"ui_content": ui_content},
+                namespace="/subject",
+                to="all_subjects",
+            )
         if command == "register_admin":
             await self.enter_room(sid, "admin")
         if command == "start_subject_experiment":
@@ -212,17 +207,16 @@ class DeveloperNamespace(socketio.AsyncNamespace):
                 #     "display_ui",
                 #     {"ui_file": "seller_interface.html"},
                 # )
-                
+
                 ui_file = os.path.join(os.getcwd(), "ui", "seller_interface.html")
                 ui_content = None
-                with open(ui_file, "r") as t_file:
+                with open(ui_file) as t_file:
                     ui_content = t_file.read()
-                
+
                 await self.emit(
                     "display_ui",
                     {"ui_content": ui_content},
                     namespace="/subject",
-                    
                     to="all_subjects",
                 )
                 # self.send_to_subject("display_ui", {"ui_file": "seller_interface.html"})
@@ -242,6 +236,7 @@ class DeveloperNamespace(socketio.AsyncNamespace):
                 #     simulation["description"].to_hash(),
                 #     subject_directory.get_subjects(),
                 # )
+
 
 #         @self.socketio.on("disconnect")
 #         def test_disconnect():
@@ -298,8 +293,6 @@ class DeveloperNamespace(socketio.AsyncNamespace):
 #             )
 
 
-
-
-sio.register_namespace(SubjectNamespace('/subject'))
-sio.register_namespace(AdminNamespace('/admin'))
-sio.register_namespace(DeveloperNamespace('/developer'))
+sio.register_namespace(SubjectNamespace("/subject"))
+sio.register_namespace(AdminNamespace("/admin"))
+sio.register_namespace(DeveloperNamespace("/developer"))

@@ -1,4 +1,4 @@
-class Session:  # TODO(@messiest) There needs to be a way to set the number of players here...
+class Session:
     def __init__(self, experiment, name=None):
         self.experiment = experiment  # experiment the session is being run from
         self.recorder = self.experiment.recorder
@@ -23,7 +23,7 @@ class Session:  # TODO(@messiest) There needs to be a way to set the number of p
             self.subjects[subject.user_id] = subject
             subject.set_session(self)
         if debug:
-            print("SESSION: {}, SUBJECTS: {}".format(self, self.subjects))
+            print(f"SESSION: {self}, SUBJECTS: {self.subjects}")
 
     def close(self):
         for subject in self.subjects.values():

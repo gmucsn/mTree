@@ -1,7 +1,6 @@
 import json
 import uuid
 
-
 simulation_description_schema = {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
@@ -66,14 +65,14 @@ class MESSimulationDescription:
 
     def load_and_import_json(self, filename):
         configuration = None
-        with open(filename, "r") as f:
+        with open(filename) as f:
             configuration = json.load(f)
 
         self.import_json(configuration)
 
     def import_json(self, input_json):
         # try:
-        # TODO Fix configuration schema validation
+
         # currently there is an issue on the properties setup...
         # validate(instance=input_json, schema=simulation_description_schema)
         self.configure_from_json(input_json)

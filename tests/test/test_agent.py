@@ -2,6 +2,9 @@ import logging
 import os
 
 import pytest
+from thespian.actors import *
+from thespian.actors import ActorSystem
+
 from mTree.microeconomic_system.agent import Agent
 from mTree.microeconomic_system.directive_decorators import *
 from mTree.microeconomic_system.initialization_messages import (
@@ -10,8 +13,6 @@ from mTree.microeconomic_system.initialization_messages import (
 )
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.probe_messages import ProbeMessage
-from thespian.actors import *
-from thespian.actors import ActorSystem
 
 # from mTree.microeconomic_system.test import *
 
@@ -146,11 +147,9 @@ def test_starting_agent(actor_system):
 
 
 def test_preparing_agent(actor_system):
-    # TODO This will fail until the startup payload object becomes available
     agent = actor_system.createActor(Agent)
     # Test the prepare sequence of three messages
     actor_system.tell(agent, "start")
-    # TODO make fixture for generating startup payloads
     startup_payload = {}
     startup_payload["simulation_configuration"] = {}
     startup_payload["simulation_configuration"]["debug"] = ""
@@ -204,12 +203,10 @@ class TestAgent(Agent):
 
 
 def test_agent_new_directive(actor_system):
-    # TODO This will fail until the startup payload object becomes available
     agent = actor_system.createActor(TestAgent)
     # Test the prepare sequence of three messages
     actor_system.tell(agent, "start")
 
-    # TODO make fixture for generating startup payloads
     startup_payload = {}
     startup_payload["simulation_configuration"] = {}
     startup_payload["simulation_configuration"]["debug"] = ""
@@ -273,12 +270,10 @@ class TestRemindAgent(Agent):
 
 
 def test_agent_directive_with_remind(actor_system):
-    # TODO This will fail until the startup payload object becomes available
     agent = actor_system.createActor(TestRemindAgent)
     # Test the prepare sequence of three messages
     actor_system.tell(agent, "start")
 
-    # TODO make fixture for generating startup payloads
     startup_payload = {}
     startup_payload["simulation_configuration"] = {}
     startup_payload["simulation_configuration"]["debug"] = ""

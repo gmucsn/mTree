@@ -2,6 +2,9 @@ import logging
 import os
 
 import setproctitle
+from thespian.actors import *
+from thespian.initmsgs import initializing_messages
+
 from mTree.core_actors.admin_message import AdminMessage
 from mTree.microeconomic_system.address_book import AddressBook
 from mTree.microeconomic_system.directive_decorators import *
@@ -11,8 +14,6 @@ from mTree.microeconomic_system.mes_exceptions import *
 from mTree.microeconomic_system.message import Message
 from mTree.microeconomic_system.message_space import MessageSpace
 from mTree.simulation.component_initialization import ComponentInitialization
-from thespian.actors import *
-from thespian.initmsgs import initializing_messages
 
 
 @initializing_messages(
@@ -72,7 +73,6 @@ class Environment(MESComponentBase):
         log_basis["simulation_run_id"] = self.simulation_run_id
         log_basis["simulation_id"] = self.simulation_id
         log_basis["run_number"] = 1  # self.initialization_dict["simulation_run_number"]
-        # TODO Fix references
         # log_basis["run_code"] = self.initialization_dict["run_code"]
         # log_basis["status"] = self.initialization_dict["status"]
         # log_basis["mes_directory"] = self.initialization_dict["mes_directory"]
@@ -678,5 +678,5 @@ class Environment(MESComponentBase):
 
     def get_agents_wealth(self):
         message = MessageSpace.get_wealths()
-        print("Message: {}".format(message))
+        print(f"Message: {message}")
         # return asys.ask(self.institutions, message, timedelta(seconds=1.5))

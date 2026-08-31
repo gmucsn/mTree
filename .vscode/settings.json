@@ -11,8 +11,9 @@
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.fixAll": "explicit",
-            "source.organizeImports": "always"
+            "source.organizeImports": "explicit"
         }
     },
+    "better-todo-tree.tree.showBadges": false,
 
 }

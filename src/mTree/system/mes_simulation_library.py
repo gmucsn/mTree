@@ -7,7 +7,6 @@ from mTree.system.mes_simulation_description import MESSimulationDescription
 # from mTree.development.development_endpoints import simulation_library
 
 
-
 class MESSimulationLibrary:
     def __init__(self):
         self.simulations = []
@@ -57,7 +56,7 @@ class MESSimulationLibrary:
             description = None
             try:
                 description = MESSimulationDescription(filename=filename)
-            except Exception as e:
+            except Exception:
                 pass
                 # raise BadSimulationConfigurationFile(e, source_file=filename)
             if description is not None:
@@ -78,6 +77,5 @@ class MESSimulationLibrary:
         for simulation in self.simulations:
             if simulation["source_file"] == filename:
                 return simulation
-        # TODO fix
         return self.simulations[0]
         return None

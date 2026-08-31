@@ -1,4 +1,3 @@
-
 from jinja2 import Environment, FileSystemLoader
 
 
@@ -49,7 +48,6 @@ class Response:
         )
 
     def show_user(self, user_id, item_id):  # specifies which user to show the item to.
-        # TODO Change show_user() to show(), and show() to show_all()
         """
         Used to display content in the html field marked with the provided id. The content is defined in the html file.
         :param user_id: The user for which the content is displayed
@@ -93,7 +91,6 @@ class Response:
         )
 
     def add(self, user_id, item_id, html_content, add_instruction="append"):
-        # TODO: Change to add_content() for conformity
         """
         Creates a div tag in the html template, and populates it with the provided content.
         :param user_id: The id for the user that the content is being added to
@@ -117,7 +114,6 @@ class Response:
         )
 
     def delete_content(self, user_id, item_id):
-        # TODO(@skunath) This needs to delete the div, not the content within.
         # This can be done with document.getElementById("my-element").remove();
         """
         Used to remove html content within a div tag.
@@ -178,7 +174,7 @@ class Response:
             namespace=self.namespace,
         )
 
-    def let_all(self, item_id, content):  # TODO think of a more descriptive method name
+    def let_all(self, item_id, content):
         """
         Inserts the provided content in the html field marked with the provided id value on all users' screens.
         :param item_id: The id value for the html object

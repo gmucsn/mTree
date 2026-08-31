@@ -93,7 +93,11 @@ line-length = 88
 
 [tool.ruff.lint]
 # Enable specific rule categories (e.g., Pyflakes, Rule Errors, isort, Upgrades)
-select = ["F", "E", "W", "I", "UP"]
+#select = ["F", "E", "W", "I", "UP"]
+#[tool.ruff.lint]
+# Add extra rules (e.g., ANN for annotations, PTH for pathlib)
+extend-select = ["ANN", "PTH", "I", "T20", "D", "DOC", "W","I","UP", "B","SIM", "C4","ERA"]
+
 
 # Ignore pedantic rules that conflict with your coding style
 ignore = ["E501"]
@@ -103,4 +107,30 @@ dev = [
     "anyio>=4.13.0",
     "mtree",
     "pytest>=9.0.3",
+]
+
+
+
+[tool.pytest.ini_options]
+# Minimum version of pytest required
+minversion = "9.0"
+
+# Default command-line arguments (e.g., -ra: show extra test summary; -q: quiet mode)
+addopts = "-ra -q --tb=short"
+
+# Directories where pytest should look for tests
+testpaths = [
+    "tests",
+    "integration",
+]
+
+# Paths added to sys.path for test discovery and imports
+pythonpath = [
+    "."
+]
+
+# Register custom markers to avoid typos/warnings
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "serial",
 ]

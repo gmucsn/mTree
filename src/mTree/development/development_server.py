@@ -1,5 +1,6 @@
 import importlib
 import logging
+
 # from flask_sqlalchemy import SQLAlchemy
 import os
 import sys
@@ -7,29 +8,24 @@ from logging import Handler
 
 import jinja2
 from apscheduler.triggers.interval import IntervalTrigger
-from flask import (
-    Flask,
-    request,
-)
+from flask import Flask, request
 from flask_basicauth import BasicAuth
 from flask_socketio import SocketIO, emit, join_room
+from mTree.server.actor_system_connector import ActorSystemConnector
+from mTree.simulation.mes_simulation_library import MESSimulationLibrary
+
 from mTree.base.response import Response
 from mTree.components.registry import Registry
 from mTree.development.development_endpoints import development_area
 from mTree.development.mtree_configuration import MTreeConfiguration
 from mTree.development.subject_directory import SubjectDirectory
 from mTree.microeconomic_system.admin_message import AdminMessage
-from mTree.server.actor_system_connector import ActorSystemConnector
-from mTree.simulation.mes_simulation_library import MESSimulationLibrary
-from mTree.subject_interface.subject_endpoints import subject_area
 from mTree.server.subject_pool import SubjectPool
+from mTree.subject_interface.subject_endpoints import subject_area
+
 # eventlet.monkey_patch()
 
 # from gevent.pywsgi import WSGIServer
-
-
-
-
 
 
 # from mTree.microeconomic_system.subject_container import SubjectContainer
@@ -63,7 +59,7 @@ class MyFilter(logging.Filter):
         return 1
 
 
-class DevelopmentServer(object):
+class DevelopmentServer:
     app = None
 
     def __init__(self):
@@ -80,9 +76,6 @@ class DevelopmentServer(object):
             engineio_logger=False,
         )
         SubjectPool().register_flask_outlet(self.socketio)
-        ###
-        # TODO think about the log setup above
-        ###
         template_loader = jinja2.ChoiceLoader(
             [
                 self.app.jinja_loader,
@@ -167,7 +160,7 @@ class DevelopmentServer(object):
                 # return module
 
                 print(sys.modules[module_name])
-            except Exception as e:
+            except Exception:
                 pass
             # foo = importlib.util.module_from_spec(spec)
             # loader = importlib.util.LazyLoader(spec.loader)
@@ -360,7 +353,7 @@ class DevelopmentServer(object):
                 # get ui...
                 ui_file = os.path.join(os.getcwd(), "ui", data["payload"]["ui_file"])
                 ui_content = None
-                with open(ui_file, "r") as t_file:
+                with open(ui_file) as t_file:
                     ui_content = t_file.read()
                 emit(
                     "display_ui",
@@ -496,7 +489,7 @@ class DevelopmentServer(object):
         self.examine_directory()
         self.list_rules()
         # Flask Service Launch
-        # TODO think about log output here
+
         self.socketio.run(
             self.app,
             host="0.0.0.0",
